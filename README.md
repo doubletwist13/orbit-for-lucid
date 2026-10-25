@@ -18,6 +18,15 @@ without car wifi and 9-10 seconds with it, and a lock on an awake car took a sec
 tests against a single vehicle, and Lucid's cloud is known to vary wildly: expect results that are much faster or much
 slower, and don't read the difference between those two runs as meaningful.
 
+## Screenshots
+
+<p>
+  <img src="docs/images/watch.png" alt="Orbit on a Garmin Venu 3: 74% charge, locked, unplugged" width="260">
+  <img src="docs/images/phone.jpg" alt="The Orbit Android app with lock, unlock, climate and refresh buttons" width="260">
+</p>
+
+Left: the watch app on a Venu 3. Right: the phone app. The car's nickname is blurred out in the phone screenshot.
+
 ## Limitations
 
 - **One vehicle only.** The author owns a single Lucid (a US vehicle) and has not tried an account with more than one.

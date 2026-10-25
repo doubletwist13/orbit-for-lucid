@@ -47,7 +47,7 @@ Status fields are omitted from an error reply that has no state to show.
 | `auth` | Refresh token rejected; the user must log in on the phone | Open the phone app |
 | `offline` | Phone has no route to Lucid | No connection |
 | `rate` | Lucid is throttling (gRPC status 8) after retries | Try again in a minute |
-| `timeout` | Command accepted but the car did not confirm within about 90 s | No confirmation yet |
+| `timeout` | Command accepted but the car did not confirm within about 105 s | No confirmation yet |
 | `wake` | Car did not wake | Car did not wake |
 | `unknown` | Anything else | Something went wrong |
 

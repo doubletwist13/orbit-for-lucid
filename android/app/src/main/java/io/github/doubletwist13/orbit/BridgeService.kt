@@ -14,7 +14,7 @@ class BridgeService : Service() {
         getSystemService(NotificationManager::class.java)
             .createNotificationChannel(NotificationChannel("bridge", "Watch link", NotificationManager.IMPORTANCE_MIN))
         val n = Notification.Builder(this, "bridge")
-            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+            .setSmallIcon(R.drawable.ic_stat_orbit)
             .setContentTitle("Watch link active")
             .build()
         startForeground(1, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)

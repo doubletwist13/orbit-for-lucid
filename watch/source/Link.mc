@@ -17,7 +17,7 @@ const ERRORS = {"auth" => "Open the phone app", "offline" => "No connection", "r
 
 // Phone link per docs/protocol.md: caches the last reply, drops replies to superseded requests.
 class Link {
-    var state as Dictionary? = Application.Storage.getValue("s") as Dictionary?;
+    var state as Dictionary? = null;
     var pending as String? = null;
     var err as String? = null;
     private var _id as Number = 0;
@@ -26,7 +26,15 @@ class Link {
     private var _silence as Timer.Timer = new Timer.Timer();
 
     function initialize() {
+        state = cached();
         Communications.registerForPhoneAppMessages(method(:onMessage));
+    }
+
+    // a stored soc outside 0..100 (seen once as 255) is dropped so the screen shows "--" until fresh data arrives
+    private function cached() as Dictionary? {
+        var s = Application.Storage.getValue("s") as Dictionary?;
+        if (s != null && s["soc"] != null && (s["soc"] < 0 || s["soc"] > 100)) { s.remove("soc"); }
+        return s;
     }
 
     function send(cmd as String) as Void {

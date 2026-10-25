@@ -6,6 +6,7 @@ import Toybox.WatchUi;
 const GREEN = 0x00FF66;
 const DIM = 0x338855;
 const STALE_SECS = 1800;
+const CONFIRM = {"unlock" => "Unlock?", "climate_on" => "Climate on?", "climate_off" => "Climate off?"};
 
 class MainView extends WatchUi.View {
     function initialize() {
@@ -25,7 +26,7 @@ class MainView extends WatchUi.View {
         if (s != null && Time.now().value() - (s["ts"] as Number) >= STALE_SECS) {
             dc.setColor(DIM, Graphics.COLOR_BLACK);
         }
-        dc.drawText(cx, h * 0.42, Graphics.FONT_NUMBER_HOT, s == null ? "--" : s["soc"] + "%", mid);
+        dc.drawText(cx, h * 0.42, Graphics.FONT_NUMBER_HOT, s == null || s["soc"] == null ? "--" : s["soc"] + "%", mid);
         if (s != null) {
             dc.drawText(cx, h * 0.62, Graphics.FONT_SMALL, (s["locked"] ? "Locked" : "Unlocked") + " | " + charge(s),
                 mid);
@@ -76,21 +77,26 @@ class ActionDelegate extends WatchUi.Menu2InputDelegate {
     function onSelect(item as WatchUi.MenuItem) as Void {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
         var id = item.getId() as String;
-        if (id.equals("unlock")) {
-            WatchUi.pushView(new WatchUi.Confirmation("Unlock?"), new UnlockConfirm(), WatchUi.SLIDE_UP);
+        // lock and refresh are harmless or protective; unlock and climate change the car, so they ask first
+        var question = CONFIRM[id];
+        if (question != null) {
+            WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id), WatchUi.SLIDE_UP);
         } else {
             link().send(id);
         }
     }
 }
 
-class UnlockConfirm extends WatchUi.ConfirmationDelegate {
-    function initialize() {
+class CommandConfirm extends WatchUi.ConfirmationDelegate {
+    private var _cmd as String;
+
+    function initialize(cmd as String) {
         ConfirmationDelegate.initialize();
+        _cmd = cmd;
     }
 
     function onResponse(response as WatchUi.Confirm) as Boolean {
-        if (response == WatchUi.CONFIRM_YES) { link().send("unlock"); }
+        if (response == WatchUi.CONFIRM_YES) { link().send(_cmd); }
         return true;
     }
 }

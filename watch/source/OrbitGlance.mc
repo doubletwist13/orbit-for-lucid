@@ -23,7 +23,8 @@ class OrbitGlance extends WatchUi.GlanceView {
         if (s != null) {
             var secs = Time.now().value() - (s["ts"] as Number);
             var age = secs < 60 ? "now" : secs < 3600 ? secs / 60 + "m" : secs / 3600 + "h";
-            line = s["soc"] + "% " + (s["locked"] ? "Locked" : "Unlocked") + " | " + age;
+            var soc = s["soc"] as Number?;
+            line = (soc == null || soc < 0 || soc > 100 ? "--" : soc) + "% " + (s["locked"] ? "Locked" : "Unlocked") + " | " + age;
             // same 30 min cut-off as the main view
             if (secs >= 1800) { dc.setColor(0x338855, Graphics.COLOR_BLACK); }
         }

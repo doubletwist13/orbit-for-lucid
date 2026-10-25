@@ -18,6 +18,11 @@ class ControllerTest {
         assertFalse(r.values.any { it == "VIN-SECRET" || it == "nick" })
     }
 
+    @Test fun socOutsideZeroToHundredIsNotSent() {
+        assertFalse(watchReply(1, status.copy(socPercent = 255), null).containsKey("soc"))
+        assertEquals(0, watchReply(1, status.copy(socPercent = 0), null)["soc"])
+    }
+
     @Test fun pendingReplyWithoutStatusHasNoStateFields() {
         assertEquals(setOf("v", "id", "ok", "pending"), watchReply(1, null, "Waking car").keys)
     }

@@ -8,8 +8,8 @@ Please report privately via GitHub's "Report a vulnerability" (Security tab) rat
 
 - Credentials stay on the user's phone. No Orbit server, no analytics.
 - Store only the Lucid refresh token, never the password, encrypted with an Android Keystore key. Backups are disabled.
-- The watch stores no secrets. Unlock requires an on-watch confirmation. Lock and climate do not, so anyone who can
-  use an unlocked watch can lock the car or run the climate.
+- The watch stores no secrets. Unlock and climate changes require an on-watch confirmation. Lock does not, so anyone
+  who can use an unlocked watch can lock the car.
 - Never log tokens, email addresses or VINs.
 - The phone app only listens to messages from this watch app's ID, and only accepts a fixed list of commands.
 

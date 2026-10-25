@@ -15,7 +15,9 @@ message whose `v` it does not know.
 | `cmd` | string | `status`, `lock`, `unlock`, `climate_on`, `climate_off` |
 
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
-- The watch asks for a confirm tap before it sends `unlock`. The phone does not repeat the confirmation.
+- The watch asks for a confirm tap before it sends `unlock`, `climate_on` or `climate_off`. The phone does not repeat
+  the confirmation. `lock` and `status` are sent without one.
+- `soc` is left out of a reply when the car's value is outside 0..100; the watch then shows `--`.
 - A new request replaces the one in flight; the phone drops the older command's polling but not the command itself.
 
 ## Phone to watch (reply)

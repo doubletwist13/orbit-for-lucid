@@ -169,7 +169,7 @@ Android:
 - Accept Connect IQ messages only for this watch app's UUID.
 
 Watch:
-- Stores nothing secret. Confirm tap before unlock; lock has none by design. The watch's own passcode / lock is the
+- Stores nothing secret. Confirm tap before unlock and climate on/off; lock has none by design. The watch's own passcode / lock is the
   device-side protection.
 
 ## Responsiveness
@@ -192,7 +192,7 @@ Watch:
    transport. Open: persist "pending command" state across app restarts, a configurable climate temperature,
    release-build (R8) check.
 4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC, lock state and age with no
-   phone calls; the fenix 7 button check is still open; lock deliberately has no confirm tap, only unlock does).
+   phone calls; the fenix 7 button check is still open; lock deliberately has no confirm tap; unlock and climate do).
 5. **Bridge** (DONE 2026-10-25 on the Pixel 10 Pro + Venu 3). Timings are one set of tests on one car and Lucid's
    latency is known to vary wildly: unlock from a sleeping car about 13 s without car wifi and 9-10 s with it, lock on
    an awake car 1-2 s. Offline, logged-out, swiped-away-app, reboot and car-on-wifi cases pass; batterystats and a long

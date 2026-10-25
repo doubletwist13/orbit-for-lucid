@@ -11,7 +11,7 @@ Android companion app.
 
 Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and one Lucid. From the watch you can see
 state of charge, locked/unlocked and plugged/charging, then lock, unlock, start or stop climate, and refresh. Unlock
-asks for a confirm tap; lock does not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
+and climate changes ask for a confirm tap; lock does not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
 **Timings are anecdotes.** In one round of tests on one car, an unlock from a sleeping car took about 13 seconds
 without car wifi and 9-10 seconds with it, and a lock on an awake car took a second or two. That is a single set of

@@ -77,9 +77,10 @@ class Link {
         if (fresh) {
             st["ts"] = Time.now().value() - (d["age"] != null ? d["age"] as Number : 0);
             state = st;
-            Application.Storage.setValue("s", st);
         }
         pending = d["pending"] as String?;
+        // flash writes wear it and cost power: save once a command settles, not on every progress reply
+        if (fresh && pending == null) { Application.Storage.setValue("s", st); }
         WatchUi.requestUpdate();
     }
 

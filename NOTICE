@@ -9,6 +9,8 @@ python-lucidmotors
   https://github.com/nshp/python-lucidmotors  (MIT)
   Copyright (c) 2023 Nick Shipp
   Source of the Lucid protobuf definitions and API behaviour reference.
+  The protobuf schemas in android/app/src/main/proto are copied from this project.
+  The copyright and full MIT permission notice for those files are reproduced below.
 
 ha-lucidmotors
   https://github.com/borski/ha-lucidmotors  (MIT)
@@ -20,11 +22,32 @@ Lucid-Motors-WearOS-Companion-App
   Wear OS app for Lucid vehicles; reused with the author's written permission
   (2026-10-24). Applies to the author's own code only, not to any icon artwork.
 
-The protobuf definitions in android/app/src/main/proto are copied unmodified from python-lucidmotors (above).
 The Gradle wrapper files in android/ are from the Gradle project (Apache-2.0).
 
 When protobuf definitions or logic are copied or ported from these projects, the
 MIT copyright and permission notice must be preserved alongside them.
+
+MIT License
+
+Copyright (c) 2023 Nick Shipp
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 The Garmin Connect IQ SDK and Connect IQ Mobile SDK are not distributed in this
 repository. They are licensed separately by Garmin.

@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package mobilegateway.protos;
+
+import "vehicle_state_service.proto";
+
+enum NotificationChannelType {
+    NOTIFICATION_CHANNEL_UNKNOWN = 0;
+    NOTIFICATION_CHANNEL_FIREBASE = 1;
+    NOTIFICATION_CHANNEL_BAIDU = 2;
+}
+
+enum Os {
+    OS_UNKNOWN = 0;
+    OS_IOS = 1;
+    OS_ANDROID = 2;
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+    NotificationChannelType notification_channel_type = 3;
+    Os os = 4;
+    string notification_device_token = 5;
+    string locale = 6;
+    optional string device_id = 7;
+    optional string client_name = 8;
+}
+
+message SessionInfo {
+    string id_token = 1;
+    int32 expiry_time_sec = 2;
+    optional string refresh_token = 3;
+    string gigya_jwt = 4;
+}
+
+enum NotificationCategory {
+    NOTIFICATION_CATEGORY_UNKNOWN = 0;
+    NOTIFICATION_CATEGORY_CHARGE = 1;
+    NOTIFICATION_CATEGORY_SECURITY = 2;
+    NOTIFICATION_CATEGORY_SOFTWARE = 3;
+    NOTIFICATION_CATEGORY_HVAC = 4;
+    NOTIFICATION_CATEGORY_REQUIRED = 5;
+    NOTIFICATION_CATEGORY_CDR_EMAIL = 6;
+    NOTIFICATION_CATEGORY_SUBSCRIPTION = 7;
+    NOTIFICATION_CATEGORY_REFERRAL_CAMPAIGN = 8;
+    NOTIFICATION_CATEGORY_RECALL_CAMPAIGN = 9;
+    NOTIFICATION_CATEGORY_CLOSURE = 10;
+    NOTIFICATION_CATEGORY_ACCESSORIES = 11;
+    NOTIFICATION_CATEGORY_USER_PROFILE = 12;
+    NOTIFICATION_CATEGORY_TIRE_PRESSURE = 13;
+}
+
+enum Encryption {
+    ENCRYPTION_UNKNOWN = 0;
+    ENCRYPTION_SINGLE = 1;
+    ENCRYPTION_MUTUAL = 2;
+}
+
+message Profile {
+    string email = 1;
+    string locale = 2;
+    string username = 3;
+    string photo_url = 4;
+    string first_name = 5;
+    string last_name = 6;
+    string ema_id = 7;
+}
+
+message LoginResponse {
+    string uid = 1;
+    SessionInfo session_info = 2;
+    Profile user_profile = 3;
+    repeated Vehicle user_vehicle_data = 4;
+    repeated NotificationCategory subscriptions = 5;
+    Encryption encryption = 6;
+}
+
+message GetNewJWTTokenRequest {
+    string refresh_token = 1;
+}
+
+message GetNewJWTTokenResponse {
+    SessionInfo session_info = 1;
+    Encryption encryption = 2;
+}
+
+message RefreshTokenRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message RefreshTokenResponse {
+    string jwt_token = 1;
+    int32 expiry_time_sec = 2;
+    string gigya_jwt = 3;
+}
+
+
+enum ResetPinStatus {
+    RESET_PIN_STATUS_UNKNOWN = 0;
+    RESET_PIN_STATUS_PENDING = 1;
+    RESET_PIN_STATUS_APPROVED = 2;
+    RESET_PIN_STATUS_DENIED = 3;
+}
+
+message ConfirmResetPinRequest {
+    string reset_pin_id = 1;
+    ResetPinStatus status = 2;
+}
+
+message ConfirmResetPinResponse {}
+
+message GetSubscriptionRequest {}
+message GetSubscriptionResponse {
+    repeated NotificationCategory subscriptions = 1;
+}
+
+message UpdateSubscriptionRequest {
+    repeated NotificationCategory enable = 2;
+    repeated NotificationCategory disable = 3;
+}
+message UpdateSubscriptionResponse {}
+
+message GetUserVehiclesRequest {}
+message GetUserVehiclesResponse {
+    repeated Vehicle user_vehicle_data = 1;
+}
+
+message LogoutRequest {
+    string notification_device_token = 1;
+}
+
+message LogoutResponse {}
+
+message RefreshNotificationTokenRequest {
+    NotificationChannelType notification_channel_type = 1;
+    Os os = 2;
+    string old_device_token = 3;
+    string new_device_token = 4;
+    string locale = 5;
+}
+message RefreshNotificationTokenResponse {}
+
+message SetNickNameRequest {
+    string vehicle_id = 1;
+    string nickname = 2;
+}
+message SetNickNameResponse {}
+
+message ActivateDeviceRequest{
+    string activation_pin = 1;
+}
+
+message ActivateDeviceResponse{
+    SessionInfo session_info = 1;
+    repeated Vehicle user_vehicle_data = 2;
+}
+
+message DeviceEnrollRequest {
+    string certificate_request = 1;
+}
+
+message DeviceEnrollResponse {
+    string certificate = 1;
+}
+
+service LoginSession {
+    rpc ActivateDevice(ActivateDeviceRequest) returns (ActivateDeviceResponse) {}
+    rpc DeviceEnroll(DeviceEnrollRequest) returns (DeviceEnrollResponse) {}
+    rpc ConfirmResetPin(ConfirmResetPinRequest) returns (ConfirmResetPinResponse) {}
+    rpc GetNewJWTToken(GetNewJWTTokenRequest) returns (GetNewJWTTokenResponse) {}
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {}
+    rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse) {}
+    rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse) {}
+    rpc GetUserVehicles(GetUserVehiclesRequest) returns (GetUserVehiclesResponse) {}
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+    rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+    rpc RefreshNotificationToken(RefreshNotificationTokenRequest) returns (RefreshNotificationTokenResponse) {}
+    rpc SetNickName(SetNickNameRequest) returns (SetNickNameResponse) {}
+}

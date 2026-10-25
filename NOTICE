@@ -1,0 +1,30 @@
+Orbit for Lucid
+Copyright (c) 2026 doubletwist13 (MIT, see LICENSE)
+
+This project is unofficial and is not affiliated with Lucid Motors or Garmin.
+
+Third-party works that inform or are incorporated into this project:
+
+python-lucidmotors
+  https://github.com/nshp/python-lucidmotors  (MIT)
+  Copyright (c) 2023 Nick Shipp
+  Source of the Lucid protobuf definitions and API behaviour reference.
+
+ha-lucidmotors
+  https://github.com/borski/ha-lucidmotors  (MIT)
+  Home Assistant integration for Lucid Motors
+  Copyright (c) 2023 Michael Borohovski
+  API behaviour reference.
+
+Lucid-Motors-WearOS-Companion-App
+  Wear OS app for Lucid vehicles; reused with the author's written permission
+  (2026-10-24). Applies to the author's own code only, not to any icon artwork.
+
+The protobuf definitions in android/app/src/main/proto are copied unmodified from python-lucidmotors (above).
+The Gradle wrapper files in android/ are from the Gradle project (Apache-2.0).
+
+When protobuf definitions or logic are copied or ported from these projects, the
+MIT copyright and permission notice must be preserved alongside them.
+
+The Garmin Connect IQ SDK and Connect IQ Mobile SDK are not distributed in this
+repository. They are licensed separately by Garmin.

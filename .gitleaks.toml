@@ -1,0 +1,17 @@
+title = "orbit-for-lucid gitleaks config"
+
+[extend]
+useDefault = true
+
+# Lucid-specific: refresh tokens / JWTs and Garmin signing material
+[[rules]]
+id = "jwt-like-token"
+description = "JWT-shaped token (possible Lucid id_token or gigya_jwt)"
+regex = '''eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'''
+tags = ["lucid", "token"]
+
+[[rules]]
+id = "garmin-developer-key"
+description = "Garmin Connect IQ developer key file reference"
+regex = '''developer_key[A-Za-z0-9_.-]*\.(der|pem)'''
+tags = ["garmin", "signing"]

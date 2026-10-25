@@ -1,0 +1,42 @@
+# Secrets and signing material (never commit)
+.env
+.env.*
+*.jks
+*.keystore
+*.p12
+*.pem
+developer_key*
+*.der
+local.properties
+secrets.properties
+
+# Locally-kept assets with unresolved rights (see PLAN.md)
+assets-local/
+
+# Build outputs and distributables
+*.apk
+*.aab
+*.prg
+*.iq
+*.prg.debug.xml
+bin/
+build/
+/android/.gradle/
+.gradle/
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Garmin SDK / simulator artifacts (SDK must never be committed)
+connectiq-sdk*/
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Local Claude notes
+CLAUDE.local.md
+PLAN.local.md

@@ -1,6 +1,7 @@
 package io.github.doubletwist13.orbit
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,7 +74,9 @@ class Controller(context: Context) {
             var wait = PUSH_INTERVAL_MS
             while (true) {
                 // a watch that is away would drop the push, so don't spend a Lucid call on it
-                if (_state.value.pushOn && _state.value.loggedIn && watchConnected()) {
+                val away = _state.value.pushOn && _state.value.loggedIn && !watchConnected()
+                if (away) Log.d("OrbitBridge", "push skipped: no watch connected")
+                if (_state.value.pushOn && _state.value.loggedIn && !away) {
                     wait = try {
                         send(pushReply(fetch()))
                         PUSH_INTERVAL_MS

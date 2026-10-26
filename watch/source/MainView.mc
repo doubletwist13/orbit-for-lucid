@@ -5,6 +5,9 @@ import Toybox.WatchUi;
 
 const GREEN = 0x00FF66;
 const DIM = 0x338855;
+const AMBER = 0xFFAA33;
+const TRACK = 0x12331F;
+const TRACK_DIM = 0x12251A;
 const STALE_SECS = 1800;
 const CONFIRM = {"unlock" => "Unlock?", "climate_on" => "Climate on?", "climate_off" => "Climate off?"};
 
@@ -16,37 +19,79 @@ class MainView extends WatchUi.View {
     function onUpdate(dc as Dc) as Void {
         var link = link();
         var s = link.state;
-        var cx = dc.getWidth() / 2;
+        var w = dc.getWidth();
         var h = dc.getHeight();
-        dc.setColor(GREEN, Graphics.COLOR_BLACK);
-        dc.clear();
-        var mid = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
-        dc.drawText(cx, h * 0.18, Graphics.FONT_SMALL, "> Orbit", mid);
+        var cx = w / 2;
         // old data is dimmed; the car only reports while awake, so this is normal, not an error
-        if (s != null && Time.now().value() - (s["ts"] as Number) >= STALE_SECS) {
-            dc.setColor(DIM, Graphics.COLOR_BLACK);
-        }
-        dc.drawText(cx, h * 0.42, Graphics.FONT_NUMBER_HOT, s == null || s["soc"] == null ? "--" : s["soc"] + "%", mid);
-        if (s != null) {
-            dc.drawText(cx, h * 0.62, Graphics.FONT_SMALL, (s["locked"] ? "Locked" : "Unlocked") + " | " + charge(s),
-                mid);
-        }
+        var stale = s != null && Time.now().value() - (s["ts"] as Number) >= STALE_SECS;
+        var fg = stale ? DIM : GREEN;
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.clear();
+        var soc = s != null ? s["soc"] as Number? : null;
+        ring(dc, soc, fg, stale);
+        dc.setColor(fg, Graphics.COLOR_BLACK);
+        socText(dc, soc, w, h);
+        icons(dc, s, w, h);
         var note = link.pending != null ? link.pending + "..." : link.err != null ? link.err : age(s);
-        dc.setColor(link.err != null ? Graphics.COLOR_RED : DIM, Graphics.COLOR_BLACK);
-        dc.drawText(cx, h * 0.80, Graphics.FONT_TINY, note, mid);
+        dc.setColor(link.err != null ? Graphics.COLOR_RED : stale ? AMBER : DIM, Graphics.COLOR_BLACK);
+        dc.drawText(cx, h * 0.87, Graphics.FONT_TINY, note, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    private function charge(s as Dictionary) as String {
+    // charge as an arc round the bezel, clockwise from the top
+    private function ring(dc as Dc, soc as Number?, fg as Number, stale as Boolean) as Void {
+        var pen = dc.getWidth() * 0.03;
+        var r = dc.getWidth() / 2 - pen / 2 - 1;
+        dc.setPenWidth(pen);
+        dc.setColor(stale ? TRACK_DIM : TRACK, Graphics.COLOR_BLACK);
+        dc.drawCircle(dc.getWidth() / 2, dc.getHeight() / 2, r);
+        if (soc == null || soc <= 0) { return; }
+        dc.setColor(fg, Graphics.COLOR_BLACK);
+        if (soc >= 100) {
+            dc.drawCircle(dc.getWidth() / 2, dc.getHeight() / 2, r);
+        } else {
+            dc.drawArc(dc.getWidth() / 2, dc.getHeight() / 2, r, Graphics.ARC_CLOCKWISE, 90, 90 - 360 * soc / 100);
+        }
+    }
+
+    // the number, then a small % and battery icon at its top right, the group centred on the screen
+    private function socText(dc as Dc, soc as Number?, w as Number, h as Number) as Void {
+        var font = Graphics.FONT_NUMBER_MEDIUM;
+        var text = soc == null ? "--" : soc.toString();
+        var numW = dc.getTextWidthInPixels(text, font);
+        var pctW = soc == null ? 0 : dc.getTextWidthInPixels("%", Graphics.FONT_SMALL);
+        var bat = (w * 0.075).toNumber();
+        var gap = (w * 0.012).toNumber();
+        var x = (w - (numW + gap + pctW + (soc == null ? 0 : gap + bat))) / 2;
+        var left = Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER;
+        dc.drawText(x, h * 0.37, font, text, left);
+        if (soc == null) { return; }
+        x += numW + gap;
+        dc.drawText(x, h * 0.31, Graphics.FONT_SMALL, "%", left);
+        Icons.draw(dc, :battery, x + pctW + gap, (h * 0.31).toNumber() - bat / 2, bat);
+    }
+
+    // state icons, shown only when they apply: lock, plug, charging bolt, climate
+    private function icons(dc as Dc, s as Dictionary?, w as Number, h as Number) as Void {
+        if (s == null) { return; }
+        var ids = [s["locked"] ? :lock : :unlock] as Array<Symbol>;
         var c = s["charge"] as String?;
-        if (c == null || c.equals("NOT_CONNECTED") || c.equals("UNKNOWN")) { return "Unplugged"; }
-        return c.equals("CHARGING") ? "Charging" : "Plugged";
+        if (c != null && !c.equals("NOT_CONNECTED") && !c.equals("UNKNOWN")) {
+            ids.add(:plug);
+            if (c.equals("CHARGING")) { ids.add(:bolt); }
+        }
+        if (s["hvac"] == true) { ids.add(:hvac); }
+        var size = (w * 0.105).toNumber();
+        var gap = size / 5;
+        var x = (w - (ids.size() * size + (ids.size() - 1) * gap)) / 2;
+        for (var i = 0; i < ids.size(); i++) {
+            Icons.draw(dc, ids[i], x + i * (size + gap), (h * 0.66).toNumber(), size);
+        }
     }
 
     private function age(s as Dictionary?) as String {
-        if (s == null) { return "No data"; }
+        if (s == null) { return ""; }
         var secs = Time.now().value() - (s["ts"] as Number);
-        return secs < 60 ? "Updated now"
-            : secs < 3600 ? "Updated " + secs / 60 + "m ago" : "Updated " + secs / 3600 + "h ago";
+        return secs < 60 ? "now" : secs < 3600 ? secs / 60 + "m" : secs / 3600 + "h";
     }
 }
 

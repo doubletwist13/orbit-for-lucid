@@ -255,8 +255,9 @@ none of it adds Lucid calls.
     keep the saved state compact and the handler free of the app's big classes.
   - It breaks the "no continuous polling" rule, so update `CLAUDE.md` with it, and give the phone app a setting to
     turn it off. Measure the battery cost (the batterystats comparison) after a day.
-  - Later on the same path: a "charging started" notification (`Notifications.showNotification`, API 5.1) from the
-    background handler when the stored state changes to charging, up to one interval late.
+  - A "charging started" notification from the background handler (`Notifications.showNotification`, API 5.1) was
+    tried and dropped: it did not show on the author's watch, and the official Lucid app already sends one. If it
+    comes back, the phone should say whether to alert (a setting in the phone app), not the watch.
 - **v4 (watch face and complications):** a custom Orbit watch face showing the car's state at a glance (SOC, lock,
   charge, climate, age), plus complications or tap targets on the face that trigger actions (lock, unlock, climate)
   without opening the app. A watch face is a separate Connect IQ app type with its own memory limit and no input

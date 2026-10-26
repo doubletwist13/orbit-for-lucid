@@ -62,9 +62,6 @@ and exits.
   back to 5 minutes after the next success. A setting in the phone app turns pushes off.
 - A push is skipped while logged out, and a failed fetch sends nothing.
 - A push carries no error and no `pending`.
-- With the app closed, the background service also shows a "Charging started" notification when a push changes the
-  saved charge state to `CHARGING` from another known state (not on the first push after an install).
-
 ## Error codes
 
 | `err` | Meaning | Watch shows |

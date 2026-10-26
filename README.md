@@ -24,9 +24,7 @@ Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 - **Temperatures.** Under the charge number, `21°/14°` is the cabin and the outside air temperature, in the watch's
   units.
 - **Stays current.** The phone fetches status every 5 minutes and sends it to the watch, even while the app is closed,
-  so the glance and the main screen open on recent data. A switch in the phone app turns this off. With the app
-  closed, the watch also shows a "Charging started" notification when a push shows the car has started charging
-  (up to 5 minutes late).
+  so the glance and the main screen open on recent data. A switch in the phone app turns this off.
 - **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
 - **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
   confirm.

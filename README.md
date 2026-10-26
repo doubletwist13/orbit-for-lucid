@@ -23,8 +23,9 @@ Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
   screen dims and the age turns amber; that is normal, not an error.
 - **Temperatures.** Under the charge number, `21°/14°` is the cabin and the outside air temperature, in the watch's
   units.
-- **Stays current.** The phone fetches status every 5 minutes and sends it to the watch, even while the app is closed,
-  so the glance and the main screen open on recent data. A switch in the phone app turns this off.
+- **Stays current.** About every 5 minutes, while the watch is connected, the phone fetches status and sends it to the
+  watch, even while the app is closed, so the glance and the main screen open on recent data. Android can delay the
+  timer while the phone sleeps. A switch in the phone app turns this off.
 - **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
 - **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
   confirm.
@@ -88,8 +89,11 @@ car's nickname is blurred out in the phone screenshot.
   for about 105 seconds, then gives up with "no confirmation yet" (the command may still have worked).
 - **Rate limits.** Lucid's gateway throttles frequent status calls. Polling is deliberately gentle, and you may still
   see a "rate" error if you hammer it.
-- **Little testing of failure cases.** Offline, logged-out, a car on wifi, battery impact over days, and surviving
-  reboots are not well tested yet.
+- **Lucid sees a status request every 5 minutes.** Besides your taps, the phone asks Lucid for status on that timer
+  (see "Stays current"), from your account, whether or not you are using the app. That is the kind of thing Lucid's
+  terms (above) may not welcome; you can turn it off with the switch in the phone app. It does not wake the car.
+- **Little testing of failure cases.** Offline, logged-out, a car on wifi, battery impact over days (including the
+  5 minute updates), and surviving reboots are not well tested yet.
 - **The API is unofficial.** It can change or disappear without notice.
 
 ## How it works
@@ -132,13 +136,15 @@ Orbit has no server, no accounts and no analytics. The author receives nothing f
 - **Lucid password:** typed once in the phone app and sent only to Lucid's login service. It is not stored.
 - **Lucid session:** only a refresh token is kept, encrypted with a key held in the phone's Android Keystore. Android
   backup is disabled, so it is not copied to the cloud or to a new phone. Log out in the app to delete it.
-- **Watch:** stores a cached copy of the last state (charge, lock state, charging, climate, and when it was fetched).
-  No credentials or tokens are ever sent to the watch.
+- **Watch:** stores a cached copy of the last state (charge, lock state, charging, climate and its set point, the
+  inside and outside air temperature, and when the car last reported). No credentials or tokens are ever sent to the
+  watch.
 - **Watch to phone:** messages travel over Bluetooth through Garmin Connect Mobile, which is covered by Garmin's own
   privacy terms.
 - **Car data:** the phone asks Lucid's cloud for your vehicle's state and sends commands to it. That traffic is between
   your phone and Lucid and is covered by Lucid's terms. Orbit does not log tokens, emails or VINs, and it does not
-  request or use your phone's location or the car's.
+  request or use your phone's location or the car's. About every 5 minutes, while your watch is connected, the phone
+  also asks Lucid for status unasked and sends it to the watch; a switch in the app turns that off.
 
 ## Security
 

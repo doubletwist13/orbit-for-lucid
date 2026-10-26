@@ -133,8 +133,9 @@ screen size, so layouts should scale, but that is unverified.
   `INCOMING_MESSAGE` broadcast never fires (the SDK registers it at runtime, and delivery needs a prior bound-service
   registration). A `connectedDevice` foreground service that only keeps the SDK registered works: with the app swiped
   away and the screen off, a watch tap reached the phone and the reply came back (about 0.4 s foreground, 1.7 s
-  background; one sample each). The service holds an idle BLE link and makes NO Lucid calls, so Lucid traffic stays
-  on-demand. Needs `FOREGROUND_SERVICE_CONNECTED_DEVICE` plus `CHANGE_NETWORK_STATE` (the type's prerequisite) and a
+  background; one sample each). The service holds an idle BLE link and makes NO Lucid calls itself (the 5 minute
+  status push below runs in `Controller`, which the service keeps alive). Needs `FOREGROUND_SERVICE_CONNECTED_DEVICE`
+  plus `CHANGE_NETWORK_STATE` (the type's prerequisite) and a
   runtime `POST_NOTIFICATIONS` prompt (asked on first launch; declining only hides the notification); persistent
   "Watch link active" notification (min importance). Decided against a service on/off switch (too easy to hit by
   accident, and logging out already stops car control) and against prompting for "unrestricted" battery use (the
@@ -142,13 +143,15 @@ screen size, so layouts should scale, but that is unverified.
   service after the first unlock (tested; it arrived about 2 min after a slow boot); a force-stopped app gets no boot
   broadcast until opened by hand. The watch fails a request with `nolink` after 8 s of silence. Still untested:
   hours-long idle, batterystats.
-- **Lucid calls stay on-demand.** When the companion receives a watch message it fetches status once (a 4 s cache
-  coalesces repeats). After a command it wakes the car if needed, sends, then polls 3 times at 5 s and then every 10 s
-  until the expected state change (about 105 s cap); sustained 3-5 s polling triggered RESOURCE_EXHAUSTED (see
+- **Lucid calls are on-demand, plus one status push every 5 minutes (#7, below).** When the companion
+  receives a watch message it fetches status once (a 4 s cache coalesces repeats). After a command it
+  wakes the car if needed, sends, then polls 3 times at 5 s and then every 10 s until the expected state change (about
+  105 s cap); sustained 3-5 s polling triggered RESOURCE_EXHAUSTED (see
   `docs/research/phase1-lucid-api-findings.md`).
 - Command logic lives in an app-scoped `Controller`, so it outlives the screen and serves both the UI and the watch.
-- A foreground service with continuous polling would cost a persistent notification, radio wakeups and many more calls,
-  with a real risk of `RESOURCE_EXHAUSTED`. Revisit only if on-demand wake proves unreliable on some phones (OEM battery
+- Fast or continuous polling would cost radio wakeups and many more calls, with a real risk of
+  `RESOURCE_EXHAUSTED`. The one exception is the flat 5 minute status push: one small call per interval, with backoff
+  and a setting to turn it off. Revisit only if on-demand wake proves unreliable on some phones (OEM battery
   optimizers).
 - Rate-limit safety: single in-memory token, single-flight refresh, retries of 2/4/8 s on `RESOURCE_EXHAUSTED`, a short
   status cache.
@@ -175,8 +178,9 @@ Watch:
   device-side protection.
 
 ## Responsiveness
-- Watch draws instantly from cached state (`Application.Storage`), shows its age, and updates when the phone replies;
-  clear in-flight and error states (offline, auth expired, car asleep).
+- Watch draws instantly from cached state (`Application.Storage`), shows its age on the main screen (the glance
+  has none), and updates when the phone replies or pushes status; clear in-flight and error states (offline, auth
+  expired, car asleep).
 - Phone keeps the HTTP/2 connection and token warm during a session.
 - Keep the Monkey C app small for Venu 3 memory limits; use `Communications.transmit` with a `ConnectionListener` for
   delivery confirmation.
@@ -238,12 +242,12 @@ none of it adds Lucid calls.
   - Battery health (`battery_health` warning state and `battery_health_level`).
   - Min/Max Cell Temps (`min_cell_temp` and `max_cell_temp`).
   - Inside/outside temperature (`interior_temp` and `exterior_temp`), shown as a `21°/14°` line on the main screen
-    once regular updates exist (#7); until then it would show hours-old numbers.
+    (DONE with #7, since regular updates keep it from showing hours-old numbers).
   - Could be pulled into v2 cheaply: it is only extra reply fields plus one screen, and carries no write risk. The
     reason to wait is watch UI and message size, not API work. Revisit once the v1 UI is settled on real use.
-- **Next: regular status updates (#7).** Before this the glance only showed what the app cached when last opened.
-  Decided design: the phone fetches status on a flat 5 minute timer in its existing
-  foreground service and pushes the reply to the watch, which wakes a small background handler
+- **Regular status updates (#7), DONE 2026-10-26.** Before this the glance only showed what the app cached when last
+  opened. Design: the phone fetches status on a flat 5 minute timer in `Controller` (the app process the foreground
+  service keeps alive) and pushes the reply to the watch, which wakes a small background handler
   (`Background.registerForPhoneAppMessageEvent`) that writes it into the same `Application.Storage` entry the glance
   and the app already read. Why this way:
   - The Lucid API has no push or streaming call, so the interval is also the worst-case delay before the watch learns
@@ -253,8 +257,8 @@ none of it adds Lucid calls.
     4-6 s hit status 8; every 5 minutes is far below that). After a `rate` error it doubles the interval for a while.
   - Storage (32 KB per value) is not the limit. The glance (64 KB) and the background handler have small memory, so
     keep the saved state compact and the handler free of the app's big classes.
-  - It breaks the "no continuous polling" rule, so update `CLAUDE.md` with it, and give the phone app a setting to
-    turn it off. Measure the battery cost (the batterystats comparison) after a day.
+  - It breaks the old "no continuous polling" rule, so `CLAUDE.md` now says so, and the phone app has a switch to turn
+    it off. Still open: measure the battery cost (the batterystats comparison) after a day.
   - A "charging started" notification from the background handler (`Notifications.showNotification`, API 5.1) was
     tried and dropped: it did not show on the author's watch, and the official Lucid app already sends one. If it
     comes back, the phone should say whether to alert (a setting in the phone app), not the watch.

@@ -39,7 +39,7 @@ for an `id` has `pending` absent or empty.
 | `charge` | string | Charge state, e.g. `CABLE_CONNECTED`; `NOT_CONNECTED` when unplugged |
 | `hvac` | bool | Climate/precondition on |
 | `tset` | number | The car's cabin set point in Celsius (see below) |
-| `tin`, `tout` | number | Cabin and outside air temperature in Celsius; each omitted when the car reports none |
+| `tin`, `tout` | number | Cabin and outside air temperature in Celsius; each omitted when the car reports none or a value outside -50..70 |
 | `awake` | bool | Car awake |
 | `age` | int | Seconds since the car last reported (from `last_updated_ms`) |
 | `pending` | string | Short label while a command is in progress, e.g. `Waking`, `Unlocking`; absent when done |

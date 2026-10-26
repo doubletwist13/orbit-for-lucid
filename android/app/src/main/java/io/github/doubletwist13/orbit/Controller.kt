@@ -55,7 +55,8 @@ class Controller(context: Context) {
 
     fun setLocked(locked: Boolean) = run(if (locked) "Locking" else "Unlocking") { lock(locked, ::busy) }
 
-    fun setPrecondition(on: Boolean) = run(if (on) "Starting climate" else "Stopping climate") { climate(on, ::busy) }
+    fun setPrecondition(on: Boolean) =
+        run(if (on) "Starting climate" else "Stopping climate") { climate(on, DEFAULT_TEMP_C, ::busy) }
 
     /** Handles one watch request; [reply] gets pending updates, then the final reply. Unknown input is ignored. */
     fun onWatch(req: Map<*, *>, reply: (Map<String, Any>) -> Unit) {
@@ -67,7 +68,7 @@ class Controller(context: Context) {
         watchJob?.cancel()
         watchJob = scope.launch {
             try {
-                val s = execute(cmd) { reply(watchReply(id, _state.value.status, it)) }
+                val s = execute(cmd, climateTemp(req)) { reply(watchReply(id, _state.value.status, it)) }
                 reply(watchReply(id, s, null))
             } catch (e: CancellationException) {
                 throw e
@@ -85,13 +86,13 @@ class Controller(context: Context) {
     private suspend fun fetch(): VehicleStatus =
         client.status(token()).also { s -> _state.update { it.copy(status = s) } }
 
-    private suspend fun execute(cmd: String, progress: (String) -> Unit): VehicleStatus = when (cmd) {
+    private suspend fun execute(cmd: String, tempC: Double, progress: (String) -> Unit): VehicleStatus = when (cmd) {
         // answer at once so the watch's silence timer doesn't fire while a rate-limit retry runs
         "status" -> { progress("Updating"); fetch() }
         "lock" -> lock(true, progress)
         "unlock" -> lock(false, progress)
-        "climate_on" -> climate(true, progress)
-        else -> climate(false, progress)
+        "climate_on" -> climate(true, tempC, progress)
+        else -> climate(false, tempC, progress)
     }
 
     private suspend fun lock(locked: Boolean, progress: (String) -> Unit) =
@@ -99,9 +100,9 @@ class Controller(context: Context) {
             client.setLocked(token(), s.vehicleId, locked)
         }
 
-    private suspend fun climate(on: Boolean, progress: (String) -> Unit) =
-        command(if (on) "Starting climate" else "Stopping climate", { it.hvacOn == on }, progress) { s ->
-            client.setPrecondition(token(), s.vehicleId, if (on) 21.0 else null)
+    private suspend fun climate(on: Boolean, tempC: Double, progress: (String) -> Unit) =
+        command(if (on) "Starting climate" else "Stopping climate", { climateDone(it, on, tempC) }, progress) { s ->
+            client.setPrecondition(token(), s.vehicleId, if (on) tempC else null)
         }
 
     /** Wake if asleep, send, then poll until the car reports the change (it lags 10-40 s) or give up. */
@@ -167,11 +168,30 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         put("locked", it.locked)
         put("charge", it.chargeState)
         put("hvac", it.hvacOn)
+        if (it.setTempC in MIN_TEMP_C..MAX_TEMP_C) put("tset", it.setTempC)
         put("awake", it.awake)
         put("age", ((System.currentTimeMillis() - it.updatedMs) / 1000).coerceAtLeast(0).toInt())
     }
     pending?.let { put("pending", it) }
 }
+
+internal const val DEFAULT_TEMP_C = 21.0
+internal const val MIN_TEMP_C = 15.0 // the API's enforced range
+internal const val MAX_TEMP_C = 30.0
+
+/** The set point a watch asks for, clamped to the API's range; a missing or garbled one falls back to the default. */
+internal fun climateTemp(req: Map<*, *>): Double =
+    ((req["temp"] as? Number)?.toDouble()?.takeIf { it.isFinite() } ?: DEFAULT_TEMP_C).coerceIn(MIN_TEMP_C, MAX_TEMP_C)
+
+/**
+ * Whether the car reports the climate change. Starting also waits for the set point, because changing it while
+ * climate is already on is a command like any other; a car that doesn't report one is judged on power alone.
+ */
+internal fun climateDone(s: VehicleStatus, on: Boolean, tempC: Double): Boolean =
+    s.hvacOn == on && (!on || s.setTempC <= 0 || kotlin.math.abs(s.setTempC - tempC) <= TEMP_TOLERANCE_C)
+
+// the car reads back within about 0.2 C of what was sent (measured in 0.5 F steps), so this is loose enough
+private const val TEMP_TOLERANCE_C = 0.5
 
 internal fun errCode(e: Exception): String = when {
     e is CommandFailed -> e.code

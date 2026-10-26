@@ -1,7 +1,6 @@
 import Toybox.Application;
 import Toybox.Graphics;
 import Toybox.Lang;
-import Toybox.Time;
 import Toybox.WatchUi;
 
 // Glance (carousel) view: draws the state the main app cached and never talks to the phone, so it costs no battery.
@@ -21,12 +20,9 @@ class OrbitGlance extends WatchUi.GlanceView {
         dc.drawText(0, h * 0.25, Graphics.FONT_GLANCE, "> Orbit", left);
         var line = "No data";
         if (s != null) {
-            var secs = Time.now().value() - (s["ts"] as Number);
-            var age = secs < 60 ? "now" : secs < 3600 ? secs / 60 + "m" : secs / 3600 + "h";
+            // no age or dimming here: a glance is not redrawn between pushes, so an age would only go stale
             var soc = s["soc"] as Number?;
-            line = (soc == null || soc < 0 || soc > 100 ? "--" : soc) + "% " + (s["locked"] ? "Locked" : "Unlocked") + " | " + age;
-            // same 30 min cut-off as the main view
-            if (secs >= 1800) { dc.setColor(0x338855, Graphics.COLOR_BLACK); }
+            line = (soc == null || soc < 0 || soc > 100 ? "--" : soc) + "% " + (s["locked"] ? "Locked" : "Unlocked");
         }
         dc.drawText(0, h * 0.70, Graphics.FONT_GLANCE, line, left);
     }

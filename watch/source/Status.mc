@@ -5,7 +5,9 @@ import Toybox.Time;
 // runs with very little memory and sees only (:background) code.
 (:background)
 module Status {
-    const KEYS = ["soc", "locked", "charge", "hvac", "tset", "awake"];
+    const KEYS = ["soc", "locked", "charge", "hvac", "tset", "tin", "tout", "awake"];
+    // fields the phone leaves out when the car reports none, which must not linger from an earlier reply
+    const OPTIONAL = ["tset", "tin", "tout"];
 
     // The old state with the message's status fields on top, or null if the message carries none (a pending-only
     // reply). Merged, not replaced, because replies carry only what changed in the car's report.
@@ -19,8 +21,9 @@ module Status {
             }
         }
         if (!fresh) { return null; }
-        // the phone leaves tset out when the car reports none, so an old one must not linger
-        if (d["tset"] == null) { st.remove("tset"); }
+        for (var i = 0; i < OPTIONAL.size(); i++) {
+            if (d[OPTIONAL[i]] == null) { st.remove(OPTIONAL[i]); }
+        }
         // age is how old the car's data already was when the phone sent it
         st["ts"] = Time.now().value() - (d["age"] != null ? d["age"] as Number : 0);
         return st;

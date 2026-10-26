@@ -32,6 +32,11 @@ module Units {
         return f ? Math.round(c * 1.8f + 32).toNumber().toString() : (Math.round(c * 2) / 2.0f).format("%.1f");
     }
 
+    // a reading in whole degrees, for places where half degrees are noise
+    function whole(c as Float, f as Boolean) as String {
+        return Math.round(f ? c * 1.8f + 32 : c).toNumber().toString();
+    }
+
     function label(c as Float, f as Boolean) as String {
         return digits(c, f) + "°";
     }
@@ -50,6 +55,9 @@ module Units {
         ok = ok && label(at(indexOf(22.972f, true), true), true).equals("73°");
         ok = ok && label(22.5f, false).equals("22.5°");
         ok = ok && indexOf(22.5f, false) == 15;
+        // air temperatures round to whole degrees, below freezing included
+        ok = ok && whole(21.4f, false).equals("21") && whole(21.4f, true).equals("71");
+        ok = ok && whole(-2.6f, false).equals("-3") && whole(0.0f, true).equals("32");
         // a value outside the range lands on an end of the list
         ok = ok && indexOf(5.0f, true) == 0 && indexOf(99.0f, true) == count(true) - 1;
         // every list entry maps back to its own position

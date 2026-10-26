@@ -15,6 +15,9 @@ module Icons {
             bolt(dc, x, y, u);
         } else if (id == :hvac) {
             hvac(dc, x, y, u);
+        } else if (id == :hvacoff) {
+            hvac(dc, x, y, u);
+            line(dc, x, y, u, 3, 3, 21, 21);
         } else if (id == :refresh) {
             refresh(dc, x, y, u);
         } else if (id == :battery) {

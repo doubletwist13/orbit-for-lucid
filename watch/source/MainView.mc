@@ -101,10 +101,9 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onSelect() as Boolean {
-        var s = link().state;
         var menu = new IconMenu([
             {:icon => :lock, :id => "lock_menu"},
-            {:icon => :hvac, :id => s != null && s["hvac"] == true ? "climate_off" : "climate_on"},
+            {:icon => :hvac, :id => "climate_menu"},
             {:icon => :refresh, :id => "status"}]);
         WatchUi.pushView(menu, new ActionsDelegate(menu), WatchUi.SLIDE_UP);
         return true;
@@ -113,14 +112,16 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
 
 class CommandConfirm extends WatchUi.ConfirmationDelegate {
     private var _cmd as String;
+    private var _temp as Float?;
 
-    function initialize(cmd as String) {
+    function initialize(cmd as String, temp as Float?) {
         ConfirmationDelegate.initialize();
         _cmd = cmd;
+        _temp = temp;
     }
 
     function onResponse(response as WatchUi.Confirm) as Boolean {
-        if (response == WatchUi.CONFIRM_YES) { link().send(_cmd); }
+        if (response == WatchUi.CONFIRM_YES) { link().send(_cmd, _temp); }
         return true;
     }
 }

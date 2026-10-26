@@ -32,6 +32,11 @@ class IconMenu extends WatchUi.View {
                 dc.drawCircle(c[0], c[1], r);
             }
             Icons.draw(dc, items[i][:icon] as Symbol, c[0] - size / 2, c[1] - size / 2, size);
+            var label = items[i][:label] as String?;
+            if (label != null) {
+                dc.setColor(GREEN, Graphics.COLOR_BLACK);
+                dc.drawText(c[0], c[1] + r.toNumber() + 4, Graphics.FONT_SMALL, label, Graphics.TEXT_JUSTIFY_CENTER);
+            }
         }
     }
 
@@ -115,8 +120,15 @@ class ActionsDelegate extends IconMenuDelegate {
         if (id.equals("lock_menu")) {
             var menu = new IconMenu([{:icon => :lock, :id => "lock"}, {:icon => :unlock, :id => "unlock"}]);
             WatchUi.pushView(menu, new LockDelegate(menu), WatchUi.SLIDE_LEFT);
+        } else if (id.equals("climate_menu")) {
+            // the on icon shows the car's current set point, which it keeps even while climate is off
+            var tset = link().state != null ? link().state["tset"] as Numeric? : null;
+            var f = Units.fahrenheit();
+            var menu = new IconMenu([{:icon => :hvacoff, :id => "climate_off"},
+                {:icon => :hvac, :id => "climate_on", :label => tset != null ? Units.label(tset.toFloat(), f) : null}]);
+            WatchUi.pushView(menu, new ClimateDelegate(menu), WatchUi.SLIDE_LEFT);
         } else {
-            perform(id, 1);
+            perform(id, 1, null);
         }
     }
 }
@@ -127,19 +139,84 @@ class LockDelegate extends IconMenuDelegate {
     }
 
     function choose(id as String) as Void {
-        perform(id, 2);
+        perform(id, 2, null);
+    }
+}
+
+// Climate off, or on with a set point picked next.
+class ClimateDelegate extends IconMenuDelegate {
+    function initialize(menu as IconMenu) {
+        IconMenuDelegate.initialize(menu);
+    }
+
+    function choose(id as String) as Void {
+        if (id.equals("climate_off")) {
+            perform(id, 2, null);
+            return;
+        }
+        var tset = link().state != null ? link().state["tset"] as Numeric? : null;
+        var f = Units.fahrenheit();
+        var start = Units.indexOf(tset != null ? tset.toFloat() : 21.0f, f);
+        // the title is the unit, the least text that tells you what is being set
+        var title = new WatchUi.Text({:text => f ? "°F" : "°C", :color => GREEN, :font => Graphics.FONT_SMALL,
+            :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_BOTTOM});
+        WatchUi.pushView(new WatchUi.Picker({:title => title, :pattern => [new TempFactory(f)],
+            :defaults => [start]}), new TempPickerDelegate(), WatchUi.SLIDE_LEFT);
+    }
+}
+
+// The values the picker scrolls through: Units.count(f) set points across the car's range.
+class TempFactory extends WatchUi.PickerFactory {
+    private var _f as Boolean;
+
+    function initialize(f as Boolean) {
+        PickerFactory.initialize();
+        _f = f;
+    }
+
+    function getSize() as Number {
+        return Units.count(_f);
+    }
+
+    function getValue(index as Number) as Object? {
+        return Units.at(index, _f);
+    }
+
+    function getDrawable(index as Number, selected as Boolean) as WatchUi.Drawable? {
+        return new WatchUi.Text({:text => Units.label(Units.at(index, _f), _f), :font => Graphics.FONT_LARGE,
+            :color => selected ? GREEN : DIM, :justification => Graphics.TEXT_JUSTIFY_CENTER,
+            :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_CENTER});
+    }
+}
+
+// The picker's own check button accepts; back or cancel closes only the picker.
+class TempPickerDelegate extends WatchUi.PickerDelegate {
+    function initialize() {
+        PickerDelegate.initialize();
+    }
+
+    function onAccept(values as Array) as Boolean {
+        perform("climate_on", 3, values[0] as Float);
+        return true;
+    }
+
+    function onCancel() as Boolean {
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        return true;
     }
 }
 
 // Close `depth` menu screens, then send the command, asking first for the ones that change the car beyond locking it.
-function perform(id as String, depth as Number) as Void {
+// temp is the climate_on set point in Celsius, otherwise null.
+function perform(id as String, depth as Number, temp as Float?) as Void {
     for (var i = 0; i < depth; i++) {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
     var question = CONFIRM[id];
     if (question != null) {
-        WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id), WatchUi.SLIDE_UP);
+        if (temp != null) { question = "Climate on " + Units.label(temp, Units.fahrenheit()) + "?"; }
+        WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id, temp), WatchUi.SLIDE_UP);
     } else {
-        link().send(id);
+        link().send(id, null);
     }
 }

@@ -10,14 +10,25 @@ class IconMenu extends WatchUi.View {
     private const SLOTS = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]]};
     var items as Array<Dictionary>;
     var sel as Number = 0;
+    // set by the delegate on the first choice so a second tap before the screen closes does nothing
+    var picked as Boolean = false;
 
     function initialize(items as Array<Dictionary>) {
         View.initialize();
         self.items = items;
     }
 
+    // back from a sub-screen makes the menu usable again
+    function onShow() as Void {
+        picked = false;
+    }
+
+    private function radius(w as Number) as Float {
+        return w * (items.size() == 2 ? 0.15 : 0.14);
+    }
+
     function onUpdate(dc as Dc) as Void {
-        var r = dc.getWidth() * (items.size() == 2 ? 0.15 : 0.14);
+        var r = radius(dc.getWidth());
         dc.setColor(GREEN, Graphics.COLOR_BLACK);
         dc.clear();
         for (var i = 0; i < items.size(); i++) {
@@ -47,7 +58,7 @@ class IconMenu extends WatchUi.View {
 
     // index of the item under a tap, or -1; a little slack because a wrist tap is imprecise
     function hit(x as Number, y as Number, w as Number, h as Number) as Number {
-        var reach = w * (items.size() == 2 ? 0.15 : 0.14) * 1.25;
+        var reach = radius(w) * 1.25;
         for (var i = 0; i < items.size(); i++) {
             var c = center(i, w, h);
             if ((x - c[0]) * (x - c[0]) + (y - c[1]) * (y - c[1]) <= reach * reach) { return i; }
@@ -73,11 +84,18 @@ class IconMenuDelegate extends WatchUi.InputDelegate {
 
     function choose(id as String) as Void {}
 
+    // Each choice closes screens, so a second one before that happens would close too many and could exit the app.
+    private function pick(id as String) as Void {
+        if (_menu.picked) { return; }
+        _menu.picked = true;
+        choose(id);
+    }
+
     function onTap(evt as WatchUi.ClickEvent) as Boolean {
         var xy = evt.getCoordinates();
         var ds = System.getDeviceSettings();
         var i = _menu.hit(xy[0], xy[1], ds.screenWidth, ds.screenHeight);
-        if (i >= 0) { choose(_menu.items[i][:id] as String); }
+        if (i >= 0) { pick(_menu.items[i][:id] as String); }
         return true;
     }
 
@@ -85,7 +103,7 @@ class IconMenuDelegate extends WatchUi.InputDelegate {
     function onKey(evt as WatchUi.KeyEvent) as Boolean {
         var key = evt.getKey();
         if (key == WatchUi.KEY_ENTER) {
-            choose(_menu.items[_menu.sel][:id] as String);
+            pick(_menu.items[_menu.sel][:id] as String);
         } else if (key == WatchUi.KEY_DOWN) {
             _menu.move(1);
         } else if (key == WatchUi.KEY_UP) {
@@ -212,9 +230,10 @@ function perform(id as String, depth as Number, temp as Float?) as Void {
     for (var i = 0; i < depth; i++) {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
-    var question = CONFIRM[id];
+    // climate_on always comes from the picker, so it always has a set point to ask about
+    var question = id.equals("climate_on") ? "Climate on " + Units.label(temp as Float, Units.fahrenheit()) + "?"
+        : CONFIRM[id];
     if (question != null) {
-        if (temp != null) { question = "Climate on " + Units.label(temp, Units.fahrenheit()) + "?"; }
         WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id, temp), WatchUi.SLIDE_UP);
     } else {
         link().send(id, null);

@@ -9,7 +9,7 @@ const AMBER = 0xFFAA33;
 const TRACK = 0x12331F;
 const TRACK_DIM = 0x12251A;
 const STALE_SECS = 1800;
-const CONFIRM = {"unlock" => "Unlock?", "climate_on" => "Climate on?", "climate_off" => "Climate off?"};
+const CONFIRM = {"unlock" => "Unlock?", "climate_off" => "Climate off?"};
 
 class MainView extends WatchUi.View {
     function initialize() {

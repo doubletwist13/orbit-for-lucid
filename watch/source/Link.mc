@@ -77,6 +77,8 @@ class Link {
                 fresh = true;
             }
         }
+        // the phone leaves tset out when the car reports none, so an old one must not linger
+        if (fresh && d["tset"] == null) { st.remove("tset"); }
         if (fresh) {
             st["ts"] = Time.now().value() - (d["age"] != null ? d["age"] as Number : 0);
             state = st;

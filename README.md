@@ -10,8 +10,8 @@ Android companion app.
 ## Status
 
 Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and one Lucid. From the watch you can see
-state of charge, locked/unlocked and plugged/charging, then lock, unlock, start or stop climate, and refresh. Unlock
-and climate changes ask for a confirm tap; lock does not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
+state of charge, locked/unlocked and plugged/charging, then lock, unlock, start or stop climate at a temperature you
+pick (in the watch's own units), and refresh. Unlock and climate changes ask for a confirm tap; lock does not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
 **Timings are anecdotes.** In one round of tests on one car, an unlock from a sleeping car took about 13 seconds
 without car wifi and 9-10 seconds with it, and a lock on an awake car took a second or two. That is a single set of
@@ -45,7 +45,6 @@ Left: the watch app on a Venu 3. Right: the phone app. The car's nickname is blu
 - **Tested on one phone.** Android only, tested on a Pixel 10 Pro. Needs Garmin Connect Mobile installed and paired
   with the watch.
 - **Not in any app store.** You build both apps yourself and sideload them. See Building.
-- **Fixed climate temperature.** Climate on uses 21 C. There is no way to set it from the watch yet.
 - **Limited commands.** No trunk/frunk, charge control, tire pressure, windows or location (some of that is on the
   roadmap).
 - **A notification stays on the phone.** Android only lets the app answer the watch while the phone app is kept

@@ -208,13 +208,17 @@ Each item below touches `docs/protocol.md`, the phone and the watch, so bump the
 fields that v1 watches ignore) when it lands. All the status data comes from the same `GetUserVehicles` call as v1, so
 none of it adds Lucid calls.
 - **v2 (actions and their state):**
-  - HVAC target temperature (`set_cabin_temperature`; v1 hardcodes 21 C). Needs a picker on the watch and a unit
-    setting.
+  - HVAC target temperature (`set_cabin_temperature`), done in the watch UI redesign (#6) with Garmin's own picker.
+    The car also takes a new set point while climate is already on. Units: the
+    Lucid API exposes no unit preference, so the phone always sends and accepts SI (Celsius, bar) and the watch
+    converts for display from its own `System.getDeviceSettings()` units (`temperatureUnits`, `distanceUnits`). No unit
+    setting in either app. The Fahrenheit picker steps in whole degrees and converts back to Celsius before sending;
+    that conversion needs a unit test.
   - Frunk and trunk: status (`rear_cargo` is in the vehicle state) and open/close (`frunk_*` / `trunk_*` in
     python-lucidmotors). Opening a closure is a physical action, so give it a confirm tap like unlock. (Frunk will only
     work on vehicles that have a powered frunk; some don't.)
 - **v3 (read-only details, one "Details" screen on the watch):**
-  - Tire pressure (the four `*_tire_pressure_bar` fields; convert to psi or bar on the phone).
+  - Tire pressure (the four `*_tire_pressure_bar` fields; sent in bar, the watch converts per its unit setting).
   - Window status (`WindowPositionState`, per window; collapse to "all closed" or a list of open ones).
   - Battery health (`battery_health` warning state and `battery_health_level`).
   - Min/Max Cell Temps (`min_cell_temp` and `max_cell_temp`).

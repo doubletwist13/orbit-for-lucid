@@ -13,6 +13,7 @@ message whose `v` it does not know.
 | `v` | int | Protocol version, `1` |
 | `id` | int | Request id chosen by the watch; echoed in every reply so stale replies can be dropped |
 | `cmd` | string | `status`, `lock`, `unlock`, `climate_on`, `climate_off` |
+| `temp` | number | Optional, `climate_on` only: the cabin set point in Celsius. The phone clamps it to 15..30 and uses 21 when it is missing or not a number. Sent also while climate is already on, to change the set point |
 
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
 - The watch asks for a confirm tap before it sends `unlock`, `climate_on` or `climate_off`. The phone does not repeat
@@ -35,6 +36,7 @@ for an `id` has `pending` absent or empty.
 | `locked` | bool | Doors locked |
 | `charge` | string | Charge state, e.g. `CABLE_CONNECTED`; `NOT_CONNECTED` when unplugged |
 | `hvac` | bool | Climate/precondition on |
+| `tset` | number | The car's cabin set point in Celsius, kept by the car even while climate is off; omitted when the car reports none or a value outside 15..30. Reads back within about 0.4 F of what was set |
 | `awake` | bool | Car awake |
 | `age` | int | Seconds since the car last reported (from `last_updated_ms`) |
 | `pending` | string | Short label while a command is in progress, e.g. `Waking`, `Unlocking`; absent when done |

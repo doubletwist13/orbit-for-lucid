@@ -219,21 +219,43 @@ none of it adds Lucid calls.
   - Frunk and trunk: status (`rear_cargo` is in the vehicle state) and open/close (`frunk_*` / `trunk_*` in
     python-lucidmotors). Opening a closure is a physical action, so give it a confirm tap like unlock. (Frunk will only
     work on vehicles that have a powered frunk; some don't.)
+  - More controls, each with its state in the same status call (a toggle or small picker, a new protocol command and
+    a confirm where it changes the car beyond a setting):
+    - Battery preconditioning (`preconditioning_status` and `preconditioning_time_remaining`; `SetBatteryPrecon`).
+      Fits a small icon with a countdown; useful before a fast charge.
+    - AC current limit (`active_session_ac_current_limit` and `energy_ac_current_limit`; `SetACCurrLimit`, whole
+      amps). It is only a ceiling: the car still negotiates the real rate with the charger and the wiring, so a high
+      value cannot force more than they allow. The request carries no location (the car applies it to where it is
+      parked), and the app greys it out while the car moves, so read it back and show it as unavailable then. The
+      valid values are not known; find the set from the official app or the car before building the picker.
+    - Seat climate (`seats`; heat, and cooling on cars that have it; `SeatClimateControl`), steering wheel heat
+      (`SteeringHeaterStatus`; `SteeringWheelHeater`) and max defrost / max A/C (`DefrostState`, `max_ac_status`;
+      `HvacDefrostControl`, `SetMaxAC`). Together they fit one "Climate details" screen.
 - **v3 (read-only details, one "Details" screen on the watch):**
   - Tire pressure (the four `*_tire_pressure_bar` fields; sent in bar, the watch converts per its unit setting).
   - Window status (`WindowPositionState`, per window; collapse to "all closed" or a list of open ones).
   - Battery health (`battery_health` warning state and `battery_health_level`).
   - Min/Max Cell Temps (`min_cell_temp` and `max_cell_temp`).
-  - Indoor/outdoor temperature (`indoor_temp` and `outdoor_temp`).
+  - Inside/outside temperature (`interior_temp` and `exterior_temp`), shown as a `21°/14°` line on the main screen
+    once regular updates exist (#7); until then it would show hours-old numbers.
   - Could be pulled into v2 cheaply: it is only extra reply fields plus one screen, and carries no write risk. The
     reason to wait is watch UI and message size, not API work. Revisit once the v1 UI is settled on real use.
-- **Possible later: background glance refresh.** Today the glance only shows what the app cached when last opened (it
-  dims after 30 min and shows its age). A Connect IQ background task (`Background.registerForTemporalEvent`, 5 min
-  minimum) could ask the phone for status every 5-15 min so the glance stays current. A status fetch reads Lucid's
-  cloud copy and does not wake the car (waking is the separate `WakeupVehicle` call), though the data only changes
-  once the car has reported. Costs: watch and phone battery (a BLE wake plus one small call per refresh), and it
-  breaks the on-demand-only rule. Only add it if people want it, ideally with a long interval (30+ min) and a
-  setting to turn it off. Measure the battery cost first.
+- **Next: regular status updates (#7).** Today the glance only shows what the app cached when last opened (it dims
+  after 30 min and shows its age). Decided design: the phone fetches status on a flat 5 minute timer in its existing
+  foreground service and pushes the reply to the watch, which wakes a small background handler
+  (`Background.registerForPhoneAppMessageEvent`) that writes it into the same `Application.Storage` entry the glance
+  and the app already read. Why this way:
+  - The Lucid API has no push or streaming call, so the interval is also the worst-case delay before the watch learns
+    the car woke. A slower interval while the car sleeps was rejected for that reason.
+  - A status fetch reads Lucid's cloud copy and does not wake the car (waking is the separate `WakeupVehicle` call).
+  - The phone makes every Lucid call, so it is the one place that respects the gateway's rate limit (polling every
+    4-6 s hit status 8; every 5 minutes is far below that). After a `rate` error it doubles the interval for a while.
+  - Storage (32 KB per value) is not the limit. The glance (64 KB) and the background handler have small memory, so
+    keep the saved state compact and the handler free of the app's big classes.
+  - It breaks the "no continuous polling" rule, so update `CLAUDE.md` with it, and give the phone app a setting to
+    turn it off. Measure the battery cost (the batterystats comparison) after a day.
+  - Later on the same path: a "charging started" notification (`Notifications.showNotification`, API 5.1) from the
+    background handler when the stored state changes to charging, up to one interval late.
 - **v4 (watch face and complications):** a custom Orbit watch face showing the car's state at a glance (SOC, lock,
   charge, climate, age), plus complications or tap targets on the face that trigger actions (lock, unlock, climate)
   without opening the app. A watch face is a separate Connect IQ app type with its own memory limit and no input

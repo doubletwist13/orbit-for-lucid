@@ -39,6 +39,7 @@ for an `id` has `pending` absent or empty.
 | `charge` | string | Charge state, e.g. `CABLE_CONNECTED`; `NOT_CONNECTED` when unplugged |
 | `hvac` | bool | Climate/precondition on |
 | `tset` | number | The car's cabin set point in Celsius (see below) |
+| `tin`, `tout` | number | Cabin and outside air temperature in Celsius; each omitted when the car reports none |
 | `awake` | bool | Car awake |
 | `age` | int | Seconds since the car last reported (from `last_updated_ms`) |
 | `pending` | string | Short label while a command is in progress, e.g. `Waking`, `Unlocking`; absent when done |
@@ -61,6 +62,8 @@ and exits.
   back to 5 minutes after the next success. A setting in the phone app turns pushes off.
 - A push is skipped while logged out, and a failed fetch sends nothing.
 - A push carries no error and no `pending`.
+- With the app closed, the background service also shows a "Charging started" notification when a push changes the
+  saved charge state to `CHARGING` from another known state (not on the first push after an install).
 
 ## Error codes
 

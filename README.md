@@ -21,6 +21,12 @@ Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
   beside it while charging, and wavy lines while climate is on. The line at the bottom is how old the car's data is,
   or what is in progress ("Unlocking...") or an error. The car only reports while awake, so after 30 minutes the
   screen dims and the age turns amber; that is normal, not an error.
+- **Temperatures.** Under the charge number, `21°/14°` is the cabin and the outside air temperature, in the watch's
+  units.
+- **Stays current.** The phone fetches status every 5 minutes and sends it to the watch, even while the app is closed,
+  so the glance and the main screen open on recent data. A switch in the phone app turns this off. With the app
+  closed, the watch also shows a "Charging started" notification when a push shows the car has started charging
+  (up to 5 minutes late).
 - **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
 - **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
   confirm.

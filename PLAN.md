@@ -193,8 +193,9 @@ Watch:
    store, login screen, status + lock/unlock/climate buttons in a green-terminal theme, unit tests with a fake
    transport. Open: persist "pending command" state across app restarts, a configurable climate temperature,
    release-build (R8) check.
-4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC, lock state and age with no
-   phone calls; the fenix 7 button check is still open; lock deliberately has no confirm tap; unlock and climate do).
+4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC and lock state, kept
+   fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes, so an age goes
+   stale); the fenix 7 button check is still open; lock deliberately has no confirm tap; unlock and climate do).
 5. **Bridge** (DONE 2026-10-25 on the Pixel 10 Pro + Venu 3). Timings are one set of tests on one car and Lucid's
    latency is known to vary wildly: unlock from a sleeping car about 13 s without car wifi and 9-10 s with it, lock on
    an awake car 1-2 s. Offline, logged-out, swiped-away-app, reboot and car-on-wifi cases pass; batterystats and a long
@@ -240,8 +241,8 @@ none of it adds Lucid calls.
     once regular updates exist (#7); until then it would show hours-old numbers.
   - Could be pulled into v2 cheaply: it is only extra reply fields plus one screen, and carries no write risk. The
     reason to wait is watch UI and message size, not API work. Revisit once the v1 UI is settled on real use.
-- **Next: regular status updates (#7).** Today the glance only shows what the app cached when last opened (it dims
-  after 30 min and shows its age). Decided design: the phone fetches status on a flat 5 minute timer in its existing
+- **Next: regular status updates (#7).** Before this the glance only showed what the app cached when last opened.
+  Decided design: the phone fetches status on a flat 5 minute timer in its existing
   foreground service and pushes the reply to the watch, which wakes a small background handler
   (`Background.registerForPhoneAppMessageEvent`) that writes it into the same `Application.Storage` entry the glance
   and the app already read. Why this way:

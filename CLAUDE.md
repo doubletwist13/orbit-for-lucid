@@ -24,7 +24,8 @@ PLAN.md.
 - Phone makes all Lucid calls; the watch holds no secrets. Watch<->phone messages are defined in `docs/protocol.md`.
 - Store only the refresh token (Keystore-encrypted); `allowBackup=false`. Refresh JWT only when <60 s remain.
 - Gateway resets streams sending HTTP/2 `content-length`: stream the body, strip `Content-Length`/`Accept-Encoding`.
-- Lucid calls are on-demand, no continuous polling.
+- Lucid calls are on-demand, plus one status fetch every 5 minutes pushed to the watch (a setting turns it off);
+  never poll faster, and back off after a rate-limit answer.
 - Venu 3 is the primary target (CIQ API 5.2); don't use newer APIs without a fallback.
 
 ## Tooling

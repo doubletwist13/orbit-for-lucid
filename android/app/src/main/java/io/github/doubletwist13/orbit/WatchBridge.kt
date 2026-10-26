@@ -23,7 +23,14 @@ object WatchBridge {
         c.initialize(ctx, true, object : ConnectIQ.ConnectIQListener {
             override fun onSdkReady() {
                 try {
-                    c.knownDevices.forEach { listen(c, controller, it) }
+                    val devices = c.knownDevices
+                    devices.forEach { listen(c, controller, it) }
+                    // the same registration serves both: pushes go to every watch that has this app
+                    controller.startPush({ anyConnected(c, devices) }) { push ->
+                        devices.forEach { d -> c.sendMessage(d, IQApp(WATCH_APP_ID), push) { _, _, st ->
+                            Log.d(TAG, "push $st")
+                        } }
+                    }
                 } catch (e: InvalidStateException) {
                     Log.w(TAG, "devices: $e")
                 } catch (e: ServiceUnavailableException) {
@@ -42,9 +49,19 @@ object WatchBridge {
         })
     }
 
+    /** True when any known watch is connected; if the SDK cannot say, assume so rather than skip a push. */
+    private fun anyConnected(c: ConnectIQ, devices: List<IQDevice>): Boolean = try {
+        devices.any { c.getDeviceStatus(it) == IQDevice.IQDeviceStatus.CONNECTED }
+    } catch (e: InvalidStateException) {
+        true
+    } catch (e: ServiceUnavailableException) {
+        true
+    }
+
     fun stop(ctx: Context) {
         val c = ciq ?: return
         ciq = null
+        (ctx.applicationContext as OrbitApplication).controller.stopPush()
         try {
             c.shutdown(ctx)
         } catch (e: InvalidStateException) {

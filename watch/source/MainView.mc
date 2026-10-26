@@ -31,6 +31,7 @@ class MainView extends WatchUi.View {
         ring(dc, soc, fg, stale);
         dc.setColor(fg, Graphics.COLOR_BLACK);
         socText(dc, soc, w, h);
+        air(dc, s, w, h);
         icons(dc, s, w, h);
         var note = link.pending != null ? link.pending + "..." : link.err != null ? link.err : age(s);
         dc.setColor(link.err != null ? Graphics.COLOR_RED : stale ? AMBER : DIM, Graphics.COLOR_BLACK);
@@ -68,6 +69,16 @@ class MainView extends WatchUi.View {
         x += numW + gap;
         dc.drawText(x, h * 0.31, Graphics.FONT_SMALL, "%", left);
         Icons.draw(dc, :battery, x + pctW + gap, (h * 0.31).toNumber() - bat / 2, bat);
+    }
+
+    // inside/outside air temperature as "21°/14°", left aligned so there is room beside it for more later
+    private function air(dc as Dc, s as Dictionary?, w as Number, h as Number) as Void {
+        if (s == null || (s["tin"] == null && s["tout"] == null)) { return; }
+        var f = Units.fahrenheit();
+        var inside = s["tin"] != null ? Units.whole((s["tin"] as Numeric).toFloat(), f) : "--";
+        var outside = s["tout"] != null ? Units.whole((s["tout"] as Numeric).toFloat(), f) : "--";
+        dc.drawText(w * 0.22, h * 0.54, Graphics.FONT_SMALL, inside + "°/" + outside + "°",
+            Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     // state icons, shown only when they apply: lock, plug, charging bolt, climate

@@ -10,7 +10,6 @@ const USE_STUB = false;
 
 const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlocking",
     "climate_on" => "Climate on", "climate_off" => "Climate off"};
-const STATUS_KEYS = ["soc", "locked", "charge", "hvac", "tset", "awake"];
 const ERRORS = {"auth" => "Open the phone app", "offline" => "No connection", "rate" => "Try again in a minute",
     "timeout" => "No confirmation yet", "wake" => "Car did not wake", "unknown" => "Something went wrong",
     "nolink" => "Phone not reachable"};
@@ -61,31 +60,29 @@ class Link {
     }
 
     function handle(d as Dictionary) as Void {
-        if (d["v"] != 1 || d["id"] != _id) { return; }
+        if (d["v"] != 1) { return; }
+        // a push is not an answer to anything we asked, so it has no request id to match; it just refreshes the state
+        if (d["push"] == true) {
+            var fresh = Status.merge(state, d);
+            if (fresh != null) {
+                state = fresh;
+                Application.Storage.setValue("s", fresh);
+                WatchUi.requestUpdate();
+            }
+            return;
+        }
+        if (d["id"] != _id) { return; }
         _silence.stop();
         if (d["err"] != null) {
             fail(d["err"] as String);
             return;
         }
         err = null;
-        // pending-only replies carry no status, so merge rather than replace
-        var st = state != null ? state : {};
-        var fresh = false;
-        for (var i = 0; i < STATUS_KEYS.size(); i++) {
-            if (d[STATUS_KEYS[i]] != null) {
-                st[STATUS_KEYS[i]] = d[STATUS_KEYS[i]];
-                fresh = true;
-            }
-        }
-        // the phone leaves tset out when the car reports none, so an old one must not linger
-        if (fresh && d["tset"] == null) { st.remove("tset"); }
-        if (fresh) {
-            st["ts"] = Time.now().value() - (d["age"] != null ? d["age"] as Number : 0);
-            state = st;
-        }
+        var st = Status.merge(state, d);
+        if (st != null) { state = st; }
         pending = d["pending"] as String?;
         // flash writes wear it and cost power: save once a command settles, not on every progress reply
-        if (fresh && pending == null) { Application.Storage.setValue("s", st); }
+        if (st != null && pending == null) { Application.Storage.setValue("s", st); }
         WatchUi.requestUpdate();
     }
 

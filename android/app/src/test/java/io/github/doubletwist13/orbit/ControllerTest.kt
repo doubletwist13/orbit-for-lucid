@@ -30,6 +30,14 @@ class ControllerTest {
         assertEquals(22.5, watchReply(1, status.copy(setTempC = 22.5), null)["tset"])
     }
 
+    @Test fun airTemperaturesAreSentOnlyWhenPlausible() {
+        val r = watchReply(1, status.copy(insideC = 21.0, outsideC = 0.0), null)
+        assertEquals(21.0, r["tin"])
+        assertEquals(0.0, r["tout"]) // freezing is a real reading
+        assertFalse(watchReply(1, status, null).containsKey("tin"))
+        assertFalse(watchReply(1, status.copy(insideC = 999.0, outsideC = -273.0), null).containsKey("tout"))
+    }
+
     @Test fun requestedTemperatureIsClampedAndDefaulted() {
         assertEquals(22.5, climateTemp(mapOf("temp" to 22.5)), 0.0)
         assertEquals(15.0, climateTemp(mapOf("temp" to 5.0)), 0.0)
@@ -46,6 +54,19 @@ class ControllerTest {
         assertTrue(climateDone(on.copy(setTempC = 0.0), true, 24.0)) // no set point reported: power alone
         assertTrue(climateDone(status, false, 21.0))
         assertFalse(climateDone(on, false, 21.0))
+    }
+
+    @Test fun pushIsAFlaggedStatusWithNoSecrets() {
+        val r = pushReply(status)
+        assertEquals(true, r["push"])
+        assertEquals(75, r["soc"])
+        assertFalse(r.values.any { it == "VIN-SECRET" || it == "nick" })
+    }
+
+    @Test fun pushBacksOffAfterARateLimitAndRecoversAfterAnythingElse() {
+        assertEquals(2 * PUSH_INTERVAL_MS, nextPushDelay(PUSH_INTERVAL_MS, true))
+        assertEquals(PUSH_MAX_MS, nextPushDelay(PUSH_MAX_MS, true)) // capped
+        assertEquals(PUSH_INTERVAL_MS, nextPushDelay(4 * PUSH_INTERVAL_MS, false))
     }
 
     @Test fun pendingReplyWithoutStatusHasNoStateFields() {

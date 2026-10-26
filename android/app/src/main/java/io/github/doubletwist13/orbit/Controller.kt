@@ -1,6 +1,7 @@
 package io.github.doubletwist13.orbit
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,8 @@ data class UiState(
     val status: VehicleStatus? = null,
     val busy: String? = null,
     val message: String? = null,
+    /** Fetch status every few minutes and push it to the watch (docs/protocol.md, "Pushed status"). */
+    val pushOn: Boolean = true,
 )
 
 /** A command failed in a way the watch protocol names (see docs/protocol.md error codes). */
@@ -30,9 +33,13 @@ class Controller(context: Context) {
     private val store = TokenStore(context)
     private val client = LucidClient(store.deviceId())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val _state = MutableStateFlow(UiState(loggedIn = store.load() != null))
+    private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val _state = MutableStateFlow(
+        UiState(loggedIn = store.load() != null, pushOn = prefs.getBoolean("push", true)),
+    )
     val state = _state.asStateFlow()
     private var watchJob: Job? = null
+    private var pushJob: Job? = null
 
     fun login(user: String, password: String) = run("Logging in") {
         try {
@@ -48,7 +55,49 @@ class Controller(context: Context) {
 
     fun logout() {
         store.clear()
-        _state.value = UiState()
+        _state.value = UiState(pushOn = _state.value.pushOn)
+    }
+
+    fun setPush(on: Boolean) {
+        prefs.edit().putBoolean("push", on).apply()
+        _state.update { it.copy(pushOn = on) }
+    }
+
+    /**
+     * Every [PUSH_INTERVAL_MS] fetch status and hand it to [send] for the watch, so its glance and app open on fresh
+     * data. This is the one place Lucid is called without a request; it is slow on purpose (the gateway throttled
+     * polling every few seconds) and backs off after a rate-limit answer.
+     */
+    fun startPush(watchConnected: () -> Boolean, send: (Map<String, Any>) -> Unit) {
+        pushJob?.cancel()
+        pushJob = scope.launch {
+            var wait = PUSH_INTERVAL_MS
+            while (true) {
+                // a watch that is away would drop the push, so don't spend a Lucid call on it
+                val away = _state.value.pushOn && _state.value.loggedIn && !watchConnected()
+                if (away) {
+                    Log.d("OrbitBridge", "push skipped: no watch connected")
+                    wait = PUSH_INTERVAL_MS // a backoff from before the watch left must not delay the reconnect push
+                }
+                if (_state.value.pushOn && _state.value.loggedIn && !away) {
+                    wait = try {
+                        send(pushReply(fetch()))
+                        PUSH_INTERVAL_MS
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        if (e is LucidException && e.unauthenticated) logout()
+                        nextPushDelay(wait, e is LucidException && e.grpcStatus == 8)
+                    }
+                }
+                delay(wait)
+            }
+        }
+    }
+
+    fun stopPush() {
+        pushJob?.cancel()
+        pushJob = null
     }
 
     fun refresh() = run("Refreshing") { fetch() }
@@ -169,11 +218,26 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         put("charge", it.chargeState)
         put("hvac", it.hvacOn)
         if (it.setTempC in MIN_TEMP_C..MAX_TEMP_C) put("tset", it.setTempC)
+        // a value outside the plausible air range is a bad reading, not a temperature
+        it.insideC?.takeIf { t -> t in AIR_RANGE_C }?.let { t -> put("tin", t) }
+        it.outsideC?.takeIf { t -> t in AIR_RANGE_C }?.let { t -> put("tout", t) }
         put("awake", it.awake)
         put("age", ((System.currentTimeMillis() - it.updatedMs) / 1000).coerceAtLeast(0).toInt())
     }
     pending?.let { put("pending", it) }
 }
+
+internal const val PUSH_INTERVAL_MS = 5 * 60_000L
+internal const val PUSH_MAX_MS = 60 * 60_000L
+
+/** After a rate-limit answer wait twice as long (up to an hour); after any other failure, the normal interval. */
+internal fun nextPushDelay(current: Long, rateLimited: Boolean): Long =
+    if (rateLimited) (current * 2).coerceAtMost(PUSH_MAX_MS) else PUSH_INTERVAL_MS
+
+/** A status the phone sends unasked: the same fields as a reply, flagged `push` instead of answering a request id. */
+internal fun pushReply(s: VehicleStatus): Map<String, Any> = watchReply(0, s, null) + ("push" to true)
+
+internal val AIR_RANGE_C = -50.0..70.0
 
 internal const val DEFAULT_TEMP_C = 21.0
 internal const val MIN_TEMP_C = 15.0 // the API's enforced range

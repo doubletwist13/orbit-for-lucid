@@ -133,8 +133,9 @@ screen size, so layouts should scale, but that is unverified.
   `INCOMING_MESSAGE` broadcast never fires (the SDK registers it at runtime, and delivery needs a prior bound-service
   registration). A `connectedDevice` foreground service that only keeps the SDK registered works: with the app swiped
   away and the screen off, a watch tap reached the phone and the reply came back (about 0.4 s foreground, 1.7 s
-  background; one sample each). The service holds an idle BLE link and makes NO Lucid calls, so Lucid traffic stays
-  on-demand. Needs `FOREGROUND_SERVICE_CONNECTED_DEVICE` plus `CHANGE_NETWORK_STATE` (the type's prerequisite) and a
+  background; one sample each). The service holds an idle BLE link and makes NO Lucid calls itself (the 5 minute
+  status push below runs in `Controller`, which the service keeps alive). Needs `FOREGROUND_SERVICE_CONNECTED_DEVICE`
+  plus `CHANGE_NETWORK_STATE` (the type's prerequisite) and a
   runtime `POST_NOTIFICATIONS` prompt (asked on first launch; declining only hides the notification); persistent
   "Watch link active" notification (min importance). Decided against a service on/off switch (too easy to hit by
   accident, and logging out already stops car control) and against prompting for "unrestricted" battery use (the
@@ -142,13 +143,15 @@ screen size, so layouts should scale, but that is unverified.
   service after the first unlock (tested; it arrived about 2 min after a slow boot); a force-stopped app gets no boot
   broadcast until opened by hand. The watch fails a request with `nolink` after 8 s of silence. Still untested:
   hours-long idle, batterystats.
-- **Lucid calls stay on-demand.** When the companion receives a watch message it fetches status once (a 4 s cache
-  coalesces repeats). After a command it wakes the car if needed, sends, then polls 3 times at 5 s and then every 10 s
-  until the expected state change (about 105 s cap); sustained 3-5 s polling triggered RESOURCE_EXHAUSTED (see
+- **Lucid calls are on-demand, plus one status push every 5 minutes (#7, below).** When the companion
+  receives a watch message it fetches status once (a 4 s cache coalesces repeats). After a command it
+  wakes the car if needed, sends, then polls 3 times at 5 s and then every 10 s until the expected state change (about
+  105 s cap); sustained 3-5 s polling triggered RESOURCE_EXHAUSTED (see
   `docs/research/phase1-lucid-api-findings.md`).
 - Command logic lives in an app-scoped `Controller`, so it outlives the screen and serves both the UI and the watch.
-- A foreground service with continuous polling would cost a persistent notification, radio wakeups and many more calls,
-  with a real risk of `RESOURCE_EXHAUSTED`. Revisit only if on-demand wake proves unreliable on some phones (OEM battery
+- Fast or continuous polling would cost radio wakeups and many more calls, with a real risk of
+  `RESOURCE_EXHAUSTED`. The one exception is the flat 5 minute status push: one small call per interval, with backoff
+  and a setting to turn it off. Revisit only if on-demand wake proves unreliable on some phones (OEM battery
   optimizers).
 - Rate-limit safety: single in-memory token, single-flight refresh, retries of 2/4/8 s on `RESOURCE_EXHAUSTED`, a short
   status cache.
@@ -175,8 +178,9 @@ Watch:
   device-side protection.
 
 ## Responsiveness
-- Watch draws instantly from cached state (`Application.Storage`), shows its age, and updates when the phone replies;
-  clear in-flight and error states (offline, auth expired, car asleep).
+- Watch draws instantly from cached state (`Application.Storage`), shows its age on the main screen (the glance
+  has none), and updates when the phone replies or pushes status; clear in-flight and error states (offline, auth
+  expired, car asleep).
 - Phone keeps the HTTP/2 connection and token warm during a session.
 - Keep the Monkey C app small for Venu 3 memory limits; use `Communications.transmit` with a `ConnectionListener` for
   delivery confirmation.
@@ -193,8 +197,9 @@ Watch:
    store, login screen, status + lock/unlock/climate buttons in a green-terminal theme, unit tests with a fake
    transport. Open: persist "pending command" state across app restarts, a configurable climate temperature,
    release-build (R8) check.
-4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC, lock state and age with no
-   phone calls; the fenix 7 button check is still open; lock deliberately has no confirm tap; unlock and climate do).
+4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC and lock state, kept
+   fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes, so an age goes
+   stale); the fenix 7 button check is still open; lock deliberately has no confirm tap; unlock and climate do).
 5. **Bridge** (DONE 2026-10-25 on the Pixel 10 Pro + Venu 3). Timings are one set of tests on one car and Lucid's
    latency is known to vary wildly: unlock from a sleeping car about 13 s without car wifi and 9-10 s with it, lock on
    an awake car 1-2 s. Offline, logged-out, swiped-away-app, reboot and car-on-wifi cases pass; batterystats and a long
@@ -219,21 +224,44 @@ none of it adds Lucid calls.
   - Frunk and trunk: status (`rear_cargo` is in the vehicle state) and open/close (`frunk_*` / `trunk_*` in
     python-lucidmotors). Opening a closure is a physical action, so give it a confirm tap like unlock. (Frunk will only
     work on vehicles that have a powered frunk; some don't.)
+  - More controls, each with its state in the same status call (a toggle or small picker, a new protocol command and
+    a confirm where it changes the car beyond a setting):
+    - Battery preconditioning (`preconditioning_status` and `preconditioning_time_remaining`; `SetBatteryPrecon`).
+      Fits a small icon with a countdown; useful before a fast charge.
+    - AC current limit (`active_session_ac_current_limit` and `energy_ac_current_limit`; `SetACCurrLimit`, whole
+      amps). It is only a ceiling: the car still negotiates the real rate with the charger and the wiring, so a high
+      value cannot force more than they allow. The request carries no location (the car applies it to where it is
+      parked), and the app greys it out while the car moves, so read it back and show it as unavailable then. The
+      valid values are not known; find the set from the official app or the car before building the picker.
+    - Seat climate (`seats`; heat, and cooling on cars that have it; `SeatClimateControl`), steering wheel heat
+      (`SteeringHeaterStatus`; `SteeringWheelHeater`) and max defrost / max A/C (`DefrostState`, `max_ac_status`;
+      `HvacDefrostControl`, `SetMaxAC`). Together they fit one "Climate details" screen.
 - **v3 (read-only details, one "Details" screen on the watch):**
   - Tire pressure (the four `*_tire_pressure_bar` fields; sent in bar, the watch converts per its unit setting).
   - Window status (`WindowPositionState`, per window; collapse to "all closed" or a list of open ones).
   - Battery health (`battery_health` warning state and `battery_health_level`).
   - Min/Max Cell Temps (`min_cell_temp` and `max_cell_temp`).
-  - Indoor/outdoor temperature (`indoor_temp` and `outdoor_temp`).
+  - Inside/outside temperature (`interior_temp` and `exterior_temp`), shown as a `21°/14°` line on the main screen
+    (DONE with #7, since regular updates keep it from showing hours-old numbers).
   - Could be pulled into v2 cheaply: it is only extra reply fields plus one screen, and carries no write risk. The
     reason to wait is watch UI and message size, not API work. Revisit once the v1 UI is settled on real use.
-- **Possible later: background glance refresh.** Today the glance only shows what the app cached when last opened (it
-  dims after 30 min and shows its age). A Connect IQ background task (`Background.registerForTemporalEvent`, 5 min
-  minimum) could ask the phone for status every 5-15 min so the glance stays current. A status fetch reads Lucid's
-  cloud copy and does not wake the car (waking is the separate `WakeupVehicle` call), though the data only changes
-  once the car has reported. Costs: watch and phone battery (a BLE wake plus one small call per refresh), and it
-  breaks the on-demand-only rule. Only add it if people want it, ideally with a long interval (30+ min) and a
-  setting to turn it off. Measure the battery cost first.
+- **Regular status updates (#7), DONE 2026-10-26.** Before this the glance only showed what the app cached when last
+  opened. Design: the phone fetches status on a flat 5 minute timer in `Controller` (the app process the foreground
+  service keeps alive) and pushes the reply to the watch, which wakes a small background handler
+  (`Background.registerForPhoneAppMessageEvent`) that writes it into the same `Application.Storage` entry the glance
+  and the app already read. Why this way:
+  - The Lucid API has no push or streaming call, so the interval is also the worst-case delay before the watch learns
+    the car woke. A slower interval while the car sleeps was rejected for that reason.
+  - A status fetch reads Lucid's cloud copy and does not wake the car (waking is the separate `WakeupVehicle` call).
+  - The phone makes every Lucid call, so it is the one place that respects the gateway's rate limit (polling every
+    4-6 s hit status 8; every 5 minutes is far below that). After a `rate` error it doubles the interval for a while.
+  - Storage (32 KB per value) is not the limit. The glance (64 KB) and the background handler have small memory, so
+    keep the saved state compact and the handler free of the app's big classes.
+  - It breaks the old "no continuous polling" rule, so `CLAUDE.md` now says so, and the phone app has a switch to turn
+    it off. Still open: measure the battery cost (the batterystats comparison) after a day.
+  - A "charging started" notification from the background handler (`Notifications.showNotification`, API 5.1) was
+    tried and dropped: it did not show on the author's watch, and the official Lucid app already sends one. If it
+    comes back, the phone should say whether to alert (a setting in the phone app), not the watch.
 - **v4 (watch face and complications):** a custom Orbit watch face showing the car's state at a glance (SOC, lock,
   charge, climate, age), plus complications or tap targets on the face that trigger actions (lock, unlock, climate)
   without opening the app. A watch face is a separate Connect IQ app type with its own memory limit and no input

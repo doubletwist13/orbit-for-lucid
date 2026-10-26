@@ -10,17 +10,25 @@ Android companion app.
 ## Status
 
 Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and one Lucid. From the watch you can see
-state of charge, locked/unlocked and plugged/charging, then lock, unlock, start or stop climate at a temperature you
-pick (in the watch's own units), and refresh. Unlock and climate changes ask for a confirm tap; lock does not.
+state of charge, locked/unlocked, plugged/charging and the inside and outside temperature, then lock, unlock, start
+or stop climate at a temperature you pick (in the watch's own units), and refresh. Unlock and climate changes ask for a confirm tap; lock does not.
 Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
 ## Using the watch app
 
-- **Main screen.** A ring round the edge and the big number show the charge, with a small battery icon beside it. Icons
-  under the number show what applies: a closed or open padlock (locked or unlocked), a plug when plugged in, a bolt
-  beside it while charging, and wavy lines while climate is on. The line at the bottom is how old the car's data is,
-  or what is in progress ("Unlocking...") or an error. The car only reports while awake, so after 30 minutes the
-  screen dims and the age turns amber; that is normal, not an error.
+- **Main screen**, from the top down:
+  - **Charge.** A green ring round the edge fills clockwise from the top to match the charge, and the rest of the ring
+    stays dark. The big number in the middle is the same charge in percent, with a small battery icon beside it.
+  - **Temperatures.** Under the number, `21°/14°` is the cabin and the outside air temperature, in the watch's units
+    (`--` for one the car did not report, nothing at all if it reported neither).
+  - **State icons**, shown only when they apply: a closed or open padlock (locked or unlocked), a plug when plugged
+    in, a bolt beside it while charging, and wavy lines while climate is on.
+  - **Bottom line.** How old the car's data is (for example `2m`), or what is in progress ("Unlocking...") or an
+    error. The car only reports while awake, so after 30 minutes the whole screen dims and the age turns amber; that is
+    normal, not an error.
+- **Stays current.** About every 5 minutes, while the watch is connected, the phone fetches status and sends it to the
+  watch, even while the app is closed, so the glance and the main screen open on recent data. Android can delay the
+  timer while the phone sleeps. A switch in the phone app turns this off.
 - **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
 - **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
   confirm.
@@ -37,7 +45,10 @@ slower, and don't read the difference between those two runs as meaningful.
 ## Screenshots
 
 <p>
-  <img src="docs/images/watch-main.png" alt="Main screen: 85% charge, locked, plugged in, climate on" width="200">
+  <img src="docs/images/watch-glance.png" alt="Glance: 85% charge and locked" width="200">
+  <img src="docs/images/watch-main.png" width="200"
+       alt="Main screen: a ring and 85% charge, 85 and 87 degree cabin and outside temperatures, locked and plugged in
+       icons, and the data age of 2 minutes">
   <img src="docs/images/watch-actions.png" alt="Actions: lock, climate and refresh" width="200">
   <img src="docs/images/watch-lock.png" alt="Choose lock or unlock" width="200">
   <img src="docs/images/watch-climate.png" alt="Choose climate off or on, with the car's set point" width="200">
@@ -46,8 +57,8 @@ slower, and don't read the difference between those two runs as meaningful.
   <img src="docs/images/phone.jpg" alt="The Orbit Android app with lock, unlock, climate and refresh buttons" width="260">
 </p>
 
-Top: the watch app on a Venu 3 (main screen, actions, lock or unlock, climate off or on). Bottom: the phone app. The
-car's nickname is blurred out in the phone screenshot.
+Top: the watch app on a Venu 3 (glance, main screen, actions, lock or unlock, climate off or on). Bottom: the phone
+app. The car's nickname is blurred out in the phone screenshot.
 
 ## Limitations
 
@@ -84,8 +95,11 @@ car's nickname is blurred out in the phone screenshot.
   for about 105 seconds, then gives up with "no confirmation yet" (the command may still have worked).
 - **Rate limits.** Lucid's gateway throttles frequent status calls. Polling is deliberately gentle, and you may still
   see a "rate" error if you hammer it.
-- **Little testing of failure cases.** Offline, logged-out, a car on wifi, battery impact over days, and surviving
-  reboots are not well tested yet.
+- **Lucid sees a status request every 5 minutes.** Besides your taps, the phone asks Lucid for status on that timer
+  (see "Stays current"), from your account, whether or not you are using the app. That is the kind of thing Lucid's
+  terms (above) may not welcome; you can turn it off with the switch in the phone app. It does not wake the car.
+- **Little testing of failure cases.** Offline, logged-out, a car on wifi, battery impact over days (including the
+  5 minute updates), and surviving reboots are not well tested yet.
 - **The API is unofficial.** It can change or disappear without notice.
 
 ## How it works
@@ -128,13 +142,15 @@ Orbit has no server, no accounts and no analytics. The author receives nothing f
 - **Lucid password:** typed once in the phone app and sent only to Lucid's login service. It is not stored.
 - **Lucid session:** only a refresh token is kept, encrypted with a key held in the phone's Android Keystore. Android
   backup is disabled, so it is not copied to the cloud or to a new phone. Log out in the app to delete it.
-- **Watch:** stores a cached copy of the last state (charge, lock state, charging, climate, and when it was fetched).
-  No credentials or tokens are ever sent to the watch.
+- **Watch:** stores a cached copy of the last state (charge, lock state, charging, climate and its set point, the
+  inside and outside air temperature, and when the car last reported). No credentials or tokens are ever sent to the
+  watch.
 - **Watch to phone:** messages travel over Bluetooth through Garmin Connect Mobile, which is covered by Garmin's own
   privacy terms.
 - **Car data:** the phone asks Lucid's cloud for your vehicle's state and sends commands to it. That traffic is between
   your phone and Lucid and is covered by Lucid's terms. Orbit does not log tokens, emails or VINs, and it does not
-  request or use your phone's location or the car's.
+  request or use your phone's location or the car's. About every 5 minutes, while your watch is connected, the phone
+  also asks Lucid for status unasked and sends it to the watch; a switch in the app turns that off.
 
 ## Security
 

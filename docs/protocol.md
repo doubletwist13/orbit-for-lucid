@@ -63,6 +63,7 @@ the same merge and exits.
   back to 5 minutes after the next success. A setting in the phone app turns pushes off.
 - A push is skipped while logged out, and a failed fetch sends nothing.
 - A push carries no error and no `pending`.
+
 ## Error codes
 
 | `err` | Meaning | Watch shows |

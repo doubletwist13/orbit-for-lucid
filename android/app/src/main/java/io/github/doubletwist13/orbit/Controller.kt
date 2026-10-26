@@ -75,7 +75,10 @@ class Controller(context: Context) {
             while (true) {
                 // a watch that is away would drop the push, so don't spend a Lucid call on it
                 val away = _state.value.pushOn && _state.value.loggedIn && !watchConnected()
-                if (away) Log.d("OrbitBridge", "push skipped: no watch connected")
+                if (away) {
+                    Log.d("OrbitBridge", "push skipped: no watch connected")
+                    wait = PUSH_INTERVAL_MS // a backoff from before the watch left must not delay the reconnect push
+                }
                 if (_state.value.pushOn && _state.value.loggedIn && !away) {
                     wait = try {
                         send(pushReply(fetch()))

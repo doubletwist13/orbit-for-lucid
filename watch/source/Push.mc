@@ -13,8 +13,8 @@ class PushDelegate extends System.ServiceDelegate {
     }
 
     function onPhoneAppMessage(msg as Communications.PhoneAppMessage) as Void {
-        var d = msg.data as Dictionary;
-        if (d["v"] == 1 && d["push"] == true) {
+        var d = msg.data;
+        if (d instanceof Dictionary && d["v"] == 1 && d["push"] == true) {
             var st = Status.merge(Application.Storage.getValue("s") as Dictionary?, d);
             if (st != null) { Application.Storage.setValue("s", st); }
         }

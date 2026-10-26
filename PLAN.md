@@ -100,7 +100,7 @@ LICENSE  NOTICE  README.md  INSTALL.md  PLAN.md  SECURITY.md  .gitignore  .gitle
 - Re-read Garmin's current SDK agreement and Developer Guidelines before any store release.
 
 ## Target devices
-Phase 4 builds and tests for the Venu 3 only (real hardware), with `Menu2` / `ConfirmationDelegate` so buttons work.
+Phase 4 builds and tests for the Venu 3 only (real hardware), with menus that take both touch and buttons.
 
 **Status 2026-10-25:** the manifest lists `venu3`, `venux1` (Venu X1, 448x486 rectangular, needs API 6.0.3 so SDK 9.x)
 and `fenix7` (260x260). Both extras compile (`monkeyc -d <id>`) but have never run: the SDK simulator segfaults in
@@ -116,8 +116,10 @@ screen size, so layouts should scale, but that is unverified.
 | **fenix 7 / FR255/955** | 240-280 px round MIP | buttons (touch on some) | Popular line; different input model |
 | **Venu Sq 2** (optional) | 320x360 rectangular AMOLED | touch + button | Only rectangular layout |
 
-- Input matters as much as screen size: build on `WatchUi.Menu2` and `ConfirmationDelegate` (work with touch and
-  buttons); no custom touch-only widgets.
+- Input matters as much as screen size: every screen must work with touch and with buttons, with no touch-only
+  widgets. The icon menus (`Actions.mc`) are drawn by the app and use a raw `InputDelegate` (tap, select, up/down,
+  vertical swipe): a `BehaviorDelegate` delivered one tap as both a tap and a select, which sent lock when unlock
+  was tapped. Confirms use Garmin's `Confirmation` and the climate set point uses Garmin's `Picker`.
 - One codebase via resource qualifiers (e.g. `resources-round-454x454`) where layouts differ.
 - Memory is the main constraint on MIP watches: keep the app small and bitmaps minimal; the glance limit (64 KB) is the
   tightest.

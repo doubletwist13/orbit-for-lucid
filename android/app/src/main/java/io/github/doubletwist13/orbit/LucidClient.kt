@@ -49,6 +49,9 @@ data class VehicleStatus(
     val hvacOn: Boolean,
     /** Driver-side cabin set point in Celsius; the car keeps one while climate is off too. 0 when not reported. */
     val setTempC: Double = 0.0,
+    /** Cabin and outside air temperature in Celsius; null when the car sends no cabin block. */
+    val insideC: Double? = null,
+    val outsideC: Double? = null,
     val updatedMs: Long,
     val fromCache: Boolean = false,
 )
@@ -206,5 +209,7 @@ private fun Vehicle.toStatus() = VehicleStatus(
     chargeState = state.charging.chargeState.name.removePrefix("CHARGE_STATE_"),
     hvacOn = state.hvac.power != HvacPower.HVAC_OFF,
     setTempC = state.hvac.frontLeftSetTemperature,
+    insideC = state.cabin.interiorTemp.takeIf { state.hasCabin() },
+    outsideC = state.cabin.exteriorTemp.takeIf { state.hasCabin() },
     updatedMs = state.lastUpdatedMs,
 )

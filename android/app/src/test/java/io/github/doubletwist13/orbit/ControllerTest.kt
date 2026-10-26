@@ -30,6 +30,14 @@ class ControllerTest {
         assertEquals(22.5, watchReply(1, status.copy(setTempC = 22.5), null)["tset"])
     }
 
+    @Test fun airTemperaturesAreSentOnlyWhenPlausible() {
+        val r = watchReply(1, status.copy(insideC = 21.0, outsideC = 0.0), null)
+        assertEquals(21.0, r["tin"])
+        assertEquals(0.0, r["tout"]) // freezing is a real reading
+        assertFalse(watchReply(1, status, null).containsKey("tin"))
+        assertFalse(watchReply(1, status.copy(insideC = 999.0, outsideC = -273.0), null).containsKey("tout"))
+    }
+
     @Test fun requestedTemperatureIsClampedAndDefaulted() {
         assertEquals(22.5, climateTemp(mapOf("temp" to 22.5)), 0.0)
         assertEquals(15.0, climateTemp(mapOf("temp" to 5.0)), 0.0)

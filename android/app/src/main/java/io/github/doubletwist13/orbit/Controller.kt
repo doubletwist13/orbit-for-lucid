@@ -211,6 +211,9 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         put("charge", it.chargeState)
         put("hvac", it.hvacOn)
         if (it.setTempC in MIN_TEMP_C..MAX_TEMP_C) put("tset", it.setTempC)
+        // a value outside the plausible air range is a bad reading, not a temperature
+        it.insideC?.takeIf { t -> t in AIR_RANGE_C }?.let { t -> put("tin", t) }
+        it.outsideC?.takeIf { t -> t in AIR_RANGE_C }?.let { t -> put("tout", t) }
         put("awake", it.awake)
         put("age", ((System.currentTimeMillis() - it.updatedMs) / 1000).coerceAtLeast(0).toInt())
     }
@@ -226,6 +229,8 @@ internal fun nextPushDelay(current: Long, rateLimited: Boolean): Long =
 
 /** A status the phone sends unasked: the same fields as a reply, flagged `push` instead of answering a request id. */
 internal fun pushReply(s: VehicleStatus): Map<String, Any> = watchReply(0, s, null) + ("push" to true)
+
+internal val AIR_RANGE_C = -50.0..70.0
 
 internal const val DEFAULT_TEMP_C = 21.0
 internal const val MIN_TEMP_C = 15.0 // the API's enforced range

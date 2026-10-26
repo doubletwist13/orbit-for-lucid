@@ -102,33 +102,12 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
 
     function onSelect() as Boolean {
         var s = link().state;
-        var hvac = s != null && s["hvac"] == true;
-        var menu = new WatchUi.Menu2({:title => "Orbit"});
-        menu.addItem(new WatchUi.MenuItem("Lock", null, "lock", null));
-        menu.addItem(new WatchUi.MenuItem("Unlock", null, "unlock", null));
-        var climate = hvac ? "climate_off" : "climate_on";
-        menu.addItem(new WatchUi.MenuItem(hvac ? "Climate off" : "Climate on", null, climate, null));
-        menu.addItem(new WatchUi.MenuItem("Refresh", null, "status", null));
-        WatchUi.pushView(menu, new ActionDelegate(), WatchUi.SLIDE_UP);
+        var menu = new IconMenu([
+            {:icon => :lock, :id => "lock_menu"},
+            {:icon => :hvac, :id => s != null && s["hvac"] == true ? "climate_off" : "climate_on"},
+            {:icon => :refresh, :id => "status"}]);
+        WatchUi.pushView(menu, new ActionsDelegate(menu), WatchUi.SLIDE_UP);
         return true;
-    }
-}
-
-class ActionDelegate extends WatchUi.Menu2InputDelegate {
-    function initialize() {
-        Menu2InputDelegate.initialize();
-    }
-
-    function onSelect(item as WatchUi.MenuItem) as Void {
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
-        var id = item.getId() as String;
-        // lock and refresh are harmless or protective; unlock and climate change the car, so they ask first
-        var question = CONFIRM[id];
-        if (question != null) {
-            WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id), WatchUi.SLIDE_UP);
-        } else {
-            link().send(id);
-        }
     }
 }
 

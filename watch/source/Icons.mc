@@ -15,6 +15,8 @@ module Icons {
             bolt(dc, x, y, u);
         } else if (id == :hvac) {
             hvac(dc, x, y, u);
+        } else if (id == :refresh) {
+            refresh(dc, x, y, u);
         } else if (id == :battery) {
             battery(dc, x, y, u);
         }
@@ -69,6 +71,13 @@ module Icons {
                 line(dc, x, y, u, cx + dir, yy, cx - dir, yy + 4);
             }
         }
+    }
+
+    // an almost full circle ending in an arrowhead
+    function refresh(dc as Dc, x as Number, y as Number, u as Float) as Void {
+        dc.drawArc(px(x, 12, u), px(y, 12, u), (8 * u).toNumber(), Graphics.ARC_CLOCKWISE, 0, 46);
+        line(dc, x, y, u, 20, 3, 20, 8);
+        line(dc, x, y, u, 20, 8, 15, 8);
     }
 
     function battery(dc as Dc, x as Number, y as Number, u as Float) as Void {

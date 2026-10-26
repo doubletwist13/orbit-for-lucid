@@ -67,12 +67,13 @@ class Controller(context: Context) {
      * data. This is the one place Lucid is called without a request; it is slow on purpose (the gateway throttled
      * polling every few seconds) and backs off after a rate-limit answer.
      */
-    fun startPush(send: (Map<String, Any>) -> Unit) {
+    fun startPush(watchConnected: () -> Boolean, send: (Map<String, Any>) -> Unit) {
         pushJob?.cancel()
         pushJob = scope.launch {
             var wait = PUSH_INTERVAL_MS
             while (true) {
-                if (_state.value.pushOn && _state.value.loggedIn) {
+                // a watch that is away would drop the push, so don't spend a Lucid call on it
+                if (_state.value.pushOn && _state.value.loggedIn && watchConnected()) {
                     wait = try {
                         send(pushReply(fetch()))
                         PUSH_INTERVAL_MS

@@ -48,6 +48,19 @@ class ControllerTest {
         assertFalse(climateDone(on, false, 21.0))
     }
 
+    @Test fun pushIsAFlaggedStatusWithNoSecrets() {
+        val r = pushReply(status)
+        assertEquals(true, r["push"])
+        assertEquals(75, r["soc"])
+        assertFalse(r.values.any { it == "VIN-SECRET" || it == "nick" })
+    }
+
+    @Test fun pushBacksOffAfterARateLimitAndRecoversAfterAnythingElse() {
+        assertEquals(2 * PUSH_INTERVAL_MS, nextPushDelay(PUSH_INTERVAL_MS, true))
+        assertEquals(PUSH_MAX_MS, nextPushDelay(PUSH_MAX_MS, true)) // capped
+        assertEquals(PUSH_INTERVAL_MS, nextPushDelay(4 * PUSH_INTERVAL_MS, false))
+    }
+
     @Test fun pendingReplyWithoutStatusHasNoStateFields() {
         assertEquals(setOf("v", "id", "ok", "pending"), watchReply(1, null, "Waking car").keys)
     }

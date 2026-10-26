@@ -10,8 +10,24 @@ Android companion app.
 ## Status
 
 Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and one Lucid. From the watch you can see
-state of charge, locked/unlocked and plugged/charging, then lock, unlock, start or stop climate, and refresh. Unlock
-and climate changes ask for a confirm tap; lock does not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
+state of charge, locked/unlocked and plugged/charging, then lock, unlock, start or stop climate at a temperature you
+pick (in the watch's own units), and refresh. Unlock and climate changes ask for a confirm tap; lock does not.
+Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
+
+## Using the watch app
+
+- **Main screen.** A ring round the edge and the big number show the charge, with a small battery icon beside it. Icons
+  under the number show what applies: a closed or open padlock (locked or unlocked), a plug when plugged in, a bolt
+  beside it while charging, and wavy lines while climate is on. The line at the bottom is how old the car's data is,
+  or what is in progress ("Unlocking...") or an error. The car only reports while awake, so after 30 minutes the
+  screen dims and the age turns amber; that is normal, not an error.
+- **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
+- **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
+  confirm.
+- **Climate** opens a choice of off or on. On shows the car's current set point and opens a picker over the car's
+  range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a new temperature
+  while climate is already on changes it.
+- **Back** is the watch's back button.
 
 **Timings are anecdotes.** In one round of tests on one car, an unlock from a sleeping car took about 13 seconds
 without car wifi and 9-10 seconds with it, and a lock on an awake car took a second or two. That is a single set of
@@ -21,11 +37,17 @@ slower, and don't read the difference between those two runs as meaningful.
 ## Screenshots
 
 <p>
-  <img src="docs/images/watch.png" alt="Orbit on a Garmin Venu 3: 74% charge, locked, unplugged" width="260">
+  <img src="docs/images/watch-main.png" alt="Main screen: 85% charge, locked, plugged in, climate on" width="200">
+  <img src="docs/images/watch-actions.png" alt="Actions: lock, climate and refresh" width="200">
+  <img src="docs/images/watch-lock.png" alt="Choose lock or unlock" width="200">
+  <img src="docs/images/watch-climate.png" alt="Choose climate off or on, with the car's set point" width="200">
+</p>
+<p>
   <img src="docs/images/phone.jpg" alt="The Orbit Android app with lock, unlock, climate and refresh buttons" width="260">
 </p>
 
-Left: the watch app on a Venu 3. Right: the phone app. The car's nickname is blurred out in the phone screenshot.
+Top: the watch app on a Venu 3 (main screen, actions, lock or unlock, climate off or on). Bottom: the phone app. The
+car's nickname is blurred out in the phone screenshot.
 
 ## Limitations
 
@@ -45,9 +67,11 @@ Left: the watch app on a Venu 3. Right: the phone app. The car's nickname is blu
 - **Tested on one phone.** Android only, tested on a Pixel 10 Pro. Needs Garmin Connect Mobile installed and paired
   with the watch.
 - **Not in any app store.** You build both apps yourself and sideload them. See Building.
-- **Fixed climate temperature.** Climate on uses 21 C. There is no way to set it from the watch yet.
 - **Limited commands.** No trunk/frunk, charge control, tire pressure, windows or location (some of that is on the
   roadmap).
+- **Temperature units follow the watch.** The Fahrenheit picker is the one that has been tried; the Celsius one
+  (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it
+  shows can differ from your pick by a rounding step.
 - **A notification stays on the phone.** Android only lets the app answer the watch while the phone app is kept
   alive, so it runs a small foreground service with a permanent low-priority notification ("Watch link active").
   On Android 13 and later the app asks for notification permission on first launch, only for this notification.

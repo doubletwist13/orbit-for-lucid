@@ -14,7 +14,7 @@ class OrbitApp extends Application.AppBase {
     function getInitialView() as [Views] or [Views, InputDelegates] {
         var l = new Link();
         link = l;
-        l.send("status");
+        l.send("status", null);
         return [new MainView(), new MainDelegate()];
     }
 

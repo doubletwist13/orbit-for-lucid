@@ -100,7 +100,7 @@ LICENSE  NOTICE  README.md  INSTALL.md  PLAN.md  SECURITY.md  .gitignore  .gitle
 - Re-read Garmin's current SDK agreement and Developer Guidelines before any store release.
 
 ## Target devices
-Phase 4 builds and tests for the Venu 3 only (real hardware), with `Menu2` / `ConfirmationDelegate` so buttons work.
+Phase 4 builds and tests for the Venu 3 only (real hardware), with menus that take both touch and buttons.
 
 **Status 2026-10-25:** the manifest lists `venu3`, `venux1` (Venu X1, 448x486 rectangular, needs API 6.0.3 so SDK 9.x)
 and `fenix7` (260x260). Both extras compile (`monkeyc -d <id>`) but have never run: the SDK simulator segfaults in
@@ -116,8 +116,10 @@ screen size, so layouts should scale, but that is unverified.
 | **fenix 7 / FR255/955** | 240-280 px round MIP | buttons (touch on some) | Popular line; different input model |
 | **Venu Sq 2** (optional) | 320x360 rectangular AMOLED | touch + button | Only rectangular layout |
 
-- Input matters as much as screen size: build on `WatchUi.Menu2` and `ConfirmationDelegate` (work with touch and
-  buttons); no custom touch-only widgets.
+- Input matters as much as screen size: every screen must work with touch and with buttons, with no touch-only
+  widgets. The icon menus (`Actions.mc`) are drawn by the app and use a raw `InputDelegate` (tap, select, up/down,
+  vertical swipe): a `BehaviorDelegate` delivered one tap as both a tap and a select, which sent lock when unlock
+  was tapped. Confirms use Garmin's `Confirmation` and the climate set point uses Garmin's `Picker`.
 - One codebase via resource qualifiers (e.g. `resources-round-454x454`) where layouts differ.
 - Memory is the main constraint on MIP watches: keep the app small and bitmaps minimal; the glance limit (64 KB) is the
   tightest.
@@ -208,13 +210,17 @@ Each item below touches `docs/protocol.md`, the phone and the watch, so bump the
 fields that v1 watches ignore) when it lands. All the status data comes from the same `GetUserVehicles` call as v1, so
 none of it adds Lucid calls.
 - **v2 (actions and their state):**
-  - HVAC target temperature (`set_cabin_temperature`; v1 hardcodes 21 C). Needs a picker on the watch and a unit
-    setting.
+  - HVAC target temperature (`set_cabin_temperature`), done in the watch UI redesign (#6) with Garmin's own picker.
+    The car also takes a new set point while climate is already on. Units: the
+    Lucid API exposes no unit preference, so the phone always sends and accepts SI (Celsius, bar) and the watch
+    converts for display from its own `System.getDeviceSettings()` units (`temperatureUnits`, `distanceUnits`). No unit
+    setting in either app. The Fahrenheit picker steps in whole degrees and converts back to Celsius before sending;
+    that conversion needs a unit test.
   - Frunk and trunk: status (`rear_cargo` is in the vehicle state) and open/close (`frunk_*` / `trunk_*` in
     python-lucidmotors). Opening a closure is a physical action, so give it a confirm tap like unlock. (Frunk will only
     work on vehicles that have a powered frunk; some don't.)
 - **v3 (read-only details, one "Details" screen on the watch):**
-  - Tire pressure (the four `*_tire_pressure_bar` fields; convert to psi or bar on the phone).
+  - Tire pressure (the four `*_tire_pressure_bar` fields; sent in bar, the watch converts per its unit setting).
   - Window status (`WindowPositionState`, per window; collapse to "all closed" or a list of open ones).
   - Battery health (`battery_health` warning state and `battery_health_level`).
   - Min/Max Cell Temps (`min_cell_temp` and `max_cell_temp`).

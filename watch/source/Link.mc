@@ -10,7 +10,7 @@ const USE_STUB = false;
 
 const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlocking",
     "climate_on" => "Climate on", "climate_off" => "Climate off"};
-const STATUS_KEYS = ["soc", "locked", "charge", "hvac", "awake"];
+const STATUS_KEYS = ["soc", "locked", "charge", "hvac", "tset", "awake"];
 const ERRORS = {"auth" => "Open the phone app", "offline" => "No connection", "rate" => "Try again in a minute",
     "timeout" => "No confirmation yet", "wake" => "Car did not wake", "unknown" => "Something went wrong",
     "nolink" => "Phone not reachable"};
@@ -37,7 +37,8 @@ class Link {
         return s;
     }
 
-    function send(cmd as String) as Void {
+    // temp is the climate set point in Celsius for climate_on, otherwise null
+    function send(cmd as String, temp as Float?) as Void {
         _id += 1;
         _cmd = cmd;
         pending = LABELS[cmd];
@@ -45,7 +46,9 @@ class Link {
         if (USE_STUB) {
             _timer.start(method(:stubReply), 2000, false);
         } else {
-            Communications.transmit({"v" => 1, "id" => _id, "cmd" => cmd}, null, new LinkListener(self));
+            var msg = {"v" => 1, "id" => _id, "cmd" => cmd};
+            if (temp != null) { msg["temp"] = temp; }
+            Communications.transmit(msg, null, new LinkListener(self));
             // the phone's first reply (even "pending") arrives within seconds; silence means no service is listening
             _silence.stop();
             _silence.start(method(:onSilence), 8000, false);
@@ -74,6 +77,8 @@ class Link {
                 fresh = true;
             }
         }
+        // the phone leaves tset out when the car reports none, so an old one must not linger
+        if (fresh && d["tset"] == null) { st.remove("tset"); }
         if (fresh) {
             st["ts"] = Time.now().value() - (d["age"] != null ? d["age"] as Number : 0);
             state = st;

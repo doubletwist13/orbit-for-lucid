@@ -2,6 +2,7 @@ package io.github.doubletwist13.orbit
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 
@@ -21,6 +22,30 @@ class ControllerTest {
     @Test fun socOutsideZeroToHundredIsNotSent() {
         assertFalse(watchReply(1, status.copy(socPercent = 255), null).containsKey("soc"))
         assertEquals(0, watchReply(1, status.copy(socPercent = 0), null)["soc"])
+    }
+
+    @Test fun setPointIsSentOnlyWhenTheCarReportsOne() {
+        assertFalse(watchReply(1, status, null).containsKey("tset"))
+        assertFalse(watchReply(1, status.copy(setTempC = 0.0), null).containsKey("tset"))
+        assertEquals(22.5, watchReply(1, status.copy(setTempC = 22.5), null)["tset"])
+    }
+
+    @Test fun requestedTemperatureIsClampedAndDefaulted() {
+        assertEquals(22.5, climateTemp(mapOf("temp" to 22.5)), 0.0)
+        assertEquals(15.0, climateTemp(mapOf("temp" to 5.0)), 0.0)
+        assertEquals(30.0, climateTemp(mapOf("temp" to 99)), 0.0)
+        assertEquals(21.0, climateTemp(mapOf<String, Any>()), 0.0)
+        assertEquals(21.0, climateTemp(mapOf("temp" to "hot")), 0.0)
+        assertEquals(21.0, climateTemp(mapOf("temp" to Double.NaN)), 0.0)
+    }
+
+    @Test fun climateOnIsDoneOnlyAtTheRequestedSetPoint() {
+        val on = status.copy(hvacOn = true, setTempC = 21.0)
+        assertTrue(climateDone(on, true, 21.2))
+        assertFalse(climateDone(on, true, 24.0)) // already on at the old set point: keep waiting
+        assertTrue(climateDone(on.copy(setTempC = 0.0), true, 24.0)) // no set point reported: power alone
+        assertTrue(climateDone(status, false, 21.0))
+        assertFalse(climateDone(on, false, 21.0))
     }
 
     @Test fun pendingReplyWithoutStatusHasNoStateFields() {

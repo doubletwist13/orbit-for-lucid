@@ -40,8 +40,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   sleeps. A switch in the phone app turns this off.
 - **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
 - **Info** is the small `i` button under them. It shows when the car last reported and when the phone last sent
-  status to the watch, so you can tell whether the 5 minute updates are arriving. The phone app shows the same
-  times, plus when it last asked Lucid.
+  status to the watch, so you can tell whether the 5 minute updates are arriving, and the watch app's version at
+  the bottom. The phone app shows the same times, plus when it last asked Lucid.
 - **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
   confirm.
 - **Climate** opens a choice of off or on. On shows the car's current set point and opens a scrolling list over the

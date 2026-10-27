@@ -34,6 +34,8 @@ PLAN.md.
   distrobox (here `garmin-ubuntu`): it segfaults against Fedora's FreeType because it exports its own. Start it there
   with `distrobox enter garmin-ubuntu -- ~/.Garmin/ConnectIQ/Sdks/<sdk>/bin/connectiq`, then `monkeydo` from the host.
   It has no phone link; use Simulation > Phone App Message to send a status (docs/protocol.md).
+- Versions: bump `versionName`/`versionCode` in `android/app/build.gradle.kts` and the `Version` string in
+  `watch/resources/strings/strings.xml` together; the watch shows its own at the bottom of the info screen.
 - Commit/push only when asked.
 - Edit files only with the Edit/Write tools so changes show as diffs in VS Code. No python/sed/heredoc edits via
   Bash; if there is no alternative, say why first.

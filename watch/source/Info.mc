@@ -20,6 +20,10 @@ class InfoView extends WatchUi.View {
         dc.clear();
         row(dc, w / 2, h * 0.22, "Car data", s != null ? s["ts"] as Number? : null);
         row(dc, w / 2, h * 0.55, "Phone update", s != null ? s["pt"] as Number? : null);
+        // which build is on the watch, for matching it to the phone app and to bug reports
+        dc.setColor(DIM, Graphics.COLOR_BLACK);
+        dc.drawText(w / 2, h * 0.89, Graphics.FONT_XTINY, "Orbit " + WatchUi.loadResource(Rez.Strings.Version),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     // a dim title over "10:02 (3m ago)", or "--" when nothing has arrived yet

@@ -107,7 +107,8 @@ and `fenix7` (260x260). Both extras compile (`monkeyc -d <id>`).
 
 **Status 2026-10-27:** the simulator now runs (it had segfaulted because it exports its own FreeType symbols; it works
 in an Ubuntu 22.04 container, see CLAUDE.md). The main, actions, info, climate and set point screens were checked on
-the fenix 7 (buttons reach every item, including the small info button) and the Venu X1 (rectangular layout fits).
+the fenix 7 (buttons reach every item, including the small info button) and the Venu X1 (rectangular layout fits,
+touch works).
 That found two problems, both fixed: error text overlapping the ring on a small or rectangular screen (messages are
 now at most about 15 characters, and the font drops a size if one is still too wide) and Garmin's `Picker` for the set
 point, which drew a white background on the fenix 7 and cut off its OK button on the X1. The set point is now a stock
@@ -208,7 +209,8 @@ Watch:
    release-build (R8) check.
 4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC and lock state, kept
    fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes, so an age goes
-   stale); the fenix 7 button check is still open; lock deliberately has no confirm tap; unlock and climate do).
+   stale); the fenix 7 buttons were checked in the simulator; lock deliberately has no confirm tap; unlock and
+   climate do).
 5. **Bridge** (DONE 2026-10-25 on the Pixel 10 Pro + Venu 3). Timings are one set of tests on one car and Lucid's
    latency is known to vary wildly: unlock from a sleeping car about 13 s without car wifi and 9-10 s with it, lock on
    an awake car 1-2 s. Offline, logged-out, swiped-away-app, reboot and car-on-wifi cases pass; batterystats and a long

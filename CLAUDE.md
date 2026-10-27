@@ -30,10 +30,10 @@ PLAN.md.
 
 ## Tooling
 
-- Run `monkeyc` and `monkeydo` on the host (Temurin 21 on PATH). The simulator only works in the distrobox
-  `garmin-ubuntu` (Ubuntu 22.04): on Fedora it segfaults because it exports its own FreeType symbols. Start it with
-  `distrobox enter garmin-ubuntu -- ~/.Garmin/ConnectIQ/Sdks/<sdk>/bin/connectiq`, then `monkeydo` from the host. It
-  has no phone link; use Simulation > Phone App Message to send a status (docs/protocol.md).
+- Run `monkeyc` and `monkeydo` on the host (Temurin 21 on PATH). On a Fedora 44 host the simulator needs an Ubuntu
+  distrobox (here `garmin-ubuntu`): it segfaults against Fedora's FreeType because it exports its own. Start it there
+  with `distrobox enter garmin-ubuntu -- ~/.Garmin/ConnectIQ/Sdks/<sdk>/bin/connectiq`, then `monkeydo` from the host.
+  It has no phone link; use Simulation > Phone App Message to send a status (docs/protocol.md).
 - Commit/push only when asked.
 - Edit files only with the Edit/Write tools so changes show as diffs in VS Code. No python/sed/heredoc edits via
   Bash; if there is no alternative, say why first.

@@ -66,6 +66,8 @@ class Link {
         if (d["push"] == true) {
             var fresh = Status.merge(state, d);
             if (fresh != null) {
+                // a message from the phone proves the link works, so an old "no phone link" no longer applies
+                err = null;
                 state = fresh;
                 Application.Storage.setValue("s", fresh);
                 WatchUi.requestUpdate();

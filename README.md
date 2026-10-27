@@ -14,6 +14,14 @@ state of charge, locked/unlocked, plugged/charging and the inside and outside te
 or stop climate at a temperature you pick (in the watch's own units), and refresh. Unlock and climate changes ask for a confirm tap; lock does not.
 Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
+| Watch | Status |
+|---|---|
+| Venu 3 | Tested on a real watch |
+| fenix 7 | Builds and runs in Garmin's simulator (layout and buttons checked); never on a real watch |
+| Venu X1 | Builds and runs in Garmin's simulator (layout and touch checked); never on a real watch |
+
+The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs them on hardware.
+
 ## Using the watch app
 
 - **Main screen**, from the top down:
@@ -77,9 +85,9 @@ app. The car's nickname is blurred out in the phone screenshot.
   (app and website) may say more; the author has not read them. Whether this is allowed is your call, and any
   consequences for your account are yours.
 - **Tested on the Venu 3 only.** The Venu 3 is the only watch it has run on. The manifest also lists the Venu X1
-  and the fenix 7. Both build without errors and their screens (main, actions, info, climate, the set point list and
-  the confirm) have been run in Garmin's simulator, where the layout and the buttons work, but never on a real watch.
-  The simulator draws Garmin's stock menus differently from real hardware, and memory use and the glance on those
+  and the fenix 7 (see the table under Status). Both build without errors and their screens (main, actions, info,
+  climate, the set point list and the confirm) have been run in Garmin's simulator, but never on a real watch. The
+  simulator draws Garmin's stock menus differently from real hardware, and memory use and the glance on those
   watches are untested. The Venu X1 needs a Connect IQ SDK with API level 6.0.3 or newer. To try another watch, add its
   id to `manifest.xml` and build with `-d <id>`; if you do, please report what happens. The glance shows cached state
   only (no widget).

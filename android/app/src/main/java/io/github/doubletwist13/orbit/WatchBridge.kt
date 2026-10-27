@@ -7,6 +7,8 @@ import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
 import com.garmin.android.connectiq.exception.InvalidStateException
 import com.garmin.android.connectiq.exception.ServiceUnavailableException
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val TAG = "OrbitBridge"
 private const val WATCH_APP_ID = "f098eb3a-bdb6-4c15-91a5-fe6c5cb603e9"
@@ -23,13 +25,17 @@ object WatchBridge {
         c.initialize(ctx, true, object : ConnectIQ.ConnectIQListener {
             override fun onSdkReady() {
                 try {
-                    val devices = c.knownDevices
-                    devices.forEach { listen(c, controller, it) }
-                    // pushes go to every watch that has this app, connected or not; an absent one just fails
+                    c.knownDevices.forEach { listen(c, controller, it) }
+                    // pushes go to every known watch, connected or not; an absent one just fails. The list is read
+                    // per push so a watch paired later is included, and one delivery is enough to report success.
                     controller.startPush { push ->
+                        val devices = c.knownDevices
+                        val left = AtomicInteger(devices.size)
+                        val delivered = AtomicBoolean(false)
                         devices.forEach { d -> c.sendMessage(d, IQApp(WATCH_APP_ID), push) { _, _, st ->
                             Log.d(TAG, "push $st")
-                            controller.pushResult(st == ConnectIQ.IQMessageStatus.SUCCESS)
+                            if (st == ConnectIQ.IQMessageStatus.SUCCESS) delivered.set(true)
+                            if (left.decrementAndGet() == 0) controller.pushResult(delivered.get())
                         } }
                     }
                 } catch (e: InvalidStateException) {

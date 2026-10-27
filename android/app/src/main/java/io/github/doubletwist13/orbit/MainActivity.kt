@@ -26,7 +26,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,6 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     private val vm get() = (application as OrbitApplication).controller
@@ -104,7 +107,14 @@ private fun Status(s: UiState, vm: Controller) {
         Text("${if (v.locked) "Locked" else "Unlocked"} · ${v.chargeState} · ${if (v.awake) "awake" else "asleep"}",
             color = dim)
         Text("Climate ${if (v.hvacOn) "on" else "off"}", color = dim)
-        val now = System.currentTimeMillis()
+        // ticks so the ages keep counting between state changes
+        var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(30_000)
+                now = System.currentTimeMillis()
+            }
+        }
         val clock = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
         fun at(ms: Long) = clock.format(ms) + " (${agoText(ms, now)})"
         Text("Car data ${at(v.updatedMs)}", color = dim)

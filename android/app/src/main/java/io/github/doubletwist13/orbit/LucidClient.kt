@@ -53,6 +53,8 @@ data class VehicleStatus(
     val insideC: Double? = null,
     val outsideC: Double? = null,
     val updatedMs: Long,
+    /** When the phone got this answer from Lucid; a cached copy keeps the time of the real fetch. */
+    val fetchedMs: Long = System.currentTimeMillis(),
     val fromCache: Boolean = false,
 )
 

@@ -23,6 +23,8 @@ data class UiState(
     val message: String? = null,
     /** Fetch status every few minutes and push it to the watch (docs/protocol.md, "Pushed status"). */
     val pushOn: Boolean = true,
+    /** When the last push went to the watch; null before the first one. */
+    val pushedMs: Long? = null,
 )
 
 /** A command failed in a way the watch protocol names (see docs/protocol.md error codes). */
@@ -82,6 +84,7 @@ class Controller(context: Context) {
                 if (_state.value.pushOn && _state.value.loggedIn && !away) {
                     wait = try {
                         send(pushReply(fetch()))
+                        _state.update { it.copy(pushedMs = System.currentTimeMillis()) }
                         PUSH_INTERVAL_MS
                     } catch (e: CancellationException) {
                         throw e
@@ -236,6 +239,12 @@ internal fun nextPushDelay(current: Long, rateLimited: Boolean): Long =
 
 /** A status the phone sends unasked: the same fields as a reply, flagged `push` instead of answering a request id. */
 internal fun pushReply(s: VehicleStatus): Map<String, Any> = watchReply(0, s, null) + ("push" to true)
+
+/** "now", "5m" or "3h" for how long before [nowMs] something was; the same wording as the watch. */
+internal fun agoText(thenMs: Long, nowMs: Long): String {
+    val secs = ((nowMs - thenMs) / 1000).coerceAtLeast(0)
+    return if (secs < 60) "now" else if (secs < 3600) "${secs / 60}m" else "${secs / 3600}h"
+}
 
 internal val AIR_RANGE_C = -50.0..70.0
 

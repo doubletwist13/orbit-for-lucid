@@ -22,6 +22,8 @@ module Icons {
             refresh(dc, x, y, u);
         } else if (id == :battery) {
             battery(dc, x, y, u);
+        } else if (id == :info) {
+            info(dc, x, y, u);
         }
     }
 
@@ -81,6 +83,12 @@ module Icons {
         dc.drawArc(px(x, 12, u), px(y, 12, u), (8 * u).toNumber(), Graphics.ARC_CLOCKWISE, 0, 46);
         line(dc, x, y, u, 20, 3, 20, 8);
         line(dc, x, y, u, 20, 8, 15, 8);
+    }
+
+    // a lowercase "i": a dot over a stem
+    function info(dc as Dc, x as Number, y as Number, u as Float) as Void {
+        dc.fillCircle(px(x, 12, u), px(y, 6, u), (1.8 * u).toNumber());
+        line(dc, x, y, u, 12, 10, 12, 19);
     }
 
     function battery(dc as Dc, x as Number, y as Number, u as Float) as Void {

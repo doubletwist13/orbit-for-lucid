@@ -25,7 +25,10 @@ module Status {
             if (d[OPTIONAL[i]] == null) { st.remove(OPTIONAL[i]); }
         }
         // age is how old the car's data already was when the phone sent it
-        st["ts"] = Time.now().value() - (d["age"] != null ? d["age"] as Number : 0);
+        var now = Time.now().value();
+        st["ts"] = now - (d["age"] != null ? d["age"] as Number : 0);
+        // when the phone last told us anything, shown on the info screen; "ts" only says when the car last reported
+        st["pt"] = now;
         return st;
     }
 }

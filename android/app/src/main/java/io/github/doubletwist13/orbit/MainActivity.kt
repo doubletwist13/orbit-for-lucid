@@ -103,9 +103,12 @@ private fun Status(s: UiState, vm: Controller) {
         Text("${v.nickname}  ${v.socPercent}%", style = MaterialTheme.typography.titleLarge)
         Text("${if (v.locked) "Locked" else "Unlocked"} · ${v.chargeState} · ${if (v.awake) "awake" else "asleep"}",
             color = dim)
-        Text("Climate ${if (v.hvacOn) "on" else "off"} · updated " +
-            java.text.DateFormat.getTimeInstance().format(v.updatedMs) + if (v.fromCache) " (cached)" else "",
-            color = dim)
+        Text("Climate ${if (v.hvacOn) "on" else "off"}", color = dim)
+        val now = System.currentTimeMillis()
+        fun at(ms: Long) = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(ms) + " (${agoText(ms, now)})"
+        Text("Car data ${at(v.updatedMs)}", color = dim)
+        Text("Lucid asked ${at(v.fetchedMs)}", color = dim)
+        s.pushedMs?.let { Text("Watch sent ${at(it)}", color = dim) }
     }
     val act = idle && v != null
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

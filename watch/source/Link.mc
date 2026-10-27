@@ -10,9 +10,10 @@ const USE_STUB = false;
 
 const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlocking",
     "climate_on" => "Climate on", "climate_off" => "Climate off"};
-const ERRORS = {"auth" => "Open the phone app", "offline" => "No connection", "rate" => "Try again in a minute",
-    "timeout" => "No confirmation yet", "wake" => "Car did not wake", "unknown" => "Something went wrong",
-    "nolink" => "Phone not reachable"};
+// short on purpose: the main screen shows these inside a round bezel, where about 15 characters fit on every watch
+const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
+    "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unknown" => "Unknown error",
+    "nolink" => "No phone link"};
 
 // Phone link per docs/protocol.md: caches the last reply, drops replies to superseded requests.
 class Link {

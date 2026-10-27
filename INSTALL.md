@@ -100,17 +100,21 @@ Things to know:
   Venu X1 needs a newer SDK (API 6.0.3).
 - Leave the manifest's app `id` alone. The phone app only talks to that id (`WATCH_APP_ID` in `WatchBridge.kt`). If you
   change one, change both.
-- Layout and button handling on other screens is unverified. Please report what works and what doesn't.
+- The screens have been run in Garmin's simulator for the fenix 7 and the Venu X1 (layout, buttons, the set point
+  list), but never on a real one. The simulator draws stock menus differently from a real watch, so please report what
+  works and what doesn't.
 
 ## When something doesn't work
 
 | Watch says | Likely cause |
 |---|---|
-| Phone not available / not reachable | The phone isn't connected, or Orbit's service isn't running. Open Orbit once. |
+| No phone link | The phone isn't connected, or Orbit's service isn't running. Open Orbit once. |
 | No connection | The phone has no internet, or Lucid is unreachable. |
-| Open the phone app | You're logged out. Open Orbit and log in. |
-| Try again in a minute | Lucid is rate-limiting. Wait. |
-| No confirmation yet | The command was sent, but the car hasn't reported a change within about 105 seconds. |
+| Open phone app | You're logged out. Open Orbit and log in. |
+| Try again soon | Lucid is rate-limiting. Wait. |
+| Not confirmed | The command was sent, but the car hasn't reported a change within about 105 seconds. |
+| Car didn't wake | The car did not wake in time. Try again. |
+| Unknown error | Something else went wrong. Check the phone log (see below). |
 
 Other tips:
 

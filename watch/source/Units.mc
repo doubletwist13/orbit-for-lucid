@@ -12,7 +12,7 @@ module Units {
         return System.getDeviceSettings().temperatureUnits == System.UNIT_STATUTE;
     }
 
-    // The picker's list: 59..86 F in whole degrees, or 15.0..30.0 C in halves. Values are Celsius either way.
+    // The set point menu's list: 59..86 F in whole degrees, or 15.0..30.0 C in halves. Values are Celsius either way.
     function count(f as Boolean) as Number {
         return f ? 28 : 31;
     }

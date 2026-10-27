@@ -259,6 +259,10 @@ none of it adds Lucid calls.
     keep the saved state compact and the handler free of the app's big classes.
   - It breaks the old "no continuous polling" rule, so `CLAUDE.md` now says so, and the phone app has a switch to turn
     it off. Still open: measure the battery cost (the batterystats comparison) after a day.
+  - The watch's age line is the car's data age, so it cannot show whether pushes arrive. The watch saves the time of
+    the last status from the phone (`pt`) and an info button on the actions screen shows both times (#16); the phone
+    app shows the car's time, when it last asked Lucid and when it last sent to the watch. v0.2.0 shipped with the
+    watch-connected check always false, so no push was ever sent (fixed in v0.2.1, #15).
   - A "charging started" notification from the background handler (`Notifications.showNotification`, API 5.1) was
     tried and dropped: it did not show on the author's watch, and the official Lucid app already sends one. If it
     comes back, the phone should say whether to alert (a setting in the phone app), not the watch.

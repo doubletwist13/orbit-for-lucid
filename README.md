@@ -30,6 +30,9 @@ Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
   watch, even while the app is closed, so the glance and the main screen open on recent data. Android can delay the
   timer while the phone sleeps. A switch in the phone app turns this off.
 - **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
+- **Info** is the small `i` button under them. It shows when the car last reported and when the phone last sent
+  status to the watch, so you can tell whether the 5 minute updates are arriving. The phone app shows the same
+  times, plus when it last asked Lucid.
 - **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
   confirm.
 - **Climate** opens a choice of off or on. On shows the car's current set point and opens a picker over the car's
@@ -49,7 +52,9 @@ slower, and don't read the difference between those two runs as meaningful.
   <img src="docs/images/watch-main.png" width="200"
        alt="Main screen: a ring and 85% charge, 85 and 87 degree cabin and outside temperatures, locked and plugged in
        icons, and the data age of 2 minutes">
-  <img src="docs/images/watch-actions.png" alt="Actions: lock, climate and refresh" width="200">
+  <img src="docs/images/watch-actions.png" alt="Actions: lock, climate, refresh and a small info button" width="200">
+  <img src="docs/images/watch-info.png" alt="Info: when the car last reported and when the phone last updated"
+       width="200">
   <img src="docs/images/watch-lock.png" alt="Choose lock or unlock" width="200">
   <img src="docs/images/watch-climate.png" alt="Choose climate off or on, with the car's set point" width="200">
 </p>
@@ -57,7 +62,7 @@ slower, and don't read the difference between those two runs as meaningful.
   <img src="docs/images/phone.jpg" alt="The Orbit Android app with lock, unlock, climate and refresh buttons" width="260">
 </p>
 
-Top: the watch app on a Venu 3 (glance, main screen, actions, lock or unlock, climate off or on). Bottom: the phone
+Top: the watch app on a Venu 3 (glance, main screen, actions, info, lock or unlock, climate off or on). Bottom: the phone
 app. The car's nickname is blurred out in the phone screenshot.
 
 ## Limitations

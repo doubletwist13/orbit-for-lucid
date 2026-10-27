@@ -53,11 +53,11 @@ Status fields are omitted from an error reply that has no state to show.
 ## Pushed status
 
 About every 5 minutes the phone fetches status and sends it to the watch unasked, so the glance and the app open on
-fresh data. Android may delay the timer while the phone sleeps, and the phone skips the fetch while no known watch is
-connected. It is a reply with the same status fields and `age`, but `push` is `true` and `id` is `0`; it answers
-nothing, so the watch skips the request-id check, merges it into its saved state and saves it. When the app is
-closed the same message wakes the app's background service (`Background.registerForPhoneAppMessageEvent`), which does
-the same merge and exits.
+fresh data. Android may delay the timer while the phone sleeps. The phone does not check that a watch is connected
+first: a send to an absent watch only fails, and the status is still fetched. It is a reply with the same status
+fields and `age`, but `push` is `true` and `id` is `0`; it answers nothing, so the watch skips the request-id check,
+merges it into its saved state and saves it. When the app is closed the same message wakes the app's background
+service (`Background.registerForPhoneAppMessageEvent`), which does the same merge and exits.
 
 - The interval is fixed. After a rate-limit answer from Lucid the phone waits twice as long, up to an hour, and goes
   back to 5 minutes after the next success. A setting in the phone app turns pushes off.

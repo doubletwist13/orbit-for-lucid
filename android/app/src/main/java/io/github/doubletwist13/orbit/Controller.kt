@@ -1,7 +1,6 @@
 package io.github.doubletwist13.orbit
 
 import android.content.Context
-import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +22,9 @@ data class UiState(
     val message: String? = null,
     /** Fetch status every few minutes and push it to the watch (docs/protocol.md, "Pushed status"). */
     val pushOn: Boolean = true,
-    /** When the last push went to the watch; null before the first one. */
-    val pushedMs: Long? = null,
+    /** When the watch last answered a push, and whether it was delivered; null before the first answer. */
+    val pushAtMs: Long? = null,
+    val pushOk: Boolean = true,
 )
 
 /** A command failed in a way the watch protocol names (see docs/protocol.md error codes). */
@@ -67,24 +67,19 @@ class Controller(context: Context) {
 
     /**
      * Every [PUSH_INTERVAL_MS] fetch status and hand it to [send] for the watch, so its glance and app open on fresh
-     * data. This is the one place Lucid is called without a request; it is slow on purpose (the gateway throttled
-     * polling every few seconds) and backs off after a rate-limit answer.
+     * data; [send] reports the delivery through [pushResult]. This is the one place Lucid is called without a
+     * request; it is slow on purpose (the gateway throttled polling every few seconds) and backs off after a
+     * rate-limit answer. It runs whether or not a watch is connected: a connection check here once never passed
+     * and silently stopped every push, and a send to an absent watch only fails.
      */
-    fun startPush(watchConnected: () -> Boolean, send: (Map<String, Any>) -> Unit) {
+    fun startPush(send: (Map<String, Any>) -> Unit) {
         pushJob?.cancel()
         pushJob = scope.launch {
             var wait = PUSH_INTERVAL_MS
             while (true) {
-                // a watch that is away would drop the push, so don't spend a Lucid call on it
-                val away = _state.value.pushOn && _state.value.loggedIn && !watchConnected()
-                if (away) {
-                    Log.d("OrbitBridge", "push skipped: no watch connected")
-                    wait = PUSH_INTERVAL_MS // a backoff from before the watch left must not delay the reconnect push
-                }
-                if (_state.value.pushOn && _state.value.loggedIn && !away) {
+                if (_state.value.pushOn && _state.value.loggedIn) {
                     wait = try {
                         send(pushReply(fetch()))
-                        _state.update { it.copy(pushedMs = System.currentTimeMillis()) }
                         PUSH_INTERVAL_MS
                     } catch (e: CancellationException) {
                         throw e
@@ -96,6 +91,10 @@ class Controller(context: Context) {
                 delay(wait)
             }
         }
+    }
+
+    fun pushResult(delivered: Boolean) {
+        _state.update { it.copy(pushAtMs = System.currentTimeMillis(), pushOk = delivered) }
     }
 
     fun stopPush() {

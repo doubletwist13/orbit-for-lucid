@@ -105,10 +105,11 @@ private fun Status(s: UiState, vm: Controller) {
             color = dim)
         Text("Climate ${if (v.hvacOn) "on" else "off"}", color = dim)
         val now = System.currentTimeMillis()
-        fun at(ms: Long) = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(ms) + " (${agoText(ms, now)})"
+        val clock = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
+        fun at(ms: Long) = clock.format(ms) + " (${agoText(ms, now)})"
         Text("Car data ${at(v.updatedMs)}", color = dim)
         Text("Lucid asked ${at(v.fetchedMs)}", color = dim)
-        s.pushedMs?.let { Text("Watch sent ${at(it)}", color = dim) }
+        s.pushAtMs?.let { Text("Watch ${if (s.pushOk) "received" else "send failed"} ${at(it)}", color = dim) }
     }
     val act = idle && v != null
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

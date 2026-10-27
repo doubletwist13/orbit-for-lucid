@@ -69,6 +69,13 @@ class ControllerTest {
         assertEquals(PUSH_INTERVAL_MS, nextPushDelay(4 * PUSH_INTERVAL_MS, false))
     }
 
+    @Test fun agoTextMatchesTheWatchWording() {
+        assertEquals("now", agoText(1_000, 30_000))
+        assertEquals("5m", agoText(0, 5 * 60_000 + 59_000))
+        assertEquals("3h", agoText(0, 3 * 3_600_000L))
+        assertEquals("now", agoText(10_000, 0)) // a clock step backwards is not negative
+    }
+
     @Test fun pendingReplyWithoutStatusHasNoStateFields() {
         assertEquals(setOf("v", "id", "ok", "pending"), watchReply(1, null, "Waking car").keys)
     }

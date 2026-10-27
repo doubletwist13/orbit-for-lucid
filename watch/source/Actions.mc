@@ -4,10 +4,12 @@ import Toybox.System;
 import Toybox.WatchUi;
 
 // A screen of big round icon choices. Touch: tap one. Buttons: up/down moves the highlight, select picks it.
-// Two items sit side by side, three form a triangle; a fourth slot would need a new row in SLOTS.
+// Two items sit side by side, three form a triangle, and a fourth is a small button under the triangle; any other
+// count would need a new row in SLOTS.
 class IconMenu extends WatchUi.View {
     // centre of each item as a fraction of width and height, per item count
-    private const SLOTS = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]]};
+    private const SLOTS = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
+        4 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67], [0.50, 0.90]]};
     var items as Array<Dictionary>;
     var sel as Number = 0;
     // set by the delegate on the first choice so a second tap before the screen closes does nothing
@@ -23,15 +25,19 @@ class IconMenu extends WatchUi.View {
         picked = false;
     }
 
-    private function radius(w as Number) as Float {
-        return w * (items.size() == 2 ? 0.15 : 0.14);
+    private function small(i as Number) as Boolean {
+        return items.size() == 4 && i == 3;
+    }
+
+    private function radius(w as Number, i as Number) as Float {
+        return w * (small(i) ? 0.065 : items.size() == 2 ? 0.15 : 0.14);
     }
 
     function onUpdate(dc as Dc) as Void {
-        var r = radius(dc.getWidth());
         dc.setColor(GREEN, Graphics.COLOR_BLACK);
         dc.clear();
         for (var i = 0; i < items.size(); i++) {
+            var r = radius(dc.getWidth(), i);
             var c = center(i, dc.getWidth(), dc.getHeight());
             var size = (r * 1.2).toNumber();
             dc.setPenWidth(3);
@@ -58,8 +64,9 @@ class IconMenu extends WatchUi.View {
 
     // index of the item under a tap, or -1; a little slack because a wrist tap is imprecise
     function hit(x as Number, y as Number, w as Number, h as Number) as Number {
-        var reach = radius(w) * 1.25;
         for (var i = 0; i < items.size(); i++) {
+            // the small button gets more slack, since a wrist tap on something that size is hard to land
+            var reach = radius(w, i) * (small(i) ? 1.8 : 1.25);
             var c = center(i, w, h);
             if ((x - c[0]) * (x - c[0]) + (y - c[1]) * (y - c[1]) <= reach * reach) { return i; }
         }
@@ -145,6 +152,8 @@ class ActionsDelegate extends IconMenuDelegate {
             var menu = new IconMenu([{:icon => :hvacoff, :id => "climate_off"},
                 {:icon => :hvac, :id => "climate_on", :label => tset != null ? Units.label(tset.toFloat(), f) : null}]);
             WatchUi.pushView(menu, new ClimateDelegate(menu), WatchUi.SLIDE_LEFT);
+        } else if (id.equals("info")) {
+            WatchUi.pushView(new InfoView(), new WatchUi.BehaviorDelegate(), WatchUi.SLIDE_LEFT);
         } else {
             perform(id, 1, null);
         }

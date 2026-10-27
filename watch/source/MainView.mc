@@ -115,7 +115,8 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         var menu = new IconMenu([
             {:icon => :lock, :id => "lock_menu"},
             {:icon => :hvac, :id => "climate_menu"},
-            {:icon => :refresh, :id => "status"}]);
+            {:icon => :refresh, :id => "status"},
+            {:icon => :info, :id => "info"}]);
         WatchUi.pushView(menu, new ActionsDelegate(menu), WatchUi.SLIDE_UP);
         return true;
     }

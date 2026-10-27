@@ -1,5 +1,6 @@
 import Toybox.Graphics;
 import Toybox.Lang;
+import Toybox.Math;
 import Toybox.Time;
 import Toybox.WatchUi;
 
@@ -34,8 +35,14 @@ class MainView extends WatchUi.View {
         air(dc, s, w, h);
         icons(dc, s, w, h);
         var note = link.pending != null ? link.pending + "..." : link.err != null ? link.err : age(s);
-        dc.setColor(link.err != null ? Graphics.COLOR_RED : stale ? AMBER : DIM, Graphics.COLOR_BLACK);
-        dc.drawText(cx, h * 0.87, Graphics.FONT_TINY, note, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        // a transparent background, or the text's box cuts a notch out of the ring behind it
+        dc.setColor(link.err != null ? Graphics.COLOR_RED : stale ? AMBER : DIM, Graphics.COLOR_TRANSPARENT);
+        // a long message must stay inside the round bezel: the usable chord at this height, less the ring
+        var y = h * 0.87;
+        var dy = y - h / 2;
+        var room = 2 * Math.sqrt(cx * cx - dy * dy) - w * 0.08;
+        var font = dc.getTextWidthInPixels(note, Graphics.FONT_TINY) <= room ? Graphics.FONT_TINY : Graphics.FONT_XTINY;
+        dc.drawText(cx, y, font, note, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     // charge as an arc round the bezel, clockwise from the top

@@ -48,7 +48,7 @@ for an `id` has `pending` absent or empty.
 Status fields are omitted from an error reply that has no state to show.
 
 `tset` is kept by the car even while climate is off, and is left out when the car reports none or a value outside
-15..30. It reads back within about 0.4 F of what was set, so the watch rounds it to its own picker steps.
+15..30. It reads back within about 0.4 F of what was set, so the watch rounds it to its own list steps.
 
 ## Pushed status
 
@@ -68,11 +68,12 @@ service (`Background.registerForPhoneAppMessageEvent`), which does the same merg
 
 | `err` | Meaning | Watch shows |
 |---|---|---|
-| `auth` | Refresh token rejected; the user must log in on the phone | Open the phone app |
+| `auth` | Refresh token rejected; the user must log in on the phone | Open phone app |
 | `offline` | Phone has no route to Lucid | No connection |
-| `rate` | Lucid is throttling (gRPC status 8) after retries | Try again in a minute |
-| `timeout` | Command accepted but the car did not confirm within about 105 s | No confirmation yet |
-| `wake` | Car did not wake | Car did not wake |
-| `unknown` | Anything else | Something went wrong |
+| `rate` | Lucid is throttling (gRPC status 8) after retries | Try again soon |
+| `timeout` | Command accepted but the car did not confirm within about 105 s | Not confirmed |
+| `wake` | Car did not wake | Car didn't wake |
+| `unknown` | Anything else | Unknown error |
 
-The phone never puts raw exception text in `err`.
+The phone never puts raw exception text in `err`. The watch itself shows "No phone link" when the phone does not
+answer at all; that is not an `err` code.

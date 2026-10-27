@@ -14,6 +14,14 @@ state of charge, locked/unlocked, plugged/charging and the inside and outside te
 or stop climate at a temperature you pick (in the watch's own units), and refresh. Unlock and climate changes ask for a confirm tap; lock does not.
 Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
+| Watch | Status |
+|---|---|
+| Venu 3 | Tested on a real watch |
+| fenix 7 | Builds and runs in Garmin's simulator (layout and buttons checked); never on a real watch |
+| Venu X1 | Builds and runs in Garmin's simulator (layout and touch checked); never on a real watch |
+
+The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs them on hardware.
+
 ## Using the watch app
 
 - **Main screen**, from the top down:
@@ -32,13 +40,13 @@ Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
   sleeps. A switch in the phone app turns this off.
 - **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
 - **Info** is the small `i` button under them. It shows when the car last reported and when the phone last sent
-  status to the watch, so you can tell whether the 5 minute updates are arriving. The phone app shows the same
-  times, plus when it last asked Lucid.
+  status to the watch, so you can tell whether the 5 minute updates are arriving, and the watch app's version at
+  the bottom. The phone app shows the same times, plus when it last asked Lucid.
 - **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
   confirm.
-- **Climate** opens a choice of off or on. On shows the car's current set point and opens a picker over the car's
-  range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a new temperature
-  while climate is already on changes it.
+- **Climate** opens a choice of off or on. On shows the car's current set point and opens a scrolling list over the
+  car's range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a new
+  temperature while climate is already on changes it.
 - **Back** is the watch's back button.
 
 **Timings are anecdotes.** In one round of tests on one car, an unlock from a sleeping car took about 13 seconds
@@ -77,16 +85,18 @@ app. The car's nickname is blurred out in the phone screenshot.
   (app and website) may say more; the author has not read them. Whether this is allowed is your call, and any
   consequences for your account are yours.
 - **Tested on the Venu 3 only.** The Venu 3 is the only watch it has run on. The manifest also lists the Venu X1
-  and the fenix 7, which build without errors but have never been run, not even in a simulator (the Connect IQ
-  simulator crashes in the author's setup). Screen layout, button handling and memory use on them are unknown. The
-  Venu X1 needs a Connect IQ SDK with API level 6.0.3 or newer. To try another watch, add its id to `manifest.xml`
-  and build with `-d <id>`; if you do, please report what happens. The glance shows cached state only (no widget).
+  and the fenix 7 (see the table under Status). Both build without errors and their screens (main, actions, info,
+  climate, the set point list and the confirm) have been run in Garmin's simulator, but never on a real watch. The
+  simulator draws Garmin's stock menus differently from real hardware, and memory use and the glance on those
+  watches are untested. The Venu X1 needs a Connect IQ SDK with API level 6.0.3 or newer. To try another watch, add its
+  id to `manifest.xml` and build with `-d <id>`; if you do, please report what happens. The glance shows cached state
+  only (no widget).
 - **Tested on one phone.** Android only, tested on a Pixel 10 Pro. Needs Garmin Connect Mobile installed and paired
   with the watch.
 - **Not in any app store.** You build both apps yourself and sideload them. See Building.
 - **Limited commands.** No trunk/frunk, charge control, tire pressure, windows or location (some of that is on the
   roadmap).
-- **Temperature units follow the watch.** The Fahrenheit picker is the one that has been tried; the Celsius one
+- **Temperature units follow the watch.** The Fahrenheit list is the one that has been tried; the Celsius one
   (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it
   shows can differ from your pick by a rounding step.
 - **A notification stays on the phone.** Android only lets the app answer the watch while the phone app is kept
@@ -96,7 +106,7 @@ app. The car's nickname is blurred out in the phone screenshot.
   service is running, and Android may be quicker to stop it. There is no on/off switch: log out in the app to stop
   the watch controlling the car, or stop the app from Android's active-apps list to end the service. The service
   restarts itself after a reboot, once you first unlock the phone. If you force-stop the app, Android won't start it
-  again until you open it by hand, and until then the watch says "Phone not reachable".
+  again until you open it by hand, and until then the watch says "No phone link".
 - **Slow and sometimes laggy.** The car takes a while to wake and to report changes. The app polls for confirmation
   for about 105 seconds, then gives up with "no confirmation yet" (the command may still have worked).
 - **Rate limits.** Lucid's gateway throttles frequent status calls. Polling is deliberately gentle, and you may still

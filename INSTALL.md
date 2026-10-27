@@ -7,7 +7,8 @@ unofficial, lightly tested software that controls a real car, and it was written
 ## What you need
 
 - An Android phone (tested on a Pixel 10 Pro) with **Garmin Connect Mobile** installed and your watch paired to it.
-- A Garmin watch. Only the **Venu 3** has been tested. Others: see [Other watch models](#other-watch-models).
+- A Garmin watch. Only the **Venu 3** has been tested on a real watch; the fenix 7 and Venu X1 have been run in the
+  simulator only. Others: see [Other watch models](#other-watch-models).
 - A Lucid account that works in the official Lucid app. The app uses the first vehicle on the account.
 - A computer (Linux, macOS or Windows) with:
   - **JDK 21** and the **Android SDK** (Android Studio installs both), to build the phone app.
@@ -79,7 +80,7 @@ glance stays as it was.
 ## Other watch models
 
 The manifest (`watch/manifest.xml`) lists the devices the app will build for. It currently has `venu3`, `venux1` and
-`fenix7`. Only the Venu 3 has been run; the other two compile but are untested.
+`fenix7`. Only the Venu 3 has been run on a real watch; the other two compile and have been run in the simulator.
 
 To try a watch that isn't listed:
 
@@ -100,17 +101,23 @@ Things to know:
   Venu X1 needs a newer SDK (API 6.0.3).
 - Leave the manifest's app `id` alone. The phone app only talks to that id (`WATCH_APP_ID` in `WatchBridge.kt`). If you
   change one, change both.
-- Layout and button handling on other screens is unverified. Please report what works and what doesn't.
+- The screens have been run in Garmin's simulator for the fenix 7 (layout and buttons) and the Venu X1 (layout and
+  touch), but never on a real watch. The simulator draws Garmin's stock menus differently from real hardware, so please
+  report what works and what doesn't.
+- To run the simulator on a recent Fedora host (44 here) you need an Ubuntu distrobox: the simulator crashes against
+  Fedora's FreeType because it ships its own.
 
 ## When something doesn't work
 
 | Watch says | Likely cause |
 |---|---|
-| Phone not available / not reachable | The phone isn't connected, or Orbit's service isn't running. Open Orbit once. |
+| No phone link | The phone isn't connected, or Orbit's service isn't running. Open Orbit once. |
 | No connection | The phone has no internet, or Lucid is unreachable. |
-| Open the phone app | You're logged out. Open Orbit and log in. |
-| Try again in a minute | Lucid is rate-limiting. Wait. |
-| No confirmation yet | The command was sent, but the car hasn't reported a change within about 105 seconds. |
+| Open phone app | You're logged out. Open Orbit and log in. |
+| Try again soon | Lucid is rate-limiting. Wait. |
+| Not confirmed | The command was sent, but the car hasn't reported a change within about 105 seconds. |
+| Car didn't wake | The car did not wake in time. Try again. |
+| Unknown error | Something else went wrong. Check the phone log (see below). |
 
 Other tips:
 

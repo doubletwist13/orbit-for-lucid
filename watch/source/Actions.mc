@@ -184,52 +184,28 @@ class ClimateDelegate extends IconMenuDelegate {
         var tset = link().state != null ? link().state["tset"] as Numeric? : null;
         var f = Units.fahrenheit();
         var start = Units.indexOf(tset != null ? tset.toFloat() : 21.0f, f);
-        // the title is the unit, the least text that tells you what is being set
-        var title = new WatchUi.Text({:text => f ? "°F" : "°C", :color => GREEN, :font => Graphics.FONT_SMALL,
-            :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_BOTTOM});
-        WatchUi.pushView(new WatchUi.Picker({:title => title, :pattern => [new TempFactory(f)],
-            :defaults => [start]}), new TempPickerDelegate(), WatchUi.SLIDE_LEFT);
+        // a stock menu, so every watch draws it in its own theme; the title is the unit, the least text that says
+        // what is being set
+        var menu = new WatchUi.Menu2({:title => f ? "°F" : "°C"});
+        for (var i = 0; i < Units.count(f); i++) {
+            menu.addItem(new WatchUi.MenuItem(Units.label(Units.at(i, f), f), null, i, {}));
+        }
+        menu.setFocus(start);
+        WatchUi.pushView(menu, new TempMenuDelegate(f), WatchUi.SLIDE_LEFT);
     }
 }
 
-// The values the picker scrolls through: Units.count(f) set points across the car's range.
-class TempFactory extends WatchUi.PickerFactory {
+// Choosing a set point sends climate_on; back closes only the menu.
+class TempMenuDelegate extends WatchUi.Menu2InputDelegate {
     private var _f as Boolean;
 
     function initialize(f as Boolean) {
-        PickerFactory.initialize();
+        Menu2InputDelegate.initialize();
         _f = f;
     }
 
-    function getSize() as Number {
-        return Units.count(_f);
-    }
-
-    function getValue(index as Number) as Object? {
-        return Units.at(index, _f);
-    }
-
-    function getDrawable(index as Number, selected as Boolean) as WatchUi.Drawable? {
-        return new WatchUi.Text({:text => Units.label(Units.at(index, _f), _f), :font => Graphics.FONT_LARGE,
-            :color => selected ? GREEN : DIM, :justification => Graphics.TEXT_JUSTIFY_CENTER,
-            :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_CENTER});
-    }
-}
-
-// The picker's own check button accepts; back or cancel closes only the picker.
-class TempPickerDelegate extends WatchUi.PickerDelegate {
-    function initialize() {
-        PickerDelegate.initialize();
-    }
-
-    function onAccept(values as Array) as Boolean {
-        perform("climate_on", 3, values[0] as Float);
-        return true;
-    }
-
-    function onCancel() as Boolean {
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
-        return true;
+    function onSelect(item as WatchUi.MenuItem) as Void {
+        perform("climate_on", 3, Units.at(item.getId() as Number, _f));
     }
 }
 
@@ -239,7 +215,7 @@ function perform(id as String, depth as Number, temp as Float?) as Void {
     for (var i = 0; i < depth; i++) {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
-    // climate_on always comes from the picker, so it always has a set point to ask about
+    // climate_on always comes from the set point menu, so it always has a set point to ask about
     var question = id.equals("climate_on") ? "Climate on " + Units.label(temp as Float, Units.fahrenheit()) + "?"
         : CONFIRM[id];
     if (question != null) {

@@ -103,11 +103,20 @@ LICENSE  NOTICE  README.md  INSTALL.md  PLAN.md  SECURITY.md  .gitignore  .gitle
 Phase 4 builds and tests for the Venu 3 only (real hardware), with menus that take both touch and buttons.
 
 **Status 2026-10-25:** the manifest lists `venu3`, `venux1` (Venu X1, 448x486 rectangular, needs API 6.0.3 so SDK 9.x)
-and `fenix7` (260x260). Both extras compile (`monkeyc -d <id>`) but have never run: the SDK simulator segfaults in
-freetype/pango at start-up on the author's machine, so the fenix 7 input check and the rectangular-layout check still
-need a working simulator or a real owner. The README says plainly that they are untested. Before any store release,
-trim the manifest to tested watches (store distribution covers every listed product). The glance uses fractions of the
-screen size, so layouts should scale, but that is unverified.
+and `fenix7` (260x260). Both extras compile (`monkeyc -d <id>`).
+
+**Status 2026-10-27:** the simulator now runs (it had segfaulted because it exports its own FreeType symbols; it works
+in an Ubuntu 22.04 container, see CLAUDE.md). The main, actions, info, climate and set point screens were checked on
+the fenix 7 (buttons reach every item, including the small info button) and the Venu X1 (rectangular layout fits,
+touch works).
+That found two problems, both fixed: error text overlapping the ring on a small or rectangular screen (messages are
+now at most about 15 characters, and the font drops a size if one is still too wide) and Garmin's `Picker` for the set
+point, which drew a white background on the fenix 7 and cut off its OK button on the X1. The set point is now a stock
+`Menu2` list, as the first actions chooser was. The simulator draws stock menus differently from a real watch (its
+Venu 3 profile showed a white menu; the real Venu 3 draws a dark native list), so it checks layout and input only.
+Neither extra has run on a real watch, and memory use and the glance are unchecked. The README says plainly that they
+are untested. Before any store release, trim the manifest to watches a real owner has tried (store distribution covers
+every listed product). The glance uses fractions of the screen size, so layouts should scale, but that is unverified.
 
 | Model | Screen | Input | Why include it |
 |---|---|---|---|
@@ -119,7 +128,8 @@ screen size, so layouts should scale, but that is unverified.
 - Input matters as much as screen size: every screen must work with touch and with buttons, with no touch-only
   widgets. The icon menus (`Actions.mc`) are drawn by the app and use a raw `InputDelegate` (tap, select, up/down,
   vertical swipe): a `BehaviorDelegate` delivered one tap as both a tap and a select, which sent lock when unlock
-  was tapped. Confirms use Garmin's `Confirmation` and the climate set point uses Garmin's `Picker`.
+  was tapped. Confirms use Garmin's `Confirmation` and the climate set point is a stock `Menu2` list (Garmin's
+  `Picker` drew white on the fenix 7 and cut off its OK button on the Venu X1).
 - One codebase via resource qualifiers (e.g. `resources-round-454x454`) where layouts differ.
 - Memory is the main constraint on MIP watches: keep the app small and bitmaps minimal; the glance limit (64 KB) is the
   tightest.
@@ -199,7 +209,8 @@ Watch:
    release-build (R8) check.
 4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC and lock state, kept
    fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes, so an age goes
-   stale); the fenix 7 button check is still open; lock deliberately has no confirm tap; unlock and climate do).
+   stale); the fenix 7 buttons were checked in the simulator; lock deliberately has no confirm tap; unlock and
+   climate do).
 5. **Bridge** (DONE 2026-10-25 on the Pixel 10 Pro + Venu 3). Timings are one set of tests on one car and Lucid's
    latency is known to vary wildly: unlock from a sleeping car about 13 s without car wifi and 9-10 s with it, lock on
    an awake car 1-2 s. Offline, logged-out, swiped-away-app, reboot and car-on-wifi cases pass; batterystats and a long
@@ -215,11 +226,11 @@ Each item below touches `docs/protocol.md`, the phone and the watch, so bump the
 fields that v1 watches ignore) when it lands. All the status data comes from the same `GetUserVehicles` call as v1, so
 none of it adds Lucid calls.
 - **v2 (actions and their state):**
-  - HVAC target temperature (`set_cabin_temperature`), done in the watch UI redesign (#6) with Garmin's own picker.
+  - HVAC target temperature (`set_cabin_temperature`), done in the watch UI redesign (#6), first with Garmin's `Picker` and now a stock `Menu2` list.
     The car also takes a new set point while climate is already on. Units: the
     Lucid API exposes no unit preference, so the phone always sends and accepts SI (Celsius, bar) and the watch
     converts for display from its own `System.getDeviceSettings()` units (`temperatureUnits`, `distanceUnits`). No unit
-    setting in either app. The Fahrenheit picker steps in whole degrees and converts back to Celsius before sending;
+    setting in either app. The Fahrenheit list steps in whole degrees and converts back to Celsius before sending;
     that conversion needs a unit test.
   - Frunk and trunk: status (`rear_cargo` is in the vehicle state) and open/close (`frunk_*` / `trunk_*` in
     python-lucidmotors). Opening a closure is a physical action, so give it a confirm tap like unlock. (Frunk will only

@@ -122,8 +122,6 @@ class Controller(context: Context) {
         }
     }
 
-    private fun busy(label: String) = _state.update { it.copy(busy = label) }
-
     private fun token() = store.load() ?: throw LucidException(16, "Logged out")
 
     private suspend fun fetch(): VehicleStatus =

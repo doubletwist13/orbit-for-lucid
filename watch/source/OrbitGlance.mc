@@ -18,12 +18,27 @@ class OrbitGlance extends WatchUi.GlanceView {
         dc.setColor(0x00FF66, Graphics.COLOR_BLACK);
         dc.clear();
         dc.drawText(0, h * 0.25, Graphics.FONT_GLANCE, "> Orbit", left);
-        var line = "No data";
-        if (s != null) {
-            // no age or dimming here: a glance is not redrawn between pushes, so an age would only go stale
-            var soc = s["soc"] as Number?;
-            line = (soc == null || soc < 0 || soc > 100 ? "--" : soc) + "% " + (s["locked"] ? "Locked" : "Unlocked");
+        var y = h * 0.70;
+        if (s == null) {
+            dc.drawText(0, y, Graphics.FONT_GLANCE, "No data", left);
+            return;
         }
-        dc.drawText(0, h * 0.70, Graphics.FONT_GLANCE, line, left);
+        // no age or dimming here: a glance is not redrawn between pushes, so an age would only go stale
+        var soc = s["soc"] as Number?;
+        var text = (soc == null || soc < 0 || soc > 100 ? "--" : soc) + "%";
+        var size = dc.getFontHeight(Graphics.FONT_GLANCE);
+        var gap = size / 3;
+        var top = (y - size / 2).toNumber();
+        var c = s["charge"] as String?;
+        var plug = c == null || c.equals("NOT_CONNECTED") || c.equals("UNKNOWN") ? :plugoff
+            : c.equals("CHARGING") ? :bolt : :plug;
+        var x = dc.getTextWidthInPixels(text, Graphics.FONT_GLANCE);
+        dc.drawText(0, y, Graphics.FONT_GLANCE, text, left);
+        var ids = [:battery, s["locked"] ? :lock : :unlock, plug] as Array<Symbol>;
+        for (var i = 0; i < ids.size(); i++) {
+            x += gap;
+            Icons.draw(dc, ids[i], x, top, size);
+            x += size;
+        }
     }
 }

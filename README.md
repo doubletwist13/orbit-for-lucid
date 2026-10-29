@@ -24,6 +24,9 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 
 ## Using the watch app
 
+- **Glance.** The charge in percent with a small battery icon, then a closed or open padlock for locked or unlocked, then
+  a plug icon: a plug with a slash when unplugged, a plain plug when plugged in but not charging, and a bolt while
+  charging. It shows what the phone last pushed, with no age.
 - **Main screen**, from the top down:
   - **Charge.** A ring round the edge fills clockwise from the top to match the charge, and the rest of the ring
     stays dark. The big number in the middle is the same charge in percent, with a small battery icon beside it. The
@@ -60,7 +63,7 @@ slower, and don't read the difference between those two runs as meaningful.
 ## Screenshots
 
 <p>
-  <img src="docs/images/watch-glance.png" alt="Glance: 85% charge and locked" width="200">
+  <img src="docs/images/watch-glance.png" alt="Glance: 85% charge with battery, locked and plug icons" width="200">
   <img src="docs/images/watch-main.png" width="200"
        alt="Main screen: a ring and 85% charge, 85 and 87 degree cabin and outside temperatures, locked and plugged in
        icons, and the data age of 2 minutes">

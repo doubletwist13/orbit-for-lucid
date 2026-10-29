@@ -238,7 +238,7 @@ class LucidClient(
     }
 }
 
-private fun Vehicle.toStatus() = VehicleStatus(
+internal fun Vehicle.toStatus() = VehicleStatus(
     vehicleId = vehicleId,
     nickname = config.nickname,
     socPercent = state.battery.chargePercent.toInt(),

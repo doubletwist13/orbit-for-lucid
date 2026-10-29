@@ -137,7 +137,8 @@ class Controller(context: Context) {
         "frunk_open", "frunk_close" -> closure("frunk", cmd == "frunk_open", progress)
         "trunk_open", "trunk_close" -> closure("trunk", cmd == "trunk_open", progress)
         "horn" -> command("Honking", null, progress) { s -> client.honk(token(), s.vehicleId) }
-        else -> command("Flashing lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
+        "flash" -> command("Flashing lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
+        else -> error("unhandled command $cmd")
     }
 
     private suspend fun closure(name: String, open: Boolean, progress: (String) -> Unit): VehicleStatus {

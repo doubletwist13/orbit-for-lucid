@@ -18,8 +18,8 @@ message whose `v` it does not know.
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
   `trunk_close`, `horn`, `flash`.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
-- The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off` or any frunk or trunk
-  command. The phone does not repeat the confirmation. `lock`, `horn`, `flash` and `status` are sent without one.
+- The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn` or any frunk
+  or trunk command. The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without one.
 - `horn` and `flash` (flash the lights) have no state to read back: the phone wakes the car if needed, sends, and
   answers at once. The frunk and trunk commands wait for the car to report the lid open or closed, like `lock`; a car
   that reports no state for a lid answers after the next status fetch.

@@ -30,9 +30,6 @@ class OrbitGlance extends WatchUi.GlanceView {
         var size = dc.getFontHeight(Graphics.FONT_GLANCE);
         var gap = size / 3;
         var top = (y - size / 2).toNumber();
-        var c = s["charge"] as String?;
-        var plug = c == null || c.equals("NOT_CONNECTED") || c.equals("UNKNOWN") ? :plugoff
-            : c.equals("CHARGING") ? :bolt : :plug;
         var x = dc.getTextWidthInPixels(text, Graphics.FONT_GLANCE);
         // the charge (number and battery) takes its colour from the level, like the main screen's ring
         dc.setColor(Charge.color(soc), Graphics.COLOR_BLACK);
@@ -47,6 +44,6 @@ class OrbitGlance extends WatchUi.GlanceView {
         x += gap;
         Icons.draw(dc, s["locked"] ? :lock : :unlock, x, top - (big - size) / 2, big);
         x += big + gap;
-        Icons.draw(dc, plug, x, top, size);
+        Icons.draw(dc, Charge.plug(s["charge"] as String?), x, top, size);
     }
 }

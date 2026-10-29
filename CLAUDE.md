@@ -1,9 +1,9 @@
 # CLAUDE.md
 
 Orbit for Lucid: Garmin Connect IQ watch app (Monkey C, `watch/`) + Android companion (Kotlin, `android/`) controlling a
-Lucid vehicle via its unofficial gRPC API. Public repo. `PLAN.md` (public) holds design, decisions and phases; update
-it on changes. Legal, naming, permission and machine-specific notes go in the gitignored `PLAN.local.md`, never in
-PLAN.md.
+Lucid vehicle via its unofficial gRPC API. Public repo. `PLAN.md` (public) is a high-level plan: goals, decisions and
+roadmap. Details live in issues and `docs/research/`; update PLAN.md only when a decision or the roadmap changes. Legal, naming, permission and
+machine-specific notes go in the gitignored `PLAN.local.md`, never in PLAN.md.
 
 ## Style
 

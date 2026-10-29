@@ -20,8 +20,10 @@ message whose `v` it does not know.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
 - The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn` or any frunk
   or trunk command. The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without one.
-- `horn` and `flash` (flash the lights) have no state to read back: the phone wakes the car if needed, sends, and
-  answers at once. The frunk and trunk commands wait for the car to report the lid open or closed, like `lock`; a car
+- `horn` and `flash` (flash the lights) have no state to read back: Lucid's answer to both is an empty message, and
+  nothing in the car's state is known to report them. The phone wakes the car if needed, sends, and answers `ok` at
+  once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
+  "Sending", never "Honking". The frunk and trunk commands wait for the car to report the lid open or closed, like `lock`; a car
   that reports no state for a lid answers after the next status fetch.
 - `temp` is clamped to 15..30 by the phone and defaults to 21 when missing or not a number. It is also sent while
   climate is already on, to change the set point.
@@ -81,6 +83,7 @@ service (`Background.registerForPhoneAppMessageEvent`), which does the same merg
 | `rate` | Lucid is throttling (gRPC status 8) after retries | Try again soon |
 | `timeout` | Command accepted but the car did not confirm within about 105 s | Not confirmed |
 | `wake` | Car did not wake | Car didn't wake |
+| `unsupported` | `frunk_close` on a car whose frunk has a gas strut | Can't do that |
 | `unknown` | Anything else | Unknown error |
 
 The phone never puts raw exception text in `err`. The watch itself shows "No phone link" when the phone does not

@@ -60,8 +60,9 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to confirm. A
   frunk with a gas strut can only be unlatched, so it goes straight to the confirm. Tested on a car with a powered
   frunk; the gas-strut case is untested.
-- **Horn** (one short honk) asks for a confirm tap. **Lights** (flash) act at once. Neither waits for the car to
-  report anything.
+- **Horn** (one short honk) asks for a confirm tap. **Lights** (flash) act at once. Lucid's API gives no way to
+  confirm either, so the watch shows "Sending..." and then clears: it means Lucid took the request, not that the car
+  acted on it. Watch or listen for the car, and try again if nothing happened.
 - **Climate** opens a choice of off or on. On shows the car's current set point and opens a scrolling list over the
   car's range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a new
   temperature while climate is already on changes it.

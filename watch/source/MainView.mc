@@ -10,8 +10,9 @@ const AMBER = 0xFFAA33;
 const TRACK = 0x12331F;
 const TRACK_DIM = 0x12251A;
 const STALE_SECS = 1800;
-const CONFIRM = {"unlock" => "Unlock?", "climate_off" => "Climate off?", "horn" => "Honk horn?", "frunk_open" => "Open frunk?",
-    "frunk_close" => "Close frunk?", "trunk_open" => "Open trunk?", "trunk_close" => "Close trunk?"};
+const CONFIRM = {"unlock" => "Unlock?", "climate_off" => "Climate off?", "horn" => "Honk horn?",
+    "frunk_open" => "Open frunk?", "frunk_close" => "Close frunk?", "trunk_open" => "Open trunk?",
+    "trunk_close" => "Close trunk?"};
 
 class MainView extends WatchUi.View {
     function initialize() {

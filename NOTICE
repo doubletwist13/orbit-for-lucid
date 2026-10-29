@@ -21,8 +21,8 @@ ha-lucidmotors
 Lucid-Motors-WearOS-Companion-App
   https://github.com/DeaneG1967/Lucid-Motors-WearOS-Companion-App  (MIT)
   Wear OS app for Lucid vehicles; Copyright (c) 2026 DeaneG1967. Reused with the
-  author's permission, including for the app's icon artwork. The Gravity frunk and trunk icons (watch/source/Icons.mc) are
-  traced from that app's icon drawings and simplified. The Air versions are
+  author's permission, including for the app's icon artwork. The Gravity frunk and trunk icons
+  (watch/source/Icons.mc) are traced from that app's icon drawings and simplified. The Air versions are
   original drawings, not traced from anything.
 
 The Gradle wrapper files in android/ are from the Gradle project (Apache-2.0).

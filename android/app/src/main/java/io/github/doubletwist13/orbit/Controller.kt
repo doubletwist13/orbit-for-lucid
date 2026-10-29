@@ -136,13 +136,19 @@ class Controller(context: Context) {
         "climate_off" -> climate(false, tempC, progress)
         "frunk_open", "frunk_close" -> closure("frunk", cmd == "frunk_open", progress)
         "trunk_open", "trunk_close" -> closure("trunk", cmd == "trunk_open", progress)
-        "horn" -> command("Honking", null, progress) { s -> client.honk(token(), s.vehicleId) }
-        "flash" -> command("Flashing lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
+        // shortcut: the API gives no way to confirm a honk or flash (empty responses), so "sent" is all we know;
+        // the labels say "Sending", not "Honking". Revisit if mobile_app_request proves to report them.
+        "horn" -> command("Sending horn", null, progress) { s -> client.honk(token(), s.vehicleId) }
+        "flash" -> command("Sending lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
         else -> error("unhandled command $cmd")
     }
 
     private suspend fun closure(name: String, open: Boolean, progress: (String) -> Unit): VehicleStatus {
         val frunk = name == "frunk"
+        // the watch never offers this; the check is for a request that skips the watch's menu
+        if (frunk && !open && _state.value.status?.frunkPowered == false) {
+            throw CommandFailed("unsupported", "Gas strut frunk cannot be closed")
+        }
         return command(
             if (open) "Opening $name" else "Closing $name",
             { s -> closureDone(if (frunk) s.frunkOpen else s.trunkOpen, open) }, progress,

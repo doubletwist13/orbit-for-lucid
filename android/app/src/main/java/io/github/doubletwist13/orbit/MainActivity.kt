@@ -91,12 +91,6 @@ private fun Login(busy: Boolean, onLogin: (String, String) -> Unit) {
     }
 }
 
-/** Filled = the car is in this state now; outlined = tap to switch to it. */
-@Composable
-private fun StateButton(label: String, current: Boolean, enabled: Boolean, onClick: () -> Unit) =
-    if (current) Button(onClick, enabled = enabled) { Text(label) }
-    else OutlinedButton(onClick, enabled = enabled) { Text(label) }
-
 @Composable
 private fun Status(s: UiState, vm: Controller) {
     val v = s.status
@@ -120,15 +114,6 @@ private fun Status(s: UiState, vm: Controller) {
         Text("Car data ${at(v.updatedMs)}", color = dim)
         Text("Lucid asked ${at(v.fetchedMs)}", color = dim)
         s.pushAtMs?.let { Text("Watch ${if (s.pushOk) "received" else "send failed"} ${at(it)}", color = dim) }
-    }
-    val act = idle && v != null
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StateButton("Lock", v?.locked == true, act) { vm.setLocked(true) }
-        StateButton("Unlock", v?.locked == false, act) { vm.setLocked(false) }
-    }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StateButton("Climate on", v?.hvacOn == true, act) { vm.setPrecondition(true) }
-        StateButton("Climate off", v?.hvacOn == false, act) { vm.setPrecondition(false) }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(vm::refresh, enabled = idle) { Text("Refresh") }

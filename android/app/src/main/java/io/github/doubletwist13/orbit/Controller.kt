@@ -85,21 +85,7 @@ class Controller(context: Context) {
         pushSend = send
         pushJob?.cancel()
         pushJob = scope.launch {
-            var wait = PUSH_INTERVAL_MS
-            while (true) {
-                if (_state.value.pushOn && _state.value.loggedIn) {
-                    wait = try {
-                        send(pushReply(fetch()))
-                        PUSH_INTERVAL_MS
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        if (e is LucidException && e.unauthenticated) logout()
-                        nextPushDelay(wait, e is LucidException && e.grpcStatus == 8)
-                    }
-                }
-                delay(wait)
-            }
+            pushLoop({ _state.value.pushOn && _state.value.loggedIn }, ::fetch, send, ::logout)
         }
     }
 
@@ -114,11 +100,6 @@ class Controller(context: Context) {
     }
 
     fun refresh() = run("Refreshing") { fetch() }
-
-    fun setLocked(locked: Boolean) = run(if (locked) "Locking" else "Unlocking") { lock(locked, ::busy) }
-
-    fun setPrecondition(on: Boolean) =
-        run(if (on) "Starting climate" else "Stopping climate") { climate(on, DEFAULT_TEMP_C, ::busy) }
 
     /** Handles one watch request; [reply] gets pending updates, then the final reply. Unknown input is ignored. */
     fun onWatch(req: Map<*, *>, reply: (Map<String, Any>) -> Unit) {
@@ -140,8 +121,6 @@ class Controller(context: Context) {
             }
         }
     }
-
-    private fun busy(label: String) = _state.update { it.copy(busy = label) }
 
     private fun token() = store.load() ?: throw LucidException(16, "Logged out")
 
@@ -242,6 +221,30 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
 
 internal const val PUSH_INTERVAL_MS = 5 * 60_000L
 internal const val PUSH_MAX_MS = 60 * 60_000L
+
+/** The body of [Controller.startPush], apart from the controller so a test can drive it with a fake [fetch]. */
+internal suspend fun pushLoop(
+    active: () -> Boolean,
+    fetch: suspend () -> VehicleStatus,
+    send: (Map<String, Any>) -> Unit,
+    onUnauthenticated: () -> Unit,
+) {
+    var wait = PUSH_INTERVAL_MS
+    while (true) {
+        if (active()) {
+            wait = try {
+                send(pushReply(fetch()))
+                PUSH_INTERVAL_MS
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (e is LucidException && e.unauthenticated) onUnauthenticated()
+                nextPushDelay(wait, e is LucidException && e.grpcStatus == 8)
+            }
+        }
+        delay(wait)
+    }
+}
 
 /** After a rate-limit answer wait twice as long (up to an hour); after any other failure, the normal interval. */
 internal fun nextPushDelay(current: Long, rateLimited: Boolean): Long =

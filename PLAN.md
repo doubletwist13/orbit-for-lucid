@@ -204,9 +204,9 @@ Watch:
 2. **Repo bootstrap** (DONE): monorepo, LICENSE/NOTICE, `.gitignore`, gitleaks hook, SECURITY.md, disclaimers,
    `docs/protocol.md`, `.github/workflows/gitleaks.yml`.
 3. **Android client** (DONE 2026-10-24): protoc codegen, OkHttp gRPC transport (content-length fix), Keystore token
-   store, login screen, status + lock/unlock/climate buttons in a green-terminal theme, unit tests with a fake
-   transport. Open: persist "pending command" state across app restarts, a configurable climate temperature,
-   release-build (R8) check.
+   store, login screen, status in a green-terminal theme, unit tests with a fake transport. It first had
+   lock/unlock/climate buttons; they were removed in 0.2.3 (#23) so the phone app is a status and settings screen and
+   the watch is the only controller. Open: release-build (R8) check.
 4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC and lock state, kept
    fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes, so an age goes
    stale); the fenix 7 buttons were checked in the simulator; lock deliberately has no confirm tap; unlock and

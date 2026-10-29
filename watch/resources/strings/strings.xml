@@ -1,5 +1,5 @@
 <strings>
     <string id="AppName">Orbit</string>
     <!-- keep in step with versionName in android/app/build.gradle.kts -->
-    <string id="Version">0.2.2</string>
+    <string id="Version">0.2.3</string>
 </strings>

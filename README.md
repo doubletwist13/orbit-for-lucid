@@ -70,11 +70,13 @@ slower, and don't read the difference between those two runs as meaningful.
   <img src="docs/images/watch-climate.png" alt="Choose climate off or on, with the car's set point" width="200">
 </p>
 <p>
-  <img src="docs/images/phone.jpg" alt="The Orbit Android app with lock, unlock, climate and refresh buttons" width="260">
+  <img src="docs/images/phone.jpg" width="260"
+       alt="The Orbit Android app: car status, refresh, log out and the watch update switch">
 </p>
 
-Top: the watch app on a Venu 3 (glance, main screen, actions, info, lock or unlock, climate off or on). Bottom: the phone
-app. The car's nickname is blurred out in the phone screenshot.
+Top: the watch app on a Venu 3 (glance, main screen, actions, info, lock or unlock, climate off or on). Bottom: the
+phone app, which shows status and settings only; the car is controlled from the watch. The car's nickname is blurred
+out in the phone screenshot.
 
 ## Limitations
 

@@ -121,17 +121,17 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
     function onSelect() as Boolean {
         // the icon shows the cached lock state; the choice itself is made on the next screen
         var s = link().state;
-        var info = {:icon => :info, :id => "info"};
+        var refresh = {:icon => :refresh, :id => "status", :small => true};
+        var info = {:icon => :info, :id => "info", :small => true};
         var menu = new IconMenu([[
             {:icon => s != null && s["locked"] == false ? :unlock : :lock, :id => "lock_menu"},
             {:icon => s != null && s["hvac"] == false ? :hvacoff : :hvac, :id => "climate_menu"},
             {:icon => lidIcon("frunk", s != null && s["frunk"] == true), :id => "frunk_menu"},
             {:icon => lidIcon("trunk", s != null && s["trunk"] == true), :id => "trunk_menu"},
-            info], [
-            {:icon => :refresh, :id => "status"},
+            refresh, info], [
             {:icon => :horn, :id => "horn"},
             {:icon => :lights, :id => "flash"},
-            info]]);
+            refresh, info]]);
         WatchUi.pushView(menu, new ActionsDelegate(menu), WatchUi.SLIDE_UP);
         return true;
     }

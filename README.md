@@ -48,16 +48,18 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   quick way to refresh a watch that was out of range or plugged in. If Garmin Connect restarts, the phone reconnects
   to it by itself after about 30 seconds.
 - **Actions.** Tap the screen (or press the select button) for big icons, in two pages: lock, climate, frunk and
-  trunk, then refresh, horn and lights. Swipe left or right to change page (the dots at the top show which), or use the
-  up and down buttons, which carry on to the next page.
-- **Info** is the small `i` button under them, on both pages. It shows when the car last reported and when the phone
-  last sent status to the watch, so you can tell whether the 5 minute updates are arriving, and the watch app's version at
+  trunk, then horn and lights. Swipe left or right to change page (the dots at the top show which), or use the up and
+  down buttons, which carry on to the next page.
+- **Refresh** is a small button under them, on both pages: it asks the car for its state again.
+- **Info** is the small `i` button beside it. It shows when the car last reported and when the phone last sent
+  status to the watch, so you can tell whether the 5 minute updates are arriving, and the watch app's version at
   the bottom. The phone app shows the same times, plus when it last asked Lucid.
 - **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
   not depend on that state. Unlock then asks you to confirm.
 - **Frunk** and **trunk** show the front or back of the car (an Air or a Gravity, as the car reports), with an F or a
-  T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to confirm. A frunk with a gas strut can only be unlatched, so it goes
-  straight to the confirm. They are new and not yet tested on a car.
+  T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to
+  confirm. A frunk with a gas strut can only be unlatched, so it goes straight to the confirm. They are new and not yet
+  tested on a car.
 - **Horn** and **lights** (flash) act at once. They need no confirm and do not wait for the car to report anything.
 - **Climate** opens a choice of off or on. On shows the car's current set point and opens a scrolling list over the
   car's range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a new

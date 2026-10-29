@@ -127,6 +127,7 @@ bridge with a 5 minute background push, phone app as a status and settings scree
 
 **Next**
 - Battery preconditioning and a Climate details screen (#13).
+- Choice screens (lock, climate, frunk, trunk) show the last known state and its age (#38).
 - Charging: power readout in kW, start/stop, charge limit, charge port (#35).
 - Details screen, read-only: tire pressure, windows, battery health, cell temperatures (#11).
 - AC current limit (#14), research first.

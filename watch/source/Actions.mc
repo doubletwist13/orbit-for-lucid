@@ -5,18 +5,21 @@ import Toybox.WatchUi;
 
 // A screen of big round icon choices, in one or more pages. Touch: tap one, swipe left or right between pages. Buttons:
 // up/down moves the highlight (past the end of a page it goes to the next page), select picks it.
-// Two items sit side by side, three form a triangle, a fourth is a small button under the triangle, and five are a
-// grid of four with the small button under it; any other count would need a new row in SLOTS.
+// Two big items sit side by side, three form a triangle and four a grid. Items marked :small are small buttons in a
+// row under them. Any other count would need a new row in BIG or SMALL.
 class IconMenu extends WatchUi.View {
-    // centre of each item as a fraction of width and height, per item count
-    private const SLOTS = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
-        4 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67], [0.50, 0.90]],
-        5 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.64], [0.70, 0.64], [0.50, 0.90]]};
+    // centre of each item as a fraction of width and height, per count of big or small items
+    private const BIG = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
+        4 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.62], [0.70, 0.62]]};
+    private const SMALL = {1 => [[0.50, 0.89]], 2 => [[0.38, 0.89], [0.62, 0.89]]};
     var pages as Array<Array<Dictionary> >;
     var page as Number = 0;
     // the current page's items
     var items as Array<Dictionary>;
     var sel as Number = 0;
+    // The focus ring only matters to a button user, so a touch screen shows none until a button or vertical swipe
+    // moves it; a watch without touch always shows it.
+    var showSel as Boolean = !System.getDeviceSettings().isTouchScreen;
     // set by the delegate on the first choice so a second tap before the screen closes does nothing
     var picked as Boolean = false;
 
@@ -32,11 +35,20 @@ class IconMenu extends WatchUi.View {
     }
 
     private function small(i as Number) as Boolean {
-        return items.size() >= 4 && i == items.size() - 1;
+        return items[i][:small] == true;
+    }
+
+    // how many of the page's items are small (or, with false, big)
+    private function count(wantSmall as Boolean) as Number {
+        var n = 0;
+        for (var i = 0; i < items.size(); i++) {
+            if (small(i) == wantSmall) { n++; }
+        }
+        return n;
     }
 
     private function radius(w as Number, i as Number) as Float {
-        return w * (small(i) ? 0.065 : items.size() == 2 ? 0.15 : items.size() == 5 ? 0.12 : 0.14);
+        return w * (small(i) ? 0.065 : count(false) == 2 ? 0.15 : count(false) == 4 ? 0.12 : 0.14);
     }
 
     function onUpdate(dc as Dc) as Void {
@@ -56,14 +68,11 @@ class IconMenu extends WatchUi.View {
             var r = radius(dc.getWidth(), i);
             var c = center(i, dc.getWidth(), dc.getHeight());
             var size = (r * 1.2).toNumber();
-            dc.setPenWidth(3);
+            // a thick ring marks the focus; a filled circle would read as an item that is switched on
+            dc.setPenWidth(showSel && i == sel ? 8 : 3);
             dc.setColor(GREEN, Graphics.COLOR_BLACK);
-            if (i == sel) {
-                dc.fillCircle(c[0], c[1], r);
-                dc.setColor(Graphics.COLOR_BLACK, GREEN);
-            } else {
-                dc.drawCircle(c[0], c[1], r);
-            }
+            dc.drawCircle(c[0], c[1], r);
+            dc.setPenWidth(3);
             Icons.draw(dc, items[i][:icon] as Symbol, c[0] - size / 2, c[1] - size / 2, size);
             var label = items[i][:label] as String?;
             if (label != null) {
@@ -74,7 +83,13 @@ class IconMenu extends WatchUi.View {
     }
 
     private function center(i as Number, w as Number, h as Number) as [Number, Number] {
-        var f = (SLOTS[items.size()] as Array)[i] as Array<Float>;
+        // this item's place among the others of its size
+        var s = small(i);
+        var k = 0;
+        for (var j = 0; j < i; j++) {
+            if (small(j) == s) { k++; }
+        }
+        var f = ((s ? SMALL : BIG)[count(s)] as Array)[k] as Array<Float>;
         return [(w * f[0]).toNumber(), (h * f[1]).toNumber()];
     }
 
@@ -91,6 +106,7 @@ class IconMenu extends WatchUi.View {
 
     // step the highlight; off either end of a page it lands on the next or previous page (wrapping round)
     function move(by as Number) as Void {
+        showSel = true;
         var s = sel + by;
         if (s >= items.size()) {
             show((page + 1) % pages.size(), 0);
@@ -150,7 +166,13 @@ class IconMenuDelegate extends WatchUi.InputDelegate {
     function onKey(evt as WatchUi.KeyEvent) as Boolean {
         var key = evt.getKey();
         if (key == WatchUi.KEY_ENTER) {
-            pick(_menu.items[_menu.sel][:id] as String);
+            // with no ring showing, the first press only shows where the focus is, so nothing happens unseen
+            if (_menu.showSel) {
+                pick(_menu.items[_menu.sel][:id] as String);
+            } else {
+                _menu.showSel = true;
+                WatchUi.requestUpdate();
+            }
         } else if (key == WatchUi.KEY_DOWN) {
             _menu.move(1);
         } else if (key == WatchUi.KEY_UP) {

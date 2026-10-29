@@ -57,9 +57,9 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 - **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
   not depend on that state. Unlock then asks you to confirm.
 - **Frunk** and **trunk** show the front or back of the car (an Air or a Gravity, as the car reports), with an F or a
-  T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to
-  confirm. A frunk with a gas strut can only be unlatched, so it goes straight to the confirm. They are new and not yet
-  tested on a car.
+  T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to confirm. A
+  frunk with a gas strut can only be unlatched, so it goes straight to the confirm. Tested on a car with a powered
+  frunk; the gas-strut case is untested.
 - **Horn** and **lights** (flash) act at once. They need no confirm and do not wait for the car to report anything.
 - **Climate** opens a choice of off or on. On shows the car's current set point and opens a scrolling list over the
   car's range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a new

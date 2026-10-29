@@ -120,7 +120,7 @@ call, so reading more of it adds no Lucid calls.
 bridge with a 5 minute background push, phone app as a status and settings screen. See the releases (v0.2.x).
 
 **Now**
-- Paged actions screen, with frunk/trunk open and close, horn and flash lights (#12). Built, awaiting a test on the
+- Paged actions screen, with frunk/trunk open and close, horn and flash lights (#12). Working on the author's
   car. Opening a closure is physical, so it gets a confirm tap like unlock.
 - Watch icons: finish the set (#29). Frunk and trunk are done for the Air and the Gravity; horn and lights are
   still the plain drawings.

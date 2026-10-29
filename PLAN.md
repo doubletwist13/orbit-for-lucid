@@ -120,15 +120,14 @@ call, so reading more of it adds no Lucid calls.
 bridge with a 5 minute background push, phone app as a status and settings screen. See the releases (v0.2.x).
 
 **Now**
-- Main screen shows the plug state like the glance (#31).
-- Watch icons: finish the set (#29).
+- Paged actions screen, with frunk/trunk open and close, horn and flash lights (#12). Built, awaiting a test on the
+  car. Opening a closure is physical, so it gets a confirm tap like unlock.
+- Watch icons: finish the set (#29). Frunk and trunk are done for the Air and the Gravity; horn and lights are
+  still the plain drawings.
 
 **Next**
-- Paged actions screen, and frunk/trunk open and close (#12). Opening a closure is physical, so it gets a confirm tap
-  like unlock.
 - Battery preconditioning and a Climate details screen (#13).
 - Charging: power readout in kW, start/stop, charge limit, charge port (#35).
-- Horn and flash lights (#29 has the icons; the WearOS app has both).
 - Details screen, read-only: tire pressure, windows, battery health, cell temperatures (#11).
 - AC current limit (#14), research first.
 - Release-build (R8) check of the Android app.

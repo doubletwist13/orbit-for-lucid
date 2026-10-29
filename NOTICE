@@ -19,8 +19,12 @@ ha-lucidmotors
   API behaviour reference.
 
 Lucid-Motors-WearOS-Companion-App
-  Wear OS app for Lucid vehicles; reused with the author's written permission
-  (2026-10-24). Applies to the author's own code only, not to any icon artwork.
+  https://github.com/DeaneG1967/Lucid-Motors-WearOS-Companion-App  (MIT)
+  Wear OS app for Lucid vehicles; Copyright (c) 2026 DeaneG1967. Reused with the
+  author's written permission (2026-10-24), which now covers the app's icon
+  artwork too. The Gravity frunk and trunk icons (watch/source/Icons.mc) are
+  traced from that app's icon drawings and simplified. The Air versions are drawn
+  by hand, using Lucid's own app only as a guide to the shape.
 
 The Gradle wrapper files in android/ are from the Gradle project (Apache-2.0).
 

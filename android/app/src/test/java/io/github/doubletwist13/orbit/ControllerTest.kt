@@ -20,7 +20,7 @@ class ControllerTest {
 
     @Test fun replyCarriesDisplayDataOnly() {
         val r = watchReply(3, status, null)
-        assertEquals(setOf("v", "id", "ok", "soc", "locked", "charge", "hvac", "awake", "age"), r.keys)
+        assertEquals(setOf("v", "id", "ok", "soc", "locked", "charge", "hvac", "fpower", "awake", "age"), r.keys)
         assertEquals(75, r["soc"])
         assertFalse(r.values.any { it == "VIN-SECRET" || it == "nick" })
     }
@@ -51,6 +51,23 @@ class ControllerTest {
         assertEquals(21.0, climateTemp(mapOf<String, Any>()), 0.0)
         assertEquals(21.0, climateTemp(mapOf("temp" to "hot")), 0.0)
         assertEquals(21.0, climateTemp(mapOf("temp" to Double.NaN)), 0.0)
+    }
+
+    @Test fun lidStateIsSentOnlyWhenTheCarReportsIt() {
+        assertFalse(watchReply(1, status, null).keys.any { it == "frunk" || it == "trunk" })
+        val r = watchReply(1, status.copy(frunkOpen = true, trunkOpen = false), null)
+        assertEquals(true, r["frunk"])
+        assertEquals(false, r["trunk"])
+        assertEquals(false, watchReply(1, status.copy(frunkPowered = false), null)["fpower"])
+        assertFalse(watchReply(1, status, null).containsKey("model"))
+        assertEquals("AIR", watchReply(1, status.copy(model = "AIR"), null)["model"])
+    }
+
+    @Test fun lidChangeIsDoneWhenReportedOrWhenNothingIsReported() {
+        assertTrue(closureDone(true, true))
+        assertFalse(closureDone(false, true)) // still closed: keep waiting
+        assertFalse(closureDone(true, false))
+        assertTrue(closureDone(null, true)) // no powered lid, so no state to wait for
     }
 
     @Test fun climateOnIsDoneOnlyAtTheRequestedSetPoint() {

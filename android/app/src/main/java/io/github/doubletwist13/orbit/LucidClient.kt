@@ -16,10 +16,18 @@ import mobilegateway.protos.LoginSessionOuterClass.NotificationChannelType
 import mobilegateway.protos.LoginSessionOuterClass.Os
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorLocksControlRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
+import mobilegateway.protos.VehicleStateServiceOuterClass.FrontCargoControlRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.HonkHornRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.HvacPower
+import mobilegateway.protos.VehicleStateServiceOuterClass.LightAction
+import mobilegateway.protos.VehicleStateServiceOuterClass.LightsControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.LockState
+import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
+import mobilegateway.protos.VehicleStateServiceOuterClass.RearCargoControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCabinTemperatureRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
 import mobilegateway.protos.VehicleStateServiceOuterClass.WakeupVehicleRequest
 import okhttp3.Interceptor
@@ -52,6 +60,13 @@ data class VehicleStatus(
     /** Cabin and outside air temperature in Celsius; null when the car sends no cabin block. */
     val insideC: Double? = null,
     val outsideC: Double? = null,
+    /** Frunk and trunk open (ajar counts as open); null when the car reports no state for the lid. */
+    val frunkOpen: Boolean? = null,
+    val trunkOpen: Boolean? = null,
+    /** False for a gas-strut frunk: the car can unlatch it but not close it. An unknown strut is treated as powered. */
+    val frunkPowered: Boolean = true,
+    /** "AIR" or "GRAVITY"; empty when the car reports none or a model this app has no art for. */
+    val model: String = "",
     val updatedMs: Long,
     /** When the phone got this answer from Lucid; a cached copy keeps the time of the real fetch. */
     val fetchedMs: Long = System.currentTimeMillis(),
@@ -137,6 +152,27 @@ class LucidClient(
             .setState(if (celsius == null) HvacPower.HVAC_OFF else HvacPower.HVAC_PRECONDITION).build(),
     )
 
+    suspend fun setFrunk(refreshToken: String, vehicleId: String, open: Boolean) = command(
+        refreshToken, "FrontCargoControl",
+        FrontCargoControlRequest.newBuilder().setVehicleId(vehicleId).setClosureState(doorState(open)).build(),
+    )
+
+    suspend fun setTrunk(refreshToken: String, vehicleId: String, open: Boolean) = command(
+        refreshToken, "RearCargoControl",
+        RearCargoControlRequest.newBuilder().setVehicleId(vehicleId).setClosureState(doorState(open)).build(),
+    )
+
+    suspend fun honk(refreshToken: String, vehicleId: String) = command(
+        refreshToken, "HonkHorn", HonkHornRequest.newBuilder().setVehicleId(vehicleId).build(),
+    )
+
+    suspend fun flashLights(refreshToken: String, vehicleId: String) = command(
+        refreshToken, "LightsControl",
+        LightsControlRequest.newBuilder().setVehicleId(vehicleId).setAction(LightAction.LIGHT_ACTION_FLASH).build(),
+    )
+
+    private fun doorState(open: Boolean) = if (open) DoorState.DOOR_STATE_OPEN else DoorState.DOOR_STATE_CLOSED
+
     private suspend fun command(refreshToken: String, method: String, req: MessageLite) {
         ensureSession(refreshToken)
         callRaw("mobilegateway.protos.VehicleStateService/$method", req, auth = true)
@@ -213,5 +249,19 @@ private fun Vehicle.toStatus() = VehicleStatus(
     setTempC = state.hvac.frontLeftSetTemperature,
     insideC = state.cabin.interiorTemp.takeIf { state.hasCabin() },
     outsideC = state.cabin.exteriorTemp.takeIf { state.hasCabin() },
+    frunkOpen = state.body.frontCargo.isOpen(),
+    trunkOpen = state.body.rearCargo.isOpen(),
+    frunkPowered = config.frunkStrut != StrutType.STRUT_TYPE_GAS,
+    model = when (config.model) {
+        Model.MODEL_AIR -> "AIR"
+        Model.MODEL_GRAVITY -> "GRAVITY"
+        else -> ""
+    },
     updatedMs = state.lastUpdatedMs,
 )
+
+private fun DoorState.isOpen(): Boolean? = when (this) {
+    DoorState.DOOR_STATE_OPEN, DoorState.DOOR_STATE_AJAR -> true
+    DoorState.DOOR_STATE_CLOSED -> false
+    else -> null
+}

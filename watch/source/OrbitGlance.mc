@@ -34,11 +34,15 @@ class OrbitGlance extends WatchUi.GlanceView {
             : c.equals("CHARGING") ? :bolt : :plug;
         var x = dc.getTextWidthInPixels(text, Graphics.FONT_GLANCE);
         dc.drawText(0, y, Graphics.FONT_GLANCE, text, left);
-        var ids = [:battery, s["locked"] ? :lock : :unlock, plug] as Array<Symbol>;
-        for (var i = 0; i < ids.size(); i++) {
-            x += gap;
-            Icons.draw(dc, ids[i], x, top, size);
-            x += size;
-        }
+        // the upright battery only uses the middle half of its cell, so it is drawn a quarter back and takes half
+        x += gap;
+        Icons.draw(dc, :battery, x - size / 4, top, size);
+        x += size / 2;
+        // the padlock is a quarter bigger, so its open shackle is easier to tell from a closed one
+        var big = size * 5 / 4;
+        x += gap;
+        Icons.draw(dc, s["locked"] ? :lock : :unlock, x, top - (big - size) / 2, big);
+        x += big + gap;
+        Icons.draw(dc, plug, x, top, size);
     }
 }

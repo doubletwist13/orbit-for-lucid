@@ -45,12 +45,14 @@ module Icons {
     function lock(dc as Dc, x as Number, y as Number, u as Float, locked as Boolean) as Void {
         dc.drawRoundedRectangle(px(x, 5, u), px(y, 11, u), (14 * u).toNumber(), (10 * u).toNumber(), (2 * u).toNumber());
         var r = (4 * u).toNumber();
-        line(dc, x, y, u, 8, 8, 8, 11);
         if (locked) {
+            line(dc, x, y, u, 8, 8, 8, 11);
             dc.drawArc(px(x, 12, u), px(y, 8, u), r, Graphics.ARC_CLOCKWISE, 180, 0);
             line(dc, x, y, u, 16, 8, 16, 11);
         } else {
-            dc.drawArc(px(x, 12, u), px(y, 8, u), r, Graphics.ARC_CLOCKWISE, 180, 30);
+            // open: the whole shackle is lifted, joined only on the left, so the gap above the body shows at a glance
+            line(dc, x, y, u, 8, 4.5, 8, 11);
+            dc.drawArc(px(x, 12, u), px(y, 4.5, u), r, Graphics.ARC_CLOCKWISE, 180, 0);
         }
     }
 
@@ -96,9 +98,10 @@ module Icons {
         line(dc, x, y, u, 12, 10, 12, 19);
     }
 
+    // upright, so it uses only the middle half of its cell: a caller short of width can crop to that
     function battery(dc as Dc, x as Number, y as Number, u as Float) as Void {
-        dc.drawRoundedRectangle(px(x, 1.5, u), px(y, 6.5, u), (18 * u).toNumber(), (11 * u).toNumber(),
+        dc.drawRoundedRectangle(px(x, 6.5, u), px(y, 4.5, u), (11 * u).toNumber(), (18 * u).toNumber(),
             (2.5 * u).toNumber());
-        line(dc, x, y, u, 22, 10.5, 22, 13.5);
+        line(dc, x, y, u, 10.5, 2, 13.5, 2);
     }
 }

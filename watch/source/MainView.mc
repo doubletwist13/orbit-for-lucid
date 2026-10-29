@@ -81,13 +81,14 @@ class MainView extends WatchUi.View {
         var pctW = soc == null ? 0 : dc.getTextWidthInPixels("%", Graphics.FONT_SMALL);
         var bat = (w * 0.075).toNumber();
         var gap = (w * 0.012).toNumber();
-        var x = (w - (numW + gap + pctW + (soc == null ? 0 : gap + bat))) / 2;
+        // the upright battery only uses the middle half of its cell, so it takes half the width, drawn a quarter back
+        var x = (w - (numW + gap + pctW + (soc == null ? 0 : gap + bat / 2))) / 2;
         var left = Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER;
         dc.drawText(x, h * 0.37, font, text, left);
         if (soc == null) { return; }
         x += numW + gap;
         dc.drawText(x, h * 0.31, Graphics.FONT_SMALL, "%", left);
-        Icons.draw(dc, :battery, x + pctW + gap, (h * 0.31).toNumber() - bat / 2, bat);
+        Icons.draw(dc, :battery, x + pctW + gap - bat / 4, (h * 0.31).toNumber() - bat / 2, bat);
     }
 
     // inside/outside air temperature as "21°/14°", left aligned so there is room beside it for more later

@@ -26,7 +26,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 
 - **Glance.** The charge in percent with a small battery icon, then a closed or open padlock for locked or unlocked, then
   a plug icon: a plug with a slash when unplugged, a plain plug when plugged in but not charging, and a bolt while
-  charging. It shows what the phone last pushed, with no age.
+  charging. The percent and battery icon take the main screen's charge colours. It shows what the phone last pushed,
+  with no age.
 - **Main screen**, from the top down:
   - **Charge.** A ring round the edge fills clockwise from the top to match the charge, and the rest of the ring
     stays dark. The big number in the middle is the same charge in percent, with a small battery icon beside it. The
@@ -48,8 +49,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 - **Info** is the small `i` button under them. It shows when the car last reported and when the phone last sent
   status to the watch, so you can tell whether the 5 minute updates are arriving, and the watch app's version at
   the bottom. The phone app shows the same times, plus when it last asked Lucid.
-- **Lock** opens a choice of lock or unlock, and does not guess from the last state it saw. Unlock then asks you to
-  confirm.
+- **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
+  not depend on that state. Unlock then asks you to confirm.
 - **Climate** opens a choice of off or on. On shows the car's current set point and opens a scrolling list over the
   car's range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a new
   temperature while climate is already on changes it.

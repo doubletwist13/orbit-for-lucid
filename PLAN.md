@@ -218,7 +218,8 @@ Watch:
    command/response protocol per `docs/protocol.md`, error mapping.
 6. **Polish**: backoff (DONE: 2/4/8 s retries on rate limit, gentle polling), stale indicators (DONE: age line, data
    dimmed after 30 min), charge colours (DONE #28: the ring, number and battery icon are green from 50%, yellow from
-   25%, orange from 10%, red below; stale data still dims them all), optional biometric gate, second watch model.
+   25%, orange from 10%, red below; stale data still dims them all; the glance's percent and battery take the same
+   colours), optional biometric gate, second watch model.
 7. **Pre-release review (only if going to stores)**: re-read Garmin's SDK agreement, Developer Guidelines and store
    rules; Lucid's terms; Google Play policy on third-party logins and vehicle control; privacy policy; trademark search.
 

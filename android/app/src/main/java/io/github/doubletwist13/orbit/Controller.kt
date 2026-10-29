@@ -42,6 +42,7 @@ class Controller(context: Context) {
     val state = _state.asStateFlow()
     private var watchJob: Job? = null
     private var pushJob: Job? = null
+    private var pushSend: ((Map<String, Any>) -> Unit)? = null
 
     fun login(user: String, password: String) = run("Logging in") {
         try {
@@ -60,9 +61,17 @@ class Controller(context: Context) {
         _state.value = UiState(pushOn = _state.value.pushOn)
     }
 
+    /** Switching on also sends the last known status now, with no Lucid call, so a returning watch is current. */
     fun setPush(on: Boolean) {
         prefs.edit().putBoolean("push", on).apply()
         _state.update { it.copy(pushOn = on) }
+        val status = _state.value.status ?: return
+        if (!on) return
+        try {
+            pushSend?.invoke(pushReply(status))
+        } catch (e: Exception) {
+            // the bridge can be mid-restart; the loop's next push covers it
+        }
     }
 
     /**
@@ -73,6 +82,7 @@ class Controller(context: Context) {
      * and silently stopped every push, and a send to an absent watch only fails.
      */
     fun startPush(send: (Map<String, Any>) -> Unit) {
+        pushSend = send
         pushJob?.cancel()
         pushJob = scope.launch {
             var wait = PUSH_INTERVAL_MS
@@ -100,6 +110,7 @@ class Controller(context: Context) {
     fun stopPush() {
         pushJob?.cancel()
         pushJob = null
+        pushSend = null
     }
 
     fun refresh() = run("Refreshing") { fetch() }

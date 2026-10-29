@@ -37,7 +37,9 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 - **Stays current.** About every 5 minutes the phone fetches status and sends it to the watch, even while the
   app is closed, so the glance and the main screen open on recent data. It does this whether or not the watch is
   connected at that moment; a send to an absent watch just fails. Android can delay the timer while the phone
-  sleeps. A switch in the phone app turns this off.
+  sleeps. A switch in the phone app turns this off; turning it back on sends the last status at once, which is a
+  quick way to refresh a watch that was out of range or plugged in. If Garmin Connect restarts, the phone reconnects
+  to it by itself after about 30 seconds.
 - **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
 - **Info** is the small `i` button under them. It shows when the car last reported and when the phone last sent
   status to the watch, so you can tell whether the 5 minute updates are arriving, and the watch app's version at

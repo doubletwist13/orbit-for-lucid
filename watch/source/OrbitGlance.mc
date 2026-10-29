@@ -18,12 +18,35 @@ class OrbitGlance extends WatchUi.GlanceView {
         dc.setColor(0x00FF66, Graphics.COLOR_BLACK);
         dc.clear();
         dc.drawText(0, h * 0.25, Graphics.FONT_GLANCE, "> Orbit", left);
-        var line = "No data";
-        if (s != null) {
-            // no age or dimming here: a glance is not redrawn between pushes, so an age would only go stale
-            var soc = s["soc"] as Number?;
-            line = (soc == null || soc < 0 || soc > 100 ? "--" : soc) + "% " + (s["locked"] ? "Locked" : "Unlocked");
+        var y = h * 0.70;
+        if (s == null) {
+            dc.drawText(0, y, Graphics.FONT_GLANCE, "No data", left);
+            return;
         }
-        dc.drawText(0, h * 0.70, Graphics.FONT_GLANCE, line, left);
+        // no age or dimming here: a glance is not redrawn between pushes, so an age would only go stale
+        var soc = s["soc"] as Number?;
+        if (soc != null && (soc < 0 || soc > 100)) { soc = null; }
+        var text = (soc == null ? "--" : soc) + "%";
+        var size = dc.getFontHeight(Graphics.FONT_GLANCE);
+        var gap = size / 3;
+        var top = (y - size / 2).toNumber();
+        var c = s["charge"] as String?;
+        var plug = c == null || c.equals("NOT_CONNECTED") || c.equals("UNKNOWN") ? :plugoff
+            : c.equals("CHARGING") ? :bolt : :plug;
+        var x = dc.getTextWidthInPixels(text, Graphics.FONT_GLANCE);
+        // the charge (number and battery) takes its colour from the level, like the main screen's ring
+        dc.setColor(Charge.color(soc), Graphics.COLOR_BLACK);
+        dc.drawText(0, y, Graphics.FONT_GLANCE, text, left);
+        // the upright battery only uses the middle half of its cell, so it is drawn a quarter back and takes half
+        x += gap;
+        Icons.draw(dc, :battery, x - size / 4, top, size);
+        x += size / 2;
+        dc.setColor(0x00FF66, Graphics.COLOR_BLACK);
+        // the padlock is a quarter bigger, so its open shackle is easier to tell from a closed one
+        var big = size * 5 / 4;
+        x += gap;
+        Icons.draw(dc, s["locked"] ? :lock : :unlock, x, top - (big - size) / 2, big);
+        x += big + gap;
+        Icons.draw(dc, plug, x, top, size);
     }
 }

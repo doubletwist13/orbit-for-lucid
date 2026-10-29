@@ -70,7 +70,7 @@ cd watch
    MTP devices need a helper app; on Windows it shows up in Explorer.
 3. Copy `orbit.prg` into **`GARMIN/Apps/`** on the watch's internal storage.
 4. Eject the watch and unplug it. The watch loads the app when the cable is removed.
-5. Orbit appears in the watch's app list. The glance (cached charge and lock state) may need adding in the watch's
+5. Orbit appears in the watch's app list. The glance (cached charge, lock and plug state) may need adding in the watch's
    glance settings.
 
 Open the app on the watch, give it a moment, and it should show your state of charge. **Open it once after every

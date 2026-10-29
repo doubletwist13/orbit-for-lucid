@@ -207,10 +207,10 @@ Watch:
    store, login screen, status in a green-terminal theme, unit tests with a fake transport. It first had
    lock/unlock/climate buttons; they were removed in 0.2.3 (#23) so the phone app is a status and settings screen and
    the watch is the only controller. Open: release-build (R8) check.
-4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC and lock state, kept
-   fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes, so an age goes
-   stale); the fenix 7 buttons were checked in the simulator; lock deliberately has no confirm tap; unlock and
-   climate do).
+4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC and icons for lock and
+   plug state (#27), kept fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes,
+   so an age goes stale); the fenix 7 buttons were checked in the simulator; lock deliberately has no confirm tap;
+   unlock and climate do).
 5. **Bridge** (DONE 2026-10-25 on the Pixel 10 Pro + Venu 3). Timings are one set of tests on one car and Lucid's
    latency is known to vary wildly: unlock from a sleeping car about 13 s without car wifi and 9-10 s with it, lock on
    an awake car 1-2 s. Offline, logged-out, swiped-away-app, reboot and car-on-wifi cases pass; batterystats and a long
@@ -218,7 +218,8 @@ Watch:
    command/response protocol per `docs/protocol.md`, error mapping.
 6. **Polish**: backoff (DONE: 2/4/8 s retries on rate limit, gentle polling), stale indicators (DONE: age line, data
    dimmed after 30 min), charge colours (DONE #28: the ring, number and battery icon are green from 50%, yellow from
-   25%, orange from 10%, red below; stale data still dims them all), optional biometric gate, second watch model.
+   25%, orange from 10%, red below; stale data still dims them all; the glance's percent and battery take the same
+   colours), optional biometric gate, second watch model.
 7. **Pre-release review (only if going to stores)**: re-read Garmin's SDK agreement, Developer Guidelines and store
    rules; Lucid's terms; Google Play policy on third-party logins and vehicle control; privacy policy; trademark search.
 

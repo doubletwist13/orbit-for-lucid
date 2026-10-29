@@ -7,9 +7,6 @@ import Toybox.WatchUi;
 const GREEN = 0x00FF66;
 const DIM = 0x338855;
 const AMBER = 0xFFAA33;
-const YELLOW = 0xFFDD00;
-const ORANGE = 0xFF7700;
-const RED = 0xFF3333;
 const TRACK = 0x12331F;
 const TRACK_DIM = 0x12251A;
 const STALE_SECS = 1800;
@@ -33,7 +30,7 @@ class MainView extends WatchUi.View {
         dc.clear();
         var soc = s != null ? s["soc"] as Number? : null;
         // the charge (ring, number, battery icon) takes its colour from the level; everything else stays green
-        var fg = stale ? DIM : socColor(soc);
+        var fg = stale ? DIM : Charge.color(soc);
         ring(dc, soc, fg, stale);
         dc.setColor(fg, Graphics.COLOR_BLACK);
         socText(dc, soc, w, h);
@@ -49,12 +46,6 @@ class MainView extends WatchUi.View {
         var room = 2 * Math.sqrt(cx * cx - dy * dy) - w * 0.08;
         var font = dc.getTextWidthInPixels(note, Graphics.FONT_TINY) <= room ? Graphics.FONT_TINY : Graphics.FONT_XTINY;
         dc.drawText(cx, y, font, note, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-    }
-
-    // green from 50, yellow from 25, orange from 10, red below; no reading keeps the normal green
-    private function socColor(soc as Number?) as Number {
-        if (soc == null || soc >= 50) { return GREEN; }
-        return soc >= 25 ? YELLOW : soc >= 10 ? ORANGE : RED;
     }
 
     // charge as an arc round the bezel, clockwise from the top
@@ -81,13 +72,14 @@ class MainView extends WatchUi.View {
         var pctW = soc == null ? 0 : dc.getTextWidthInPixels("%", Graphics.FONT_SMALL);
         var bat = (w * 0.075).toNumber();
         var gap = (w * 0.012).toNumber();
-        var x = (w - (numW + gap + pctW + (soc == null ? 0 : gap + bat))) / 2;
+        // the upright battery only uses the middle half of its cell, so it takes half the width, drawn a quarter back
+        var x = (w - (numW + gap + pctW + (soc == null ? 0 : gap + bat / 2))) / 2;
         var left = Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER;
         dc.drawText(x, h * 0.37, font, text, left);
         if (soc == null) { return; }
         x += numW + gap;
         dc.drawText(x, h * 0.31, Graphics.FONT_SMALL, "%", left);
-        Icons.draw(dc, :battery, x + pctW + gap, (h * 0.31).toNumber() - bat / 2, bat);
+        Icons.draw(dc, :battery, x + pctW + gap - bat / 4, (h * 0.31).toNumber() - bat / 2, bat);
     }
 
     // inside/outside air temperature as "21°/14°", left aligned so there is room beside it for more later
@@ -131,8 +123,10 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onSelect() as Boolean {
+        // the icon shows the cached lock state; the choice itself is made on the next screen
+        var s = link().state;
         var menu = new IconMenu([
-            {:icon => :lock, :id => "lock_menu"},
+            {:icon => s != null && s["locked"] == false ? :unlock : :lock, :id => "lock_menu"},
             {:icon => :hvac, :id => "climate_menu"},
             {:icon => :refresh, :id => "status"},
             {:icon => :info, :id => "info"}]);

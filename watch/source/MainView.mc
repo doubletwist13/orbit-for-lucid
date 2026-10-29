@@ -7,6 +7,9 @@ import Toybox.WatchUi;
 const GREEN = 0x00FF66;
 const DIM = 0x338855;
 const AMBER = 0xFFAA33;
+const YELLOW = 0xFFDD00;
+const ORANGE = 0xFF7700;
+const RED = 0xFF3333;
 const TRACK = 0x12331F;
 const TRACK_DIM = 0x12251A;
 const STALE_SECS = 1800;
@@ -25,13 +28,16 @@ class MainView extends WatchUi.View {
         var cx = w / 2;
         // old data is dimmed; the car only reports while awake, so this is normal, not an error
         var stale = s != null && Time.now().value() - (s["ts"] as Number) >= STALE_SECS;
-        var fg = stale ? DIM : GREEN;
+        var base = stale ? DIM : GREEN;
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
         var soc = s != null ? s["soc"] as Number? : null;
+        // the charge (ring, number, battery icon) takes its colour from the level; everything else stays green
+        var fg = stale ? DIM : socColor(soc);
         ring(dc, soc, fg, stale);
         dc.setColor(fg, Graphics.COLOR_BLACK);
         socText(dc, soc, w, h);
+        dc.setColor(base, Graphics.COLOR_BLACK);
         air(dc, s, w, h);
         icons(dc, s, w, h);
         var note = link.pending != null ? link.pending + "..." : link.err != null ? link.err : age(s);
@@ -43,6 +49,12 @@ class MainView extends WatchUi.View {
         var room = 2 * Math.sqrt(cx * cx - dy * dy) - w * 0.08;
         var font = dc.getTextWidthInPixels(note, Graphics.FONT_TINY) <= room ? Graphics.FONT_TINY : Graphics.FONT_XTINY;
         dc.drawText(cx, y, font, note, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
+    // green from 50, yellow from 25, orange from 10, red below; no reading keeps the normal green
+    private function socColor(soc as Number?) as Number {
+        if (soc == null || soc >= 50) { return GREEN; }
+        return soc >= 25 ? YELLOW : soc >= 10 ? ORANGE : RED;
     }
 
     // charge as an arc round the bezel, clockwise from the top

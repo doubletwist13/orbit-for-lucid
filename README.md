@@ -63,10 +63,10 @@ slower, and don't read the difference between those two runs as meaningful.
 ## Screenshots
 
 <p>
-  <img src="docs/images/watch-glance.png" alt="Glance: 85% charge with battery, locked and plug icons" width="200">
+  <img src="docs/images/watch-glance.png" alt="Glance: 87% charge with battery, open padlock and plug icons" width="200">
   <img src="docs/images/watch-main.png" width="200"
-       alt="Main screen: a ring and 85% charge, 85 and 87 degree cabin and outside temperatures, locked and plugged in
-       icons, and the data age of 2 minutes">
+       alt="Main screen: a ring and 87% charge, 81 and 80 degree cabin and outside temperatures, open padlock and plugged
+       in icons, and the data age of now">
   <img src="docs/images/watch-actions.png" alt="Actions: lock, climate, refresh and a small info button" width="200">
   <img src="docs/images/watch-info.png" alt="Info: when the car last reported and when the phone last updated"
        width="200">

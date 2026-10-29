@@ -11,8 +11,9 @@ Android companion app.
 
 Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and one Lucid. From the watch you can see
 state of charge, locked/unlocked, plugged/charging and the inside and outside temperature, then lock, unlock, start
-or stop climate at a temperature you pick (in the watch's own units), and refresh. Unlock and climate changes ask for a
-confirm tap; lock does not.
+or stop climate at a temperature you pick (in the watch's own units), open and close the frunk and trunk, honk the
+horn, flash the lights, and refresh. Unlock, climate, frunk, trunk and horn ask for a confirm tap; lock and lights
+do not.
 Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
 | Watch | Status |
@@ -46,12 +47,22 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   sleeps. A switch in the phone app turns this off; turning it back on sends the last status at once, which is a
   quick way to refresh a watch that was out of range or plugged in. If Garmin Connect restarts, the phone reconnects
   to it by itself after about 30 seconds.
-- **Actions.** Tap the screen (or press the select button) for big icons: lock, climate and refresh.
-- **Info** is the small `i` button under them. It shows when the car last reported and when the phone last sent
+- **Actions.** Tap the screen (or press the select button) for big icons, in two pages: lock, climate, frunk and
+  trunk, then horn and lights. Swipe left or right to change page (the dots at the top show which), or use the up and
+  down buttons, which carry on to the next page.
+- **Refresh** is a small button under them, on both pages: it asks the car for its state again.
+- **Info** is the small `i` button beside it. It shows when the car last reported and when the phone last sent
   status to the watch, so you can tell whether the 5 minute updates are arriving, and the watch app's version at
   the bottom. The phone app shows the same times, plus when it last asked Lucid.
 - **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
   not depend on that state. Unlock then asks you to confirm.
+- **Frunk** and **trunk** show the front or back of the car (an Air or a Gravity, as the car reports), with an F or a
+  T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to confirm. A
+  frunk with a gas strut can only be unlatched, so it goes straight to the confirm. Tested on a car with a powered
+  frunk; the gas-strut case is untested.
+- **Horn** (one short honk) asks for a confirm tap. **Lights** (flash) act at once. Lucid's API gives no way to
+  confirm either, so the watch shows "Sending..." and then clears: it means Lucid took the request, not that the car
+  acted on it. Watch or listen for the car, and try again if nothing happened.
 - **Climate** opens a choice of off or on. On shows the car's current set point and opens a scrolling list over the
   car's range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a new
   temperature while climate is already on changes it.
@@ -70,11 +81,16 @@ slower, and don't read the difference between those two runs as meaningful.
   <img src="docs/images/watch-main.png" width="200"
        alt="Main screen: a ring and 85% charge, 86 and 80 degree cabin and outside temperatures, closed padlock and
        unplugged icons, and the data age of 18m">
-  <img src="docs/images/watch-actions.png" alt="Actions: lock, climate, refresh and a small info button" width="200">
+  <img src="docs/images/watch-actions.png"
+       alt="Actions, page 1: lock, climate, frunk and trunk, with small refresh and info buttons" width="200">
+  <img src="docs/images/watch-actions-2.png" alt="Actions, page 2: horn and lights, with small refresh and info buttons"
+       width="200">
   <img src="docs/images/watch-info.png" alt="Info: when the car last reported and when the phone last updated"
        width="200">
   <img src="docs/images/watch-lock.png" alt="Choose lock or unlock" width="200">
   <img src="docs/images/watch-climate.png" alt="Choose climate off or on, with the car's set point" width="200">
+  <img src="docs/images/watch-frunk.png" alt="Choose frunk open or close" width="200">
+  <img src="docs/images/watch-trunk.png" alt="Choose trunk open or close" width="200">
 </p>
 <p>
   <img src="docs/images/phone.jpg" width="260"
@@ -105,7 +121,7 @@ out in the phone screenshot.
 - **Tested on one phone.** Android only, tested on a Pixel 10 Pro. Needs Garmin Connect Mobile installed and paired
   with the watch.
 - **Not in any app store.** You build both apps yourself and sideload them. See Building.
-- **Limited commands.** No trunk/frunk, charge control, tire pressure, windows or location (some of that is on the
+- **Limited commands.** No charge control, tire pressure, windows or location (some of that is on the
   roadmap).
 - **Temperature units follow the watch.** The Fahrenheit list is the one that has been tried; the Celsius one
   (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it

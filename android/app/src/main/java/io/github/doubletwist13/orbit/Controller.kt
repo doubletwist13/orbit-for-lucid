@@ -133,7 +133,28 @@ class Controller(context: Context) {
         "lock" -> lock(true, progress)
         "unlock" -> lock(false, progress)
         "climate_on" -> climate(true, tempC, progress)
-        else -> climate(false, tempC, progress)
+        "climate_off" -> climate(false, tempC, progress)
+        "frunk_open", "frunk_close" -> closure("frunk", cmd == "frunk_open", progress)
+        "trunk_open", "trunk_close" -> closure("trunk", cmd == "trunk_open", progress)
+        // shortcut: the API gives no way to confirm a honk or flash (empty responses), so "sent" is all we know;
+        // the labels say "Sending", not "Honking". Revisit if mobile_app_request proves to report them.
+        "horn" -> command("Sending horn", null, progress) { s -> client.honk(token(), s.vehicleId) }
+        "flash" -> command("Sending lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
+        else -> error("unhandled command $cmd")
+    }
+
+    private suspend fun closure(name: String, open: Boolean, progress: (String) -> Unit): VehicleStatus {
+        val frunk = name == "frunk"
+        // the watch never offers this; the check is for a request that skips the watch's menu
+        if (frunk && !open && _state.value.status?.frunkPowered == false) {
+            throw CommandFailed("unsupported", "Gas strut frunk cannot be closed")
+        }
+        return command(
+            if (open) "Opening $name" else "Closing $name",
+            { s -> closureDone(if (frunk) s.frunkOpen else s.trunkOpen, open) }, progress,
+        ) { s ->
+            if (frunk) client.setFrunk(token(), s.vehicleId, open) else client.setTrunk(token(), s.vehicleId, open)
+        }
     }
 
     private suspend fun lock(locked: Boolean, progress: (String) -> Unit) =
@@ -146,15 +167,18 @@ class Controller(context: Context) {
             client.setPrecondition(token(), s.vehicleId, if (on) tempC else null)
         }
 
-    /** Wake if asleep, send, then poll until the car reports the change (it lags 10-40 s) or give up. */
+    /**
+     * Wake if asleep, send, then poll until the car reports the change (it lags 10-40 s) or give up. A null [done] is
+     * for a command with no state to read back (horn, lights): the answer is the status from before the send.
+     */
     private suspend fun command(
         label: String,
-        done: (VehicleStatus) -> Boolean,
+        done: ((VehicleStatus) -> Boolean)?,
         progress: (String) -> Unit,
         send: suspend (VehicleStatus) -> Unit,
     ): VehicleStatus {
         progress(label)
-        withContext(NonCancellable) {
+        val sent = withContext(NonCancellable) {
             var s = fetch()
             if (!s.awake) {
                 progress("Waking car")
@@ -163,8 +187,9 @@ class Controller(context: Context) {
                 progress(label)
             }
             send(s)
+            s
         }
-        return pollUntil(done) ?: throw CommandFailed("timeout", "No confirmation yet")
+        return if (done == null) sent else pollUntil(done) ?: throw CommandFailed("timeout", "No confirmation yet")
     }
 
     // shortcut: 3 quick 5 s polls, then 10 s (about 105 s); GetUserVehicles hit the gateway's rate limit (status 8)
@@ -194,7 +219,10 @@ class Controller(context: Context) {
     }
 
     private companion object {
-        val WATCH_COMMANDS = setOf("status", "lock", "unlock", "climate_on", "climate_off")
+        val WATCH_COMMANDS = setOf(
+            "status", "lock", "unlock", "climate_on", "climate_off", "frunk_open", "frunk_close", "trunk_open",
+            "trunk_close", "horn", "flash",
+        )
     }
 }
 
@@ -209,6 +237,10 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         put("locked", it.locked)
         put("charge", it.chargeState)
         put("hvac", it.hvacOn)
+        it.frunkOpen?.let { o -> put("frunk", o) }
+        it.trunkOpen?.let { o -> put("trunk", o) }
+        put("fpower", it.frunkPowered)
+        if (it.model.isNotEmpty()) put("model", it.model)
         if (it.setTempC in MIN_TEMP_C..MAX_TEMP_C) put("tset", it.setTempC)
         // a value outside the plausible air range is a bad reading, not a temperature
         it.insideC?.takeIf { t -> t in AIR_RANGE_C }?.let { t -> put("tin", t) }
@@ -218,6 +250,9 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
     }
     pending?.let { put("pending", it) }
 }
+
+/** A car that reports no state for a lid cannot confirm the change, so any answer after the send counts as done. */
+internal fun closureDone(reported: Boolean?, wantOpen: Boolean): Boolean = reported == null || reported == wantOpen
 
 internal const val PUSH_INTERVAL_MS = 5 * 60_000L
 internal const val PUSH_MAX_MS = 60 * 60_000L

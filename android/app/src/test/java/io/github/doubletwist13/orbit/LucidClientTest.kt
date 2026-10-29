@@ -5,7 +5,13 @@ import mobilegateway.protos.LoginSessionOuterClass.GetNewJWTTokenResponse
 import mobilegateway.protos.LoginSessionOuterClass.GetUserVehiclesResponse
 import mobilegateway.protos.LoginSessionOuterClass.LoginResponse
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
+import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
+import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
+import mobilegateway.protos.VehicleStateServiceOuterClass.Model
+import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
+import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleConfig
+import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleState
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -52,6 +58,24 @@ class LucidClientTest {
 
     private val oneVehicle = GetUserVehiclesResponse.newBuilder()
         .addUserVehicleData(Vehicle.newBuilder().setVehicleId("v1")).build().toByteArray()
+
+    @Test
+    fun lidStrutAndModelAreReadFromTheVehicle() {
+        val body = VehicleState.newBuilder().setBody(
+            BodyState.newBuilder().setFrontCargo(DoorState.DOOR_STATE_AJAR).setRearCargo(DoorState.DOOR_STATE_CLOSED),
+        )
+        val s = Vehicle.newBuilder().setVehicleId("v1").setState(body)
+            .setConfig(VehicleConfig.newBuilder().setModel(Model.MODEL_AIR).setFrunkStrut(StrutType.STRUT_TYPE_GAS))
+            .build().toStatus()
+        assertEquals(true, s.frunkOpen) // ajar counts as open
+        assertEquals(false, s.trunkOpen)
+        assertEquals(false, s.frunkPowered)
+        assertEquals("AIR", s.model)
+        val bare = Vehicle.newBuilder().setVehicleId("v1").build().toStatus()
+        assertEquals(null, bare.frunkOpen) // no state reported
+        assertEquals(true, bare.frunkPowered)
+        assertEquals("", bare.model)
+    }
 
     @Test
     fun rateLimitedStatusRetriesThenSucceeds() = runTest {

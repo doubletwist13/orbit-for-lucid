@@ -10,7 +10,9 @@ const AMBER = 0xFFAA33;
 const TRACK = 0x12331F;
 const TRACK_DIM = 0x12251A;
 const STALE_SECS = 1800;
-const CONFIRM = {"unlock" => "Unlock?", "climate_off" => "Climate off?"};
+const CONFIRM = {"unlock" => "Unlock?", "climate_off" => "Climate off?", "horn" => "Honk horn?",
+    "frunk_open" => "Open frunk?", "frunk_close" => "Close frunk?", "trunk_open" => "Open trunk?",
+    "trunk_close" => "Close trunk?"};
 
 class MainView extends WatchUi.View {
     function initialize() {
@@ -120,11 +122,17 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
     function onSelect() as Boolean {
         // the icon shows the cached lock state; the choice itself is made on the next screen
         var s = link().state;
-        var menu = new IconMenu([
+        var refresh = {:icon => :refresh, :id => "status", :small => true};
+        var info = {:icon => :info, :id => "info", :small => true};
+        var menu = new IconMenu([[
             {:icon => s != null && s["locked"] == false ? :unlock : :lock, :id => "lock_menu"},
-            {:icon => :hvac, :id => "climate_menu"},
-            {:icon => :refresh, :id => "status"},
-            {:icon => :info, :id => "info"}]);
+            {:icon => s != null && s["hvac"] == false ? :hvacoff : :hvac, :id => "climate_menu"},
+            {:icon => lidIcon("frunk", s != null && s["frunk"] == true), :id => "frunk_menu"},
+            {:icon => lidIcon("trunk", s != null && s["trunk"] == true), :id => "trunk_menu"},
+            refresh, info], [
+            {:icon => :horn, :id => "horn"},
+            {:icon => :lights, :id => "flash"},
+            refresh, info]]);
         WatchUi.pushView(menu, new ActionsDelegate(menu), WatchUi.SLIDE_UP);
         return true;
     }

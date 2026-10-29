@@ -3,21 +3,30 @@ import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
 
-// A screen of big round icon choices. Touch: tap one. Buttons: up/down moves the highlight, select picks it.
-// Two items sit side by side, three form a triangle, and a fourth is a small button under the triangle; any other
-// count would need a new row in SLOTS.
+// A screen of big round icon choices, in one or more pages. Touch: tap one, swipe left or right between pages. Buttons:
+// up/down moves the highlight (past the end of a page it goes to the next page), select picks it.
+// Two big items sit side by side, three form a triangle and four a grid. Items marked :small are small buttons in a
+// row under them. Any other count would need a new row in BIG or SMALL.
 class IconMenu extends WatchUi.View {
-    // centre of each item as a fraction of width and height, per item count
-    private const SLOTS = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
-        4 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67], [0.50, 0.90]]};
+    // centre of each item as a fraction of width and height, per count of big or small items
+    private const BIG = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
+        4 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.62], [0.70, 0.62]]};
+    private const SMALL = {1 => [[0.50, 0.89]], 2 => [[0.38, 0.89], [0.62, 0.89]]};
+    var pages as Array<Array<Dictionary> >;
+    var page as Number = 0;
+    // the current page's items
     var items as Array<Dictionary>;
     var sel as Number = 0;
+    // The focus ring only matters to a button user, so a touch screen shows none until a button or vertical swipe
+    // moves it; a watch without touch always shows it.
+    var showSel as Boolean = !System.getDeviceSettings().isTouchScreen;
     // set by the delegate on the first choice so a second tap before the screen closes does nothing
     var picked as Boolean = false;
 
-    function initialize(items as Array<Dictionary>) {
+    function initialize(pages as Array<Array<Dictionary> >) {
         View.initialize();
-        self.items = items;
+        self.pages = pages;
+        items = pages[0];
     }
 
     // back from a sub-screen makes the menu usable again
@@ -26,28 +35,44 @@ class IconMenu extends WatchUi.View {
     }
 
     private function small(i as Number) as Boolean {
-        return items.size() == 4 && i == 3;
+        return items[i][:small] == true;
+    }
+
+    // how many of the page's items are small (or, with false, big)
+    private function count(wantSmall as Boolean) as Number {
+        var n = 0;
+        for (var i = 0; i < items.size(); i++) {
+            if (small(i) == wantSmall) { n++; }
+        }
+        return n;
     }
 
     private function radius(w as Number, i as Number) as Float {
-        return w * (small(i) ? 0.065 : items.size() == 2 ? 0.15 : 0.14);
+        return w * (small(i) ? 0.065 : count(false) == 2 ? 0.15 : count(false) == 4 ? 0.12 : 0.14);
     }
 
     function onUpdate(dc as Dc) as Void {
         dc.setColor(GREEN, Graphics.COLOR_BLACK);
         dc.clear();
+        if (pages.size() > 1) {
+            // one dot per page, the current one filled, at the top where the round bezel leaves room
+            var gap = dc.getWidth() * 0.04;
+            var x0 = dc.getWidth() / 2 - (pages.size() - 1) * gap / 2;
+            for (var p = 0; p < pages.size(); p++) {
+                var x = x0 + p * gap;
+                var y = dc.getHeight() * 0.07;
+                if (p == page) { dc.fillCircle(x, y, gap / 4); } else { dc.drawCircle(x, y, gap / 4); }
+            }
+        }
         for (var i = 0; i < items.size(); i++) {
             var r = radius(dc.getWidth(), i);
             var c = center(i, dc.getWidth(), dc.getHeight());
             var size = (r * 1.2).toNumber();
-            dc.setPenWidth(3);
+            // a thick ring marks the focus; a filled circle would read as an item that is switched on
+            dc.setPenWidth(showSel && i == sel ? 8 : 3);
             dc.setColor(GREEN, Graphics.COLOR_BLACK);
-            if (i == sel) {
-                dc.fillCircle(c[0], c[1], r);
-                dc.setColor(Graphics.COLOR_BLACK, GREEN);
-            } else {
-                dc.drawCircle(c[0], c[1], r);
-            }
+            dc.drawCircle(c[0], c[1], r);
+            dc.setPenWidth(3);
             Icons.draw(dc, items[i][:icon] as Symbol, c[0] - size / 2, c[1] - size / 2, size);
             var label = items[i][:label] as String?;
             if (label != null) {
@@ -58,7 +83,13 @@ class IconMenu extends WatchUi.View {
     }
 
     private function center(i as Number, w as Number, h as Number) as [Number, Number] {
-        var f = (SLOTS[items.size()] as Array)[i] as Array<Float>;
+        // this item's place among the others of its size
+        var s = small(i);
+        var k = 0;
+        for (var j = 0; j < i; j++) {
+            if (small(j) == s) { k++; }
+        }
+        var f = ((s ? SMALL : BIG)[count(s)] as Array)[k] as Array<Float>;
         return [(w * f[0]).toNumber(), (h * f[1]).toNumber()];
     }
 
@@ -73,8 +104,33 @@ class IconMenu extends WatchUi.View {
         return -1;
     }
 
+    // step the highlight; off either end of a page it lands on the next or previous page (wrapping round)
     function move(by as Number) as Void {
-        sel = (sel + by + items.size()) % items.size();
+        showSel = true;
+        var s = sel + by;
+        if (s >= items.size()) {
+            show((page + 1) % pages.size(), 0);
+        } else if (s < 0) {
+            var p = (page + pages.size() - 1) % pages.size();
+            show(p, pages[p].size() - 1);
+        } else {
+            sel = s;
+            WatchUi.requestUpdate();
+        }
+    }
+
+    // a swipe to the next or previous page, which stops at the first and last
+    function turn(by as Number) as Boolean {
+        var p = page + by;
+        if (p < 0 || p >= pages.size()) { return false; }
+        show(p, 0);
+        return true;
+    }
+
+    private function show(p as Number, s as Number) as Void {
+        page = p;
+        items = pages[p];
+        sel = s;
         WatchUi.requestUpdate();
     }
 }
@@ -110,7 +166,13 @@ class IconMenuDelegate extends WatchUi.InputDelegate {
     function onKey(evt as WatchUi.KeyEvent) as Boolean {
         var key = evt.getKey();
         if (key == WatchUi.KEY_ENTER) {
-            pick(_menu.items[_menu.sel][:id] as String);
+            // with no ring showing, the first press only shows where the focus is, so nothing happens unseen
+            if (_menu.showSel) {
+                pick(_menu.items[_menu.sel][:id] as String);
+            } else {
+                _menu.showSel = true;
+                WatchUi.requestUpdate();
+            }
         } else if (key == WatchUi.KEY_DOWN) {
             _menu.move(1);
         } else if (key == WatchUi.KEY_UP) {
@@ -121,13 +183,18 @@ class IconMenuDelegate extends WatchUi.InputDelegate {
         return true;
     }
 
-    // a vertical swipe steps the highlight too; a swipe right stays the system's back gesture
+    // a vertical swipe steps the highlight too, and left or right turns the page; a swipe right on the first page
+    // stays the system's back gesture
     function onSwipe(evt as WatchUi.SwipeEvent) as Boolean {
         var dir = evt.getDirection();
         if (dir == WatchUi.SWIPE_UP) {
             _menu.move(1);
         } else if (dir == WatchUi.SWIPE_DOWN) {
             _menu.move(-1);
+        } else if (dir == WatchUi.SWIPE_LEFT) {
+            return _menu.turn(1);
+        } else if (dir == WatchUi.SWIPE_RIGHT) {
+            return _menu.turn(-1);
         } else {
             return false;
         }
@@ -135,7 +202,8 @@ class IconMenuDelegate extends WatchUi.InputDelegate {
     }
 }
 
-// Lock, climate, refresh. Lock opens a second screen so the choice never depends on the cached lock state.
+// The actions pages. Lock, climate, frunk and trunk open a second screen so the choice never depends on the cached
+// state; the rest act at once.
 class ActionsDelegate extends IconMenuDelegate {
     function initialize(menu as IconMenu) {
         IconMenuDelegate.initialize(menu);
@@ -143,14 +211,25 @@ class ActionsDelegate extends IconMenuDelegate {
 
     function choose(id as String) as Void {
         if (id.equals("lock_menu")) {
-            var menu = new IconMenu([{:icon => :lock, :id => "lock"}, {:icon => :unlock, :id => "unlock"}]);
-            WatchUi.pushView(menu, new LockDelegate(menu), WatchUi.SLIDE_LEFT);
+            var menu = new IconMenu([[{:icon => :lock, :id => "lock"}, {:icon => :unlock, :id => "unlock"}]]);
+            WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
+        } else if (id.equals("frunk_menu") || id.equals("trunk_menu")) {
+            var lid = id.equals("frunk_menu") ? "frunk" : "trunk";
+            // a gas strut frunk can be unlatched but not closed by the car, so there is only one choice: skip the menu
+            if (lid.equals("frunk") && link().state != null && link().state["fpower"] == false) {
+                perform("frunk_open", 1, null);
+                return;
+            }
+            var menu = new IconMenu([[{:icon => lidIcon(lid, true), :id => lid + "_open"},
+                {:icon => lidIcon(lid, false), :id => lid + "_close"}]]);
+            WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
         } else if (id.equals("climate_menu")) {
             // the on icon shows the car's current set point, which it keeps even while climate is off
             var tset = link().state != null ? link().state["tset"] as Numeric? : null;
             var f = Units.fahrenheit();
-            var menu = new IconMenu([{:icon => :hvacoff, :id => "climate_off"},
-                {:icon => :hvac, :id => "climate_on", :label => tset != null ? Units.label(tset.toFloat(), f) : null}]);
+            var label = tset != null ? Units.label(tset.toFloat(), f) : null;
+            var menu = new IconMenu([[{:icon => :hvacoff, :id => "climate_off"},
+                {:icon => :hvac, :id => "climate_on", :label => label}]]);
             WatchUi.pushView(menu, new ClimateDelegate(menu), WatchUi.SLIDE_LEFT);
         } else if (id.equals("info")) {
             WatchUi.pushView(new InfoView(), new WatchUi.BehaviorDelegate(), WatchUi.SLIDE_LEFT);
@@ -160,7 +239,8 @@ class ActionsDelegate extends IconMenuDelegate {
     }
 }
 
-class LockDelegate extends IconMenuDelegate {
+// The second screen of lock, frunk or trunk: either choice acts at once (the confirm tap comes from perform).
+class ChoiceDelegate extends IconMenuDelegate {
     function initialize(menu as IconMenu) {
         IconMenuDelegate.initialize(menu);
     }
@@ -207,6 +287,16 @@ class TempMenuDelegate extends WatchUi.Menu2InputDelegate {
     function onSelect(item as WatchUi.MenuItem) as Void {
         perform("climate_on", 3, Units.at(item.getId() as Number, _f));
     }
+}
+
+// The frunk or trunk icon, drawn as the car's model (the Gravity's until the phone has said it is an Air).
+function lidIcon(lid as String, open as Boolean) as Symbol {
+    var s = link().state;
+    var air = s != null && "AIR".equals(s["model"]);
+    if (lid.equals("frunk")) {
+        return air ? (open ? :afrunkopen : :afrunk) : (open ? :frunkopen : :frunk);
+    }
+    return air ? (open ? :atrunkopen : :atrunk) : (open ? :trunkopen : :trunk);
 }
 
 // Close `depth` menu screens, then send the command, asking first for the ones that change the car beyond locking it.

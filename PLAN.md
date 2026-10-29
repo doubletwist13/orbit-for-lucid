@@ -117,18 +117,17 @@ version (or add optional fields that older watches ignore). The status data all 
 call, so reading more of it adds no Lucid calls.
 
 **Shipped:** Lucid API proof, repo and security setup, Android client, Venu 3 app (glance, main screen, actions), phone
-bridge with a 5 minute background push, phone app as a status and settings screen. See the releases (v0.2.x).
+bridge with a 5 minute background push, phone app as a status and settings screen, paged actions screen with
+closures, horn and lights (#12). See the releases.
 
 **Now**
-- Main screen shows the plug state like the glance (#31).
 - Watch icons: finish the set (#29).
+- Phone and watch show each other's version, and say so when the phone app is too old (#39).
 
 **Next**
-- Paged actions screen, and frunk/trunk open and close (#12). Opening a closure is physical, so it gets a confirm tap
-  like unlock.
 - Battery preconditioning and a Climate details screen (#13).
+- Choice screens (lock, climate, frunk, trunk) show the last known state and its age (#38).
 - Charging: power readout in kW, start/stop, charge limit, charge port (#35).
-- Horn and flash lights (#29 has the icons; the WearOS app has both).
 - Details screen, read-only: tire pressure, windows, battery health, cell temperatures (#11).
 - AC current limit (#14), research first.
 - Release-build (R8) check of the Android app.

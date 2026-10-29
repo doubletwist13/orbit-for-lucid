@@ -15,7 +15,8 @@ machine-specific notes go in the gitignored `PLAN.local.md`, never in PLAN.md.
 - Never commit tokens, VINs, emails, real API responses, keystores or `developer_key*`; anonymize fixtures and logs.
 - Never Read/cat credential or key files (`developer_key*`, `*.jks`, `.env*`); use paths only.
 - No Garmin SDK material in the repo (SDK, simulator, device profiles, samples, AAR contents, code adapted from them).
-- No Lucid artwork or logos; icons must be original. WearOS-app icons go only in gitignored `assets-local/`.
+- No Lucid artwork or logos, and never copy the icons of Lucid's own app. Icons are original except the Gravity frunk
+  and trunk, traced from the WearOS companion app's icons with its author's permission (see `NOTICE`).
 - Keep the "unofficial, not affiliated" disclaimer; attribute reused upstream code in `NOTICE`.
 - Don't bypass the gitleaks hook (`--no-verify`) unless told to.
 

@@ -11,7 +11,8 @@ Android companion app.
 
 Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and one Lucid. From the watch you can see
 state of charge, locked/unlocked, plugged/charging and the inside and outside temperature, then lock, unlock, start
-or stop climate at a temperature you pick (in the watch's own units), and refresh. Unlock and climate changes ask for a confirm tap; lock does not.
+or stop climate at a temperature you pick (in the watch's own units), and refresh. Unlock and climate changes ask for a
+confirm tap; lock does not.
 Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
 | Watch | Status |

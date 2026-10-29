@@ -92,15 +92,10 @@ class MainView extends WatchUi.View {
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // state icons, shown only when they apply: lock, plug, charging bolt, climate
+    // state icons: lock and plug always (like the glance), climate only while it is on
     private function icons(dc as Dc, s as Dictionary?, w as Number, h as Number) as Void {
         if (s == null) { return; }
-        var ids = [s["locked"] ? :lock : :unlock] as Array<Symbol>;
-        var c = s["charge"] as String?;
-        if (c != null && !c.equals("NOT_CONNECTED") && !c.equals("UNKNOWN")) {
-            ids.add(:plug);
-            if (c.equals("CHARGING")) { ids.add(:bolt); }
-        }
+        var ids = [s["locked"] ? :lock : :unlock, Charge.plug(s["charge"] as String?)] as Array<Symbol>;
         if (s["hvac"] == true) { ids.add(:hvac); }
         var size = (w * 0.105).toNumber();
         var gap = size / 5;

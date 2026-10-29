@@ -34,8 +34,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
     ring, number and icon are green from 50%, yellow from 25%, orange from 10% and red below that.
   - **Temperatures.** Under the number, `21°/14°` is the cabin and the outside air temperature, in the watch's units
     (`--` for one the car did not report, nothing at all if it reported neither).
-  - **State icons**, shown only when they apply: a closed or open padlock (locked or unlocked), a plug when plugged
-    in, a bolt beside it while charging, and wavy lines while climate is on.
+  - **State icons**: a closed or open padlock (locked or unlocked), and a plug (slashed when unplugged, a bolt in its
+    place while charging), as in the glance. Wavy lines are added only while climate is on.
   - **Bottom line.** How old the car's data is (for example `2m`), or what is in progress ("Unlocking...") or an
     error. The car only reports while awake, so after 30 minutes the whole screen dims and the age turns amber; that is
     normal, not an error.
@@ -67,8 +67,8 @@ slower, and don't read the difference between those two runs as meaningful.
   <img src="docs/images/watch-glance.png" width="200"
        alt="Glance: 87% charge with battery, open padlock and plug icons">
   <img src="docs/images/watch-main.png" width="200"
-       alt="Main screen: a ring and 87% charge, 81 and 80 degree cabin and outside temperatures, open padlock and
-       plugged in icons, and the data age of now">
+       alt="Main screen: a ring and 85% charge, 86 and 80 degree cabin and outside temperatures, closed padlock and
+       unplugged icons, and the data age of 18m">
   <img src="docs/images/watch-actions.png" alt="Actions: lock, climate, refresh and a small info button" width="200">
   <img src="docs/images/watch-info.png" alt="Info: when the car last reported and when the phone last updated"
        width="200">

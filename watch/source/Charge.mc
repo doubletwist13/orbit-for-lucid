@@ -9,4 +9,10 @@ module Charge {
         if (soc == null || soc >= 50) { return 0x00FF66; }
         return soc >= 25 ? 0xFFDD00 : soc >= 10 ? 0xFF7700 : 0xFF3333;
     }
+
+    // the plug icon for a charge state: slashed when unplugged (or unknown), a bolt in place of the plug while charging
+    function plug(charge as String?) as Symbol {
+        if (charge == null || charge.equals("NOT_CONNECTED") || charge.equals("UNKNOWN")) { return :plugoff; }
+        return charge.equals("CHARGING") ? :bolt : :plug;
+    }
 }

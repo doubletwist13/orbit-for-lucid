@@ -208,8 +208,8 @@ Watch:
    lock/unlock/climate buttons; they were removed in 0.2.3 (#23) so the phone app is a status and settings screen and
    the watch is the only controller. Open: release-build (R8) check.
 4. **Watch app** (Venu 3 first; spike and UI DONE 2026-10-25; the glance shows cached SOC and icons for lock and
-   plug state (#27), kept fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes, so an age goes
-   stale); the fenix 7 buttons were checked in the simulator; lock deliberately has no confirm tap; unlock and
+   plug state (#27), kept fresh by the phone's pushes, with no age or dimming (a glance is not redrawn between pushes,
+   so an age goes stale); the fenix 7 buttons were checked in the simulator; lock deliberately has no confirm tap; unlock and
    climate do).
 5. **Bridge** (DONE 2026-10-25 on the Pixel 10 Pro + Venu 3). Timings are one set of tests on one car and Lucid's
    latency is known to vary wildly: unlock from a sleeping car about 13 s without car wifi and 9-10 s with it, lock on

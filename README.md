@@ -24,8 +24,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 
 ## Using the watch app
 
-- **Glance.** The charge in percent with a small battery icon, then a closed or open padlock for locked or unlocked, then
-  a plug icon: a plug with a slash when unplugged, a plain plug when plugged in but not charging, and a bolt while
+- **Glance.** The charge in percent with a small battery icon, then a closed or open padlock for locked or unlocked,
+  then a plug icon: a plug with a slash when unplugged, a plain plug when plugged in but not charging, and a bolt while
   charging. The percent and battery icon take the main screen's charge colours. It shows what the phone last pushed,
   with no age.
 - **Main screen**, from the top down:
@@ -64,10 +64,11 @@ slower, and don't read the difference between those two runs as meaningful.
 ## Screenshots
 
 <p>
-  <img src="docs/images/watch-glance.png" alt="Glance: 87% charge with battery, open padlock and plug icons" width="200">
+  <img src="docs/images/watch-glance.png" width="200"
+       alt="Glance: 87% charge with battery, open padlock and plug icons">
   <img src="docs/images/watch-main.png" width="200"
-       alt="Main screen: a ring and 87% charge, 81 and 80 degree cabin and outside temperatures, open padlock and plugged
-       in icons, and the data age of now">
+       alt="Main screen: a ring and 87% charge, 81 and 80 degree cabin and outside temperatures, open padlock and
+       plugged in icons, and the data age of now">
   <img src="docs/images/watch-actions.png" alt="Actions: lock, climate, refresh and a small info button" width="200">
   <img src="docs/images/watch-info.png" alt="Info: when the car last reported and when the phone last updated"
        width="200">

@@ -2,8 +2,8 @@ import Toybox.Graphics;
 import Toybox.Lang;
 
 // Original line icons drawn with Dc primitives so one set takes any colour and size. Each is designed on a 24-unit
-// grid; (x, y) is the top-left corner and size the side in pixels. The caller sets the colour. The glance uses them too,
-// so the module is (:glance) code.
+// grid; (x, y) is the top-left corner and size the side in pixels. The caller sets the colour. The glance uses them
+// too, so the module is (:glance) code.
 (:glance)
 module Icons {
     function draw(dc as Dc, id as Symbol, x as Number, y as Number, size as Number) as Void {

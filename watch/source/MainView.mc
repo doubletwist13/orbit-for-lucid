@@ -51,10 +51,10 @@ class MainView extends WatchUi.View {
         dc.drawText(cx, y, font, note, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // green above 80, yellow from 30, orange from 10, red below; no reading keeps the normal green
+    // green from 50, yellow from 25, orange from 10, red below; no reading keeps the normal green
     private function socColor(soc as Number?) as Number {
-        if (soc == null || soc > 80) { return GREEN; }
-        return soc >= 30 ? YELLOW : soc >= 10 ? ORANGE : RED;
+        if (soc == null || soc >= 50) { return GREEN; }
+        return soc >= 25 ? YELLOW : soc >= 10 ? ORANGE : RED;
     }
 
     // charge as an arc round the bezel, clockwise from the top

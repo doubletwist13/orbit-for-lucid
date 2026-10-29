@@ -27,7 +27,7 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 - **Main screen**, from the top down:
   - **Charge.** A ring round the edge fills clockwise from the top to match the charge, and the rest of the ring
     stays dark. The big number in the middle is the same charge in percent, with a small battery icon beside it. The
-    ring, number and icon are green above 80%, yellow from 30%, orange from 10% and red below that.
+    ring, number and icon are green from 50%, yellow from 25%, orange from 10% and red below that.
   - **Temperatures.** Under the number, `21°/14°` is the cabin and the outside air temperature, in the watch's units
     (`--` for one the car did not report, nothing at all if it reported neither).
   - **State icons**, shown only when they apply: a closed or open padlock (locked or unlocked), a plug when plugged

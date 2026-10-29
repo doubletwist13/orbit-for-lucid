@@ -1,11 +1,17 @@
 package io.github.doubletwist13.orbit
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ControllerTest {
     private val status = VehicleStatus(
         vehicleId = "VIN-SECRET", nickname = "nick", socPercent = 75, locked = true, awake = true,
@@ -87,5 +93,78 @@ class ControllerTest {
         assertEquals("offline", errCode(IOException("no route")))
         assertEquals("timeout", errCode(CommandFailed("timeout", "x")))
         assertEquals("unknown", errCode(IllegalStateException("raw text must not leak")))
+    }
+
+    @Test fun pushLoopFetchesAndSendsNowThenEveryInterval() = runTest {
+        val sent = mutableListOf<Map<String, Any>>()
+        backgroundScope.launch { pushLoop({ true }, { status }, { sent += it }, {}) }
+        runCurrent()
+        assertEquals(1, sent.size)
+        assertEquals(true, sent[0]["push"])
+        advanceTimeBy(PUSH_INTERVAL_MS - 1)
+        runCurrent()
+        assertEquals(1, sent.size)
+        advanceTimeBy(1)
+        runCurrent()
+        assertEquals(2, sent.size)
+    }
+
+    @Test fun pushLoopSkipsTheFetchWhileSwitchedOffOrLoggedOut() = runTest {
+        var active = false
+        var fetches = 0
+        backgroundScope.launch { pushLoop({ active }, { fetches++; status }, {}, {}) }
+        runCurrent()
+        advanceTimeBy(PUSH_INTERVAL_MS)
+        runCurrent()
+        assertEquals(0, fetches) // no Lucid call at all
+        active = true
+        advanceTimeBy(PUSH_INTERVAL_MS)
+        runCurrent()
+        assertEquals(1, fetches)
+    }
+
+    @Test fun pushLoopLogsOutOnceOnAnUnauthenticatedAnswer() = runTest {
+        var logouts = 0
+        var sent = 0
+        backgroundScope.launch {
+            pushLoop({ logouts == 0 }, { throw LucidException(16, "x") }, { sent++ }, { logouts++ })
+        }
+        runCurrent()
+        advanceTimeBy(3 * PUSH_INTERVAL_MS)
+        runCurrent()
+        assertEquals(1, logouts)
+        assertEquals(0, sent)
+    }
+
+    @Test fun pushLoopDoublesItsWaitAfterEachRateLimit() = runTest {
+        var fetches = 0
+        backgroundScope.launch { pushLoop({ true }, { fetches++; throw LucidException(8, "x") }, {}, {}) }
+        runCurrent()
+        assertEquals(1, fetches)
+        advanceTimeBy(2 * PUSH_INTERVAL_MS - 1)
+        runCurrent()
+        assertEquals(1, fetches)
+        advanceTimeBy(1) // 10 minutes after the first try
+        runCurrent()
+        assertEquals(2, fetches)
+        advanceTimeBy(4 * PUSH_INTERVAL_MS - 1) // the next wait is 20 minutes
+        runCurrent()
+        assertEquals(2, fetches)
+        advanceTimeBy(1)
+        runCurrent()
+        assertEquals(3, fetches)
+    }
+
+    @Test fun pushLoopRetriesAtTheNormalIntervalAfterAnOtherFailure() = runTest {
+        var fetches = 0
+        var sent = 0
+        backgroundScope.launch {
+            pushLoop({ true }, { if (fetches++ == 0) throw IOException("no route") else status }, { sent++ }, {})
+        }
+        runCurrent()
+        assertEquals(0, sent)
+        advanceTimeBy(PUSH_INTERVAL_MS)
+        runCurrent()
+        assertEquals(1, sent)
     }
 }

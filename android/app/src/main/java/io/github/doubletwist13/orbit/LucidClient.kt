@@ -18,6 +18,8 @@ import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorLocksControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
 import mobilegateway.protos.VehicleStateServiceOuterClass.FrontCargoControlRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateResponse
 import mobilegateway.protos.VehicleStateServiceOuterClass.HonkHornRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.HvacPower
 import mobilegateway.protos.VehicleStateServiceOuterClass.LightAction
@@ -132,7 +134,29 @@ class LucidClient(
             GetUserVehiclesResponse.parser(),
         )
         // shortcut: first vehicle only
-        return reply.userVehicleDataList.first().toStatus().also { cached = System.currentTimeMillis() to it }
+        vehicle = reply.userVehicleDataList.first()
+        return vehicle!!.toStatus().also { cached = System.currentTimeMillis() to it }
+    }
+
+    /** The last full vehicle: GetVehicleState returns the state but not the config (nickname, model, strut). */
+    private var vehicle: Vehicle? = null
+
+    /**
+     * Fresh state for polling after a command. GetVehicleState showed no rate limit at 1 s, unlike GetUserVehicles
+     * (docs/research/vehicle-state-findings.md), and does not wake the car. Falls back to [status] until a vehicle
+     * has been listed, or if the reply carries no state.
+     */
+    suspend fun state(refreshToken: String): VehicleStatus {
+        val v = vehicle ?: return status(refreshToken)
+        ensureSession(refreshToken)
+        val reply = call(
+            "mobilegateway.protos.VehicleStateService/GetVehicleState",
+            GetVehicleStateRequest.newBuilder().setVehicleId(v.vehicleId).build(),
+            GetVehicleStateResponse.parser(),
+        )
+        if (!reply.hasState()) return status(refreshToken)
+        vehicle = v.toBuilder().setState(reply.state).build()
+        return vehicle!!.toStatus()
     }
 
     suspend fun wake(refreshToken: String, vehicleId: String) = command(

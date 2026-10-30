@@ -26,7 +26,8 @@ machine-specific notes go in the gitignored `PLAN.local.md`, never in PLAN.md.
 - Store only the refresh token (Keystore-encrypted); `allowBackup=false`. Refresh JWT only when <60 s remain.
 - Gateway resets streams sending HTTP/2 `content-length`: stream the body, strip `Content-Length`/`Accept-Encoding`.
 - Lucid calls are on-demand, plus one status fetch every 5 minutes pushed to the watch whether or not it is
-  connected (a setting turns it off); never poll faster, and back off after a rate-limit answer.
+  connected (a setting turns it off); never poll `GetUserVehicles` faster (about 5 calls a minute), and back off after
+  a rate-limit answer. After a command, poll `GetVehicleState` (no limit seen) every 1.5 s, then every 5 s.
 - Venu 3 is the primary target (CIQ API 5.2); don't use newer APIs without a fallback.
 
 ## Tooling

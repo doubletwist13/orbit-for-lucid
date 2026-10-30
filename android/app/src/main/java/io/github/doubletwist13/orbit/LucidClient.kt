@@ -48,6 +48,9 @@ class LucidException(val grpcStatus: Int, message: String) : IOException(message
     val unauthenticated get() = grpcStatus == 16
 }
 
+/** The account is valid but lists no vehicle, so there is nothing to read or command. */
+class NoVehicleException : Exception("No vehicle on this Lucid account")
+
 /** What the UI and (later) the watch need; deliberately excludes VIN, location and owner data. */
 data class VehicleStatus(
     val vehicleId: String,
@@ -135,7 +138,7 @@ class LucidClient(
             GetUserVehiclesResponse.parser(),
         )
         // shortcut: first vehicle only
-        vehicle = reply.userVehicleDataList.first()
+        vehicle = reply.userVehicleDataList.firstOrNull() ?: throw NoVehicleException()
         return vehicle!!.toStatus().also { cached = System.currentTimeMillis() to it }
     }
 

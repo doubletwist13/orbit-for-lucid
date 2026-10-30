@@ -129,6 +129,19 @@ class LucidClientTest {
     }
 
     @Test
+    fun anAccountWithNoVehicleIsReportedNotCrashed() = runTest {
+        val client = scripted(mutableListOf()) { method, _ ->
+            0 to if (method == "GetNewJWTToken") session(2000).toByteArray() else ByteArray(0)
+        }
+        try {
+            client.status("rt")
+            fail("expected NoVehicleException")
+        } catch (e: NoVehicleException) {
+            assertEquals("No vehicle on this Lucid account", e.message)
+        }
+    }
+
+    @Test
     fun secondStatusWithinTenSecondsUsesCache() = runTest {
         val seen = mutableListOf<String>()
         val client = scripted(seen) { method, _ ->

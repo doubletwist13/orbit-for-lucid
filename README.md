@@ -30,8 +30,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 ## Using the watch app
 
 - **Glance.** The charge in percent with a small battery icon, then a closed or open padlock for locked or unlocked
-  (an amber padlock with a `?` when the car's lock state is unknown), then a plug icon: a plug with a slash when unplugged, a plain plug when plugged in but not charging, and a bolt while
-  charging. The percent and battery icon take the main screen's charge colours. It shows what the phone last pushed,
+  (an amber padlock with a `?` when the car's lock state is unknown), then a plug icon: a plug with a slash when
+  unplugged, a plain plug when plugged in but not charging, and a bolt while charging. The percent and battery icon take the main screen's charge colours. It shows what the phone last pushed,
   with no age.
 - **Main screen**, from the top down:
   - **Charge.** A ring round the edge fills clockwise from the top to match the charge, and the rest of the ring
@@ -39,8 +39,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
     ring, number and icon are green from 50%, yellow from 25%, orange from 10% and red below that.
   - **Temperatures.** Under the number, `21°/14°` is the cabin and the outside air temperature, in the watch's units
     (`--` for one the car did not report, nothing at all if it reported neither).
-  - **State icons**: a closed or open padlock (locked or unlocked, or amber with a `?` if unknown), and a plug (slashed when unplugged, a bolt in its
-    place while charging), as in the glance. Wavy lines are added only while climate is on.
+  - **State icons**: a closed or open padlock (locked or unlocked, or amber with a `?` if unknown), and a plug
+    (slashed when unplugged, a bolt in its place while charging), as in the glance. Wavy lines are added only while climate is on.
   - **Bottom line.** How old the car's data is (for example `2m`), or what is in progress ("Unlocking...") or an
     error. The car only reports while awake, so after 30 minutes the whole screen dims and the age turns amber; that is
     normal, not an error.
@@ -145,8 +145,9 @@ out in the phone screenshot.
   with a different call that has shown no limit, and backs off if it is ever throttled, but you may still see a "rate"
   error if you hammer it.
 - **Lucid sees a status request every 30-60 s.** Besides your taps, the phone asks Lucid for status on that timer
-  (every 10 s for 2 minutes after you use the watch; see "Stays current"), from your account, whether or not you are using the app. That is the kind of thing Lucid's
-  terms (above) may not welcome; you can turn it off with the switch in the phone app. It does not wake the car.
+  (every 10 s for 2 minutes after you use the watch; see "Stays current"), from your account, whether or not you are
+  using the app. That is the kind of thing Lucid's terms (above) may not welcome; you can turn it off with the switch
+  in the phone app. It does not wake the car.
 - **Little testing of failure cases.** Offline, logged-out, a car on wifi, battery impact over days (including the
   background updates), and surviving reboots are not well tested yet.
 - **The API is unofficial.** It can change or disappear without notice.

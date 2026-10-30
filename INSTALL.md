@@ -117,6 +117,9 @@ Things to know:
 | Try again soon | Lucid is rate-limiting. Wait. |
 | Not confirmed | The command was sent, but the car hasn't reported a change within about 105 seconds. |
 | Car didn't wake | The car did not wake in time. Try again. |
+| Update phone | The watch app is newer than the phone app. Install the matching phone app. |
+| Can't do that | The car can't do it, for example closing a gas-strut frunk. |
+| No car found | The Lucid account lists no vehicle. |
 | Unknown error | Something else went wrong. Check the phone log (see below). |
 
 Other tips:

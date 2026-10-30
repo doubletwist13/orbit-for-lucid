@@ -44,7 +44,7 @@ class Controller(context: Context) {
     val state = _state.asStateFlow()
 
     /** This app's version, sent to the watch so its info screen can show it. */
-    private val version = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: ""
+    val version =context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: ""
     private var watchJob: Job? = null
     private var pushJob: Job? = null
 
@@ -118,7 +118,7 @@ class Controller(context: Context) {
         val id = req["id"] as? Number ?: return
         val cmd = req["cmd"] as? String ?: return
         val reply = { m: Map<String, Any> -> send(m + ("pv" to version)) }
-        (req["wv"] as? String)?.let { w -> _state.update { it.copy(watchVersion = w) } }
+        (req["wv"] as? String)?.let { w -> _state.update { it.copy(watchVersion = w.take(16)) } }
         if (cmd !in WATCH_COMMANDS) {
             // a watch newer than this app: say so, rather than let it wait for a reply that never comes
             reply(watchError(id, "badcmd"))
@@ -217,7 +217,9 @@ class Controller(context: Context) {
     private suspend fun pollUntil(done: (VehicleStatus) -> Boolean): VehicleStatus? {
         repeat(POLL_COUNT) { i ->
             delay(pollDelayMs(i))
-            poll().let { if (done(it)) return it }
+            // the command was already accepted, so a rate-limit answer only skips this read
+            val s = try { poll() } catch (e: LucidException) { if (e.grpcStatus == 8) null else throw e }
+            if (s != null && done(s)) return s
         }
         return null
     }

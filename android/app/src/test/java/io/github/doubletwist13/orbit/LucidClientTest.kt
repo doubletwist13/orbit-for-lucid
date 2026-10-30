@@ -8,6 +8,7 @@ import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
 import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
 import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateResponse
+import mobilegateway.protos.VehicleStateServiceOuterClass.LockState
 import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
@@ -76,6 +77,16 @@ class LucidClientTest {
         assertEquals(null, bare.frunkOpen) // no state reported
         assertEquals(true, bare.frunkPowered)
         assertEquals("", bare.model)
+    }
+
+    @Test
+    fun lockStateIsNullWhenTheCarReportsItUnknown() {
+        fun locked(state: LockState) = Vehicle.newBuilder().setVehicleId("v1")
+            .setState(VehicleState.newBuilder().setBody(BodyState.newBuilder().setDoorLocks(state))).build()
+            .toStatus().locked
+        assertEquals(true, locked(LockState.LOCK_STATE_LOCKED))
+        assertEquals(false, locked(LockState.LOCK_STATE_UNLOCKED))
+        assertEquals(null, locked(LockState.LOCK_STATE_UNKNOWN))
     }
 
     @Test

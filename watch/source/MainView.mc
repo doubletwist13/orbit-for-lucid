@@ -38,7 +38,7 @@ class MainView extends WatchUi.View {
         socText(dc, soc, w, h);
         dc.setColor(base, Graphics.COLOR_BLACK);
         air(dc, s, w, h);
-        icons(dc, s, w, h);
+        icons(dc, s, w, h, base);
         var note = link.pending != null ? link.pending + "..." : link.err != null ? link.err : age(s);
         // a transparent background, or the text's box cuts a notch out of the ring behind it
         dc.setColor(link.err != null ? Graphics.COLOR_RED : stale ? AMBER : DIM, Graphics.COLOR_TRANSPARENT);
@@ -95,14 +95,17 @@ class MainView extends WatchUi.View {
     }
 
     // state icons: lock and plug always (like the glance), climate only while it is on
-    private function icons(dc as Dc, s as Dictionary?, w as Number, h as Number) as Void {
+    private function icons(dc as Dc, s as Dictionary?, w as Number, h as Number, base as Number) as Void {
         if (s == null) { return; }
-        var ids = [s["locked"] ? :lock : :unlock, Charge.plug(s["charge"] as String?)] as Array<Symbol>;
+        var lockId = s["locked"] == null ? :lockunknown : s["locked"] ? :lock : :unlock;
+        var ids = [lockId, Charge.plug(s["charge"] as String?)] as Array<Symbol>;
         if (s["hvac"] == true) { ids.add(:hvac); }
         var size = (w * 0.105).toNumber();
         var gap = size / 5;
         var x = (w - (ids.size() * size + (ids.size() - 1) * gap)) / 2;
         for (var i = 0; i < ids.size(); i++) {
+            // an unknown lock is amber, so it is not read as locked or unlocked
+            dc.setColor(ids[i] == :lockunknown ? AMBER : base, Graphics.COLOR_BLACK);
             Icons.draw(dc, ids[i], x + i * (size + gap), (h * 0.66).toNumber(), size);
         }
     }

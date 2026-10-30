@@ -8,7 +8,7 @@ module Status {
     const KEYS = ["soc", "locked", "charge", "hvac", "tset", "tin", "tout", "awake", "frunk", "trunk", "fpower",
         "model"];
     // fields the phone leaves out when the car reports none, which must not linger from an earlier reply
-    const OPTIONAL = ["tset", "tin", "tout", "frunk", "trunk", "model"];
+    const OPTIONAL = ["locked", "tset", "tin", "tout", "frunk", "trunk", "model"];
 
     // The old state with the message's status fields on top, or null if the message carries none (a pending-only
     // reply). Merged, not replaced, because replies carry only what changed in the car's report.

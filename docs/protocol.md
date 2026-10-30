@@ -23,8 +23,8 @@ message whose `v` it does not know.
 - `horn` and `flash` (flash the lights) have no state to read back: Lucid's answer to both is an empty message, and
   nothing in the car's state is known to report them. The phone wakes the car if needed, sends, and answers `ok` at
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
-  "Sending", never "Honking". The frunk and trunk commands wait for the car to report the lid open or closed, like `lock`; a car
-  that reports no state for a lid answers after the next status fetch.
+  "Sending", never "Honking". The frunk and trunk commands wait for the car to report the lid open or closed, like
+  `lock`; a car that reports no state for a lid answers after the next status fetch.
 - `temp` is clamped to 15..30 by the phone and defaults to 21 when missing or not a number. It is also sent while
   climate is already on, to change the set point.
 - `soc` is left out of a reply when the car's value is outside 0..100; the watch then shows `--`.
@@ -42,7 +42,7 @@ for an `id` has `pending` absent or empty.
 | `id` | int | Echo of the request id |
 | `ok` | bool | `false` when `err` is set |
 | `soc` | int | State of charge, percent |
-| `locked` | bool | Doors locked |
+| `locked` | bool | Doors locked; omitted when the car's lock state is unknown (the watch draws an amber `?` padlock) |
 | `charge` | string | Charge state, e.g. `CABLE_CONNECTED`; `NOT_CONNECTED` when unplugged |
 | `hvac` | bool | Climate/precondition on |
 | `frunk`, `trunk` | bool | Frunk or trunk open (ajar counts as open); omitted when the car reports no state for it |

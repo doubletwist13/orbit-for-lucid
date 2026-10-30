@@ -98,7 +98,7 @@ private fun Status(s: UiState, vm: Controller) {
     val dim = MaterialTheme.colorScheme.onSurfaceVariant
     if (v != null) {
         Text("${v.nickname}  ${v.socPercent}%", style = MaterialTheme.typography.titleLarge)
-        Text("${if (v.locked) "Locked" else "Unlocked"} · ${v.chargeState} · ${if (v.awake) "awake" else "asleep"}",
+        Text("${when (v.locked) { true -> "Locked"; false -> "Unlocked"; null -> "Lock unknown" }} · ${v.chargeState} · ${if (v.awake) "awake" else "asleep"}",
             color = dim)
         Text("Climate ${if (v.hvacOn) "on" else "off"}", color = dim)
         // ticks so the ages keep counting between state changes

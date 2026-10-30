@@ -69,6 +69,12 @@ class ControllerTest {
         assertEquals(105_000L, (0 until POLL_COUNT).sumOf { pollDelayMs(it) })
     }
 
+    @Test fun lockedIsLeftOutOfTheReplyWhenTheCarDoesNotKnow() {
+        assertEquals(true, watchReply(1, status, null)["locked"])
+        assertEquals(false, watchReply(1, status.copy(locked = false), null)["locked"])
+        assertFalse(watchReply(1, status.copy(locked = null), null).containsKey("locked"))
+    }
+
     @Test fun lidChangeIsDoneWhenReportedOrWhenNothingIsReported() {
         assertTrue(closureDone(true, true))
         assertFalse(closureDone(false, true)) // still closed: keep waiting

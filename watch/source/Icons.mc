@@ -9,8 +9,8 @@ module Icons {
     function draw(dc as Dc, id as Symbol, x as Number, y as Number, size as Number) as Void {
         var u = size / 24.0;
         dc.setPenWidth(size / 12 < 2 ? 2 : size / 12);
-        if (id == :lock || id == :unlock) {
-            lock(dc, x, y, u, id == :lock);
+        if (id == :lock || id == :unlock || id == :lockunknown) {
+            lock(dc, x, y, u, id != :unlock, id == :lockunknown);
         } else if (id == :plug) {
             plug(dc, x, y, u);
         } else if (id == :plugoff) {
@@ -50,8 +50,15 @@ module Icons {
         dc.drawLine(px(x, x1, u), px(y, y1, u), px(x, x2, u), px(y, y2, u));
     }
 
-    function lock(dc as Dc, x as Number, y as Number, u as Float, locked as Boolean) as Void {
-        dc.drawRoundedRectangle(px(x, 5, u), px(y, 11, u), (14 * u).toNumber(), (10 * u).toNumber(), (2 * u).toNumber());
+    // unknown is a closed padlock with a question mark in the body; the caller colours it so it is not read as locked
+    function lock(dc as Dc, x as Number, y as Number, u as Float, locked as Boolean, unknown as Boolean) as Void {
+        dc.drawRoundedRectangle(px(x, 5, u), px(y, 11, u), (14 * u).toNumber(), (10 * u).toNumber(),
+            (2 * u).toNumber());
+        if (unknown) {
+            dc.drawArc(px(x, 12, u), px(y, 14.3, u), (2 * u).toNumber(), Graphics.ARC_CLOCKWISE, 180, 270);
+            line(dc, x, y, u, 12, 16.3, 12, 17.6);
+            dc.fillCircle(px(x, 12, u), px(y, 19.4, u), (0.7 * u).toNumber() < 1 ? 1 : (0.7 * u).toNumber());
+        }
         var r = (4 * u).toNumber();
         if (locked) {
             line(dc, x, y, u, 8, 8, 8, 11);

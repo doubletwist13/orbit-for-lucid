@@ -243,7 +243,7 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
     s?.let {
         // the watch once showed 255%: a value outside 0..100 is not a reading, so send none
         if (it.socPercent in 0..100) put("soc", it.socPercent)
-        put("locked", it.locked)
+        it.locked?.let { l -> put("locked", l) }
         put("charge", it.chargeState)
         put("hvac", it.hvacOn)
         it.frunkOpen?.let { o -> put("frunk", o) }

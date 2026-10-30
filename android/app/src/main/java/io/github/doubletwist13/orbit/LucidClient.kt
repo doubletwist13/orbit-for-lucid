@@ -53,7 +53,8 @@ data class VehicleStatus(
     val vehicleId: String,
     val nickname: String,
     val socPercent: Int,
-    val locked: Boolean,
+    /** Null when the car reports an unknown lock state: it is neither locked nor unlocked as far as we can tell. */
+    val locked: Boolean?,
     val awake: Boolean,
     val chargeState: String,
     val hvacOn: Boolean,
@@ -266,7 +267,11 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     vehicleId = vehicleId,
     nickname = config.nickname,
     socPercent = state.battery.chargePercent.toInt(),
-    locked = state.body.doorLocks == LockState.LOCK_STATE_LOCKED,
+    locked = when (state.body.doorLocks) {
+        LockState.LOCK_STATE_LOCKED -> true
+        LockState.LOCK_STATE_UNLOCKED -> false
+        else -> null
+    },
     awake = state.power != PowerState.POWER_STATE_SLEEP,
     chargeState = state.charging.chargeState.name.removePrefix("CHARGE_STATE_"),
     hvacOn = state.hvac.power != HvacPower.HVAC_OFF,

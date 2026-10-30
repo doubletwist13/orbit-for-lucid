@@ -42,7 +42,10 @@ class OrbitGlance extends WatchUi.GlanceView {
         // the padlock is a quarter bigger, so its open shackle is easier to tell from a closed one
         var big = size * 5 / 4;
         x += gap;
-        Icons.draw(dc, s["locked"] ? :lock : :unlock, x, top - (big - size) / 2, big);
+        var unknown = s["locked"] == null;
+        if (unknown) { dc.setColor(0xFFAA33, Graphics.COLOR_BLACK); } // amber: not locked, not unlocked
+        Icons.draw(dc, unknown ? :lockunknown : s["locked"] ? :lock : :unlock, x, top - (big - size) / 2, big);
+        dc.setColor(0x00FF66, Graphics.COLOR_BLACK);
         x += big + gap;
         Icons.draw(dc, Charge.plug(s["charge"] as String?), x, top, size);
     }

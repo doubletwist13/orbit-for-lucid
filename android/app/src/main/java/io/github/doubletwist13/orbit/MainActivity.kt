@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -115,9 +114,7 @@ private fun Status(s: UiState, vm: Controller) {
         Text("Car data ${at(v.updatedMs)}", color = dim)
         Text("Lucid asked ${at(v.fetchedMs)}", color = dim)
         s.pushAtMs?.let { Text("Watch ${if (s.pushOk) "received" else "send failed"} ${at(it)}", color = dim) }
-        val ctx = LocalContext.current
-        val appVersion = remember { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }
-        Text("Orbit $appVersion · watch app ${s.watchVersion ?: "--"}", color = dim)
+        Text("Orbit ${vm.version} · watch app ${s.watchVersion ?: "--"}", color = dim)
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(vm::refresh, enabled = idle) { Text("Refresh") }

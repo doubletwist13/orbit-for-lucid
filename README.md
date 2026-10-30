@@ -31,8 +31,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 
 - **Glance.** The charge in percent with a small battery icon, then a closed or open padlock for locked or unlocked
   (an amber padlock with a `?` when the car's lock state is unknown), then a plug icon: a plug with a slash when
-  unplugged, a plain plug when plugged in but not charging, and a bolt while charging. The percent and battery icon take the main screen's charge colours. It shows what the phone last pushed,
-  with no age.
+  unplugged, a plain plug when plugged in but not charging, and a bolt while charging. The percent and battery icon
+  take the main screen's charge colours. It shows what the phone last pushed, with no age.
 - **Main screen**, from the top down:
   - **Charge.** A ring round the edge fills clockwise from the top to match the charge, and the rest of the ring
     stays dark. The big number in the middle is the same charge in percent, with a small battery icon beside it. The
@@ -40,7 +40,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   - **Temperatures.** Under the number, `21°/14°` is the cabin and the outside air temperature, in the watch's units
     (`--` for one the car did not report, nothing at all if it reported neither).
   - **State icons**: a closed or open padlock (locked or unlocked, or amber with a `?` if unknown), and a plug
-    (slashed when unplugged, a bolt in its place while charging), as in the glance. Wavy lines are added only while climate is on.
+    (slashed when unplugged, a bolt in its place while charging), as in the glance. Wavy lines are added only while
+    climate is on.
   - **Bottom line.** How old the car's data is (for example `2m`), or what is in progress ("Unlocking...") or an
     error. The car only reports while awake, so after 30 minutes the whole screen dims and the age turns amber; that is
     normal, not an error.

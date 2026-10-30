@@ -8,7 +8,7 @@ import Toybox.Lang;
 module Icons {
     function draw(dc as Dc, id as Symbol, x as Number, y as Number, size as Number) as Void {
         var u = size / 24.0;
-        dc.setPenWidth(size / 12 < 2 ? 2 : size / 12);
+        dc.setPenWidth(size / 16 < 2 ? 2 : size / 16);
         if (id == :lock || id == :unlock || id == :lockunknown) {
             lock(dc, x, y, u, id != :unlock, id == :lockunknown);
         } else if (id == :plug) {

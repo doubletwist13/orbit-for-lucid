@@ -33,8 +33,9 @@ Decisions (the reasoning and test results are in `docs/research/phone-bridge-fin
 - **A device app with a glance, not a watch face.** The core need is actions, and a face has no input. A face is on
   the roadmap for later.
 - **A foreground service keeps the phone app reachable.** A killed app is not woken by a watch message.
-- **Lucid calls are on-demand, plus one status fetch every 5 minutes** pushed to the watch (a setting turns it off).
-  Never poll faster; back off after a rate-limit answer.
+- **Lucid calls are on-demand, plus background reads** whose changes are pushed to the watch (a setting turns it off).
+  The read rate follows the car's state and is kept off the throttled vehicle-list call; back off after a rate-limit
+  answer.
 - **Kotlin + OkHttp + protobuf-javalite.** No Chaquopy (bigger APK, slower cold start). Only the handful of calls
   needed are ported.
 - **The phone and the watch use SI units on the wire** (Celsius, bar); the watch converts for display.
@@ -113,16 +114,18 @@ Watch:
 
 ## Roadmap
 Anything that adds a watch<->phone message touches `docs/protocol.md`, the phone and the watch, so bump the protocol
-version (or add optional fields that older watches ignore). The status data all comes from the same `GetUserVehicles`
-call, so reading more of it adds no Lucid calls.
+version (or add optional fields that older watches ignore). The status data all comes from the same call, so reading
+more of it adds no Lucid calls.
 
-**Shipped:** Lucid API proof, repo and security setup, Android client, Venu 3 app (glance, main screen, actions), phone
-bridge with a 5 minute background push, phone app as a status and settings screen, paged actions screen with
-closures, horn and lights (#12). See the releases.
+**Shipped:** Lucid API proof, repo and security setup, Android client with CI, Venu 3 app (glance, main screen,
+actions), phone bridge with adaptive background reads that push changes to the watch, phone app as a status and
+settings screen, paged actions screen with closures, horn and lights, faster command confirmation, both app
+versions shown on each side. See the releases.
 
 **Now**
+- Battery check of the adaptive background reads, then tune their intervals (#46, #47).
+- Design pass for the watch layout, ordering and navigation (#55).
 - Watch icons: finish the set (#29).
-- Phone and watch show each other's version, and say so when the phone app is too old (#39).
 
 **Next**
 - Battery preconditioning and a Climate details screen (#13).
@@ -130,7 +133,6 @@ closures, horn and lights (#12). See the releases.
 - Charging: power readout in kW, start/stop, charge limit, charge port (#35).
 - Details screen, read-only: tire pressure, windows, battery health, cell temperatures (#11).
 - AC current limit (#14), research first.
-- Release-build (R8) check of the Android app.
 
 **Later**
 - Multi-vehicle support (#33). Needs a tester with a second car; the WearOS app already stores a selected vehicle id.
@@ -138,7 +140,7 @@ closures, horn and lights (#12). See the releases.
 - Seat and steering wheel heat, and defrost, in the Climate details screen (#13). The WearOS app cycles seat and
   wheel levels with one tap.
 - A demo mode with canned data, so a tester or store reviewer without a Lucid can try the app (the WearOS app has one).
-- Refresh faster only while the watch app is open, the glance staying on the 5 minute push (#36). Research first.
+- A user setting for the background read interval (#43).
 - Optional biometric gate before unlock.
 - Second watch model with a real owner.
 - **Store release (only if going to stores):** re-read Garmin's SDK agreement and Developer Guidelines, Lucid's terms,

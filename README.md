@@ -13,8 +13,7 @@ Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and o
 state of charge, locked/unlocked, plugged/charging and the inside and outside temperature, then lock, unlock, start
 or stop climate at a temperature you pick (in the watch's own units), open and close the frunk and trunk, honk the
 horn, flash the lights, and refresh. Unlock, climate, frunk, trunk and horn ask for a confirm tap; lock and lights
-do not.
-Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
+do not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
 Only one car, phone and watch have been tried. If you run it on another setup, please
 [send a test report](https://github.com/doubletwist13/orbit-for-lucid/issues/new?template=test-report.yml), whether it
@@ -30,8 +29,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
 
 ## Using the watch app
 
-- **Glance.** The charge in percent with a small battery icon, then a closed or open padlock for locked or unlocked,
-  then a plug icon: a plug with a slash when unplugged, a plain plug when plugged in but not charging, and a bolt while
+- **Glance.** The charge in percent with a small battery icon, then a closed or open padlock for locked or unlocked
+  (an amber padlock with a `?` when the car's lock state is unknown), then a plug icon: a plug with a slash when unplugged, a plain plug when plugged in but not charging, and a bolt while
   charging. The percent and battery icon take the main screen's charge colours. It shows what the phone last pushed,
   with no age.
 - **Main screen**, from the top down:
@@ -40,26 +39,25 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
     ring, number and icon are green from 50%, yellow from 25%, orange from 10% and red below that.
   - **Temperatures.** Under the number, `21°/14°` is the cabin and the outside air temperature, in the watch's units
     (`--` for one the car did not report, nothing at all if it reported neither).
-  - **State icons**: a closed or open padlock (locked or unlocked), and a plug (slashed when unplugged, a bolt in its
+  - **State icons**: a closed or open padlock (locked or unlocked, or amber with a `?` if unknown), and a plug (slashed when unplugged, a bolt in its
     place while charging), as in the glance. Wavy lines are added only while climate is on.
   - **Bottom line.** How old the car's data is (for example `2m`), or what is in progress ("Unlocking...") or an
     error. The car only reports while awake, so after 30 minutes the whole screen dims and the age turns amber; that is
     normal, not an error.
 - **Stays current.** The phone reads the car every 30 s while it is awake or charging and every 60 s while it
-  sleeps (every 10 s for 2 minutes after the watch asks for anything), and sends the watch a change at most once a
-  minute, or every 5 minutes if nothing changed. It does this even while the app is closed, so the glance and the
-  main screen open on recent data. It does this whether or not the watch is
-  connected at that moment; a send to an absent watch just fails. Android can delay the timer while the phone
-  sleeps. A switch in the phone app turns this off; turning it back on sends the last status at once, which is a
-  quick way to refresh a watch that was out of range or plugged in. If Garmin Connect restarts, the phone reconnects
-  to it by itself after about 30 seconds.
+  sleeps (every 10 s for 2 minutes after the watch asks for anything). It sends the watch a change at most once a
+  minute, and a status every 5 minutes even if nothing changed. This happens while the app is closed and whether or
+  not the watch is connected at that moment (a send to an absent watch just fails), so the glance and the main
+  screen open on recent data. Android can delay the timer while the phone sleeps. A switch in the phone app turns
+  it off; turning it back on sends the last status at once, which is a quick way to refresh a watch that was out of
+  range or plugged in. If Garmin Connect restarts, the phone reconnects to it by itself after about 30 seconds.
 - **Actions.** Tap the screen (or press the select button) for big icons, in two pages: lock, climate, frunk and
   trunk, then horn and lights. Swipe left or right to change page (the dots at the top show which), or use the up and
   down buttons, which carry on to the next page.
 - **Refresh** is a small button under them, on both pages: it asks the car for its state again.
 - **Info** is the small `i` button beside it. It shows when the car last reported and when the phone last sent
-  status to the watch, so you can tell whether the updates are arriving, and the watch app's version at
-  the bottom. The phone app shows the same times, plus when it last asked Lucid.
+  status to the watch, so you can tell whether the updates are arriving, and the watch app's and the phone app's
+  versions at the bottom. The phone app shows the same times, plus when it last asked Lucid, and both versions.
 - **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
   not depend on that state. Unlock then asks you to confirm.
 - **Frunk** and **trunk** show the front or back of the car (an Air or a Gravity, as the car reports), with an F or a
@@ -74,10 +72,10 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   temperature while climate is already on changes it.
 - **Back** is the watch's back button.
 
-**Timings are anecdotes.** In one round of tests on one car, an unlock from a sleeping car took about 13 seconds
-without car wifi and 9-10 seconds with it, and a lock on an awake car took a second or two. That is a single set of
-tests against a single vehicle, and Lucid's cloud is known to vary wildly: expect results that are much faster or much
-slower, and don't read the difference between those two runs as meaningful.
+**Timings are anecdotes.** On one car, an unlock from a sleeping car took about 13 seconds without car wifi and 9-10
+seconds with it (measured before confirmations were checked every 1.5 s), and a later one took about 8 seconds. A
+lock on an awake car takes a second or two. That is a few tests against a single vehicle, and Lucid's cloud is known
+to vary wildly: expect results that are much faster or much slower, and don't read the differences as meaningful.
 
 ## Screenshots
 
@@ -111,7 +109,8 @@ out in the phone screenshot.
 
 - **One vehicle only.** The author owns a single Lucid (a US vehicle) and has not tried an account with more than one.
   The app uses the first vehicle the account returns and has no way to pick another. Multi-vehicle accounts are
-  untested and probably don't work properly; reports and patches are welcome.
+  untested and probably don't work properly; reports and patches are welcome. An account with no vehicle shows
+  "No car found" on the watch.
 - **Lucid's terms.** Orbit has you type your Lucid credentials into software that isn't Lucid's. Section 3 of Lucid's
   Connectivity Services Terms and Conditions tells you not to do anything that might jeopardize the security of your
   password or account, and section 12.3 lets Lucid suspend or cancel accounts at its discretion. Lucid's other terms
@@ -142,10 +141,11 @@ out in the phone screenshot.
   again until you open it by hand, and until then the watch says "No phone link".
 - **Slow and sometimes laggy.** The car takes a while to wake and to report changes. The app polls for confirmation
   for about 105 seconds, then gives up with "no confirmation yet" (the command may still have worked).
-- **Rate limits.** Lucid's gateway throttles frequent status calls. Polling is deliberately gentle, and you may still
-  see a "rate" error if you hammer it.
+- **Rate limits.** Lucid's gateway throttles its vehicle-list call to about 5 a minute. Orbit reads the car's state
+  with a different call that has shown no limit, and backs off if it is ever throttled, but you may still see a "rate"
+  error if you hammer it.
 - **Lucid sees a status request every 30-60 s.** Besides your taps, the phone asks Lucid for status on that timer
-  (see "Stays current"), from your account, whether or not you are using the app. That is the kind of thing Lucid's
+  (every 10 s for 2 minutes after you use the watch; see "Stays current"), from your account, whether or not you are using the app. That is the kind of thing Lucid's
   terms (above) may not welcome; you can turn it off with the switch in the phone app. It does not wake the car.
 - **Little testing of failure cases.** Offline, logged-out, a car on wifi, battery impact over days (including the
   background updates), and surviving reboots are not well tested yet.
@@ -192,8 +192,8 @@ Orbit has no server, no accounts and no analytics. The author receives nothing f
 - **Lucid session:** only a refresh token is kept, encrypted with a key held in the phone's Android Keystore. Android
   backup is disabled, so it is not copied to the cloud or to a new phone. Log out in the app to delete it.
 - **Watch:** stores a cached copy of the last state (charge, lock state, charging, climate and its set point, the
-  inside and outside air temperature, and when the car last reported). No credentials or tokens are ever sent to the
-  watch.
+  inside and outside air temperature, when the car last reported, and the phone app's version). No credentials or
+  tokens are ever sent to the watch.
 - **Watch to phone:** messages travel over Bluetooth through Garmin Connect Mobile, which is covered by Garmin's own
   privacy terms.
 - **Car data:** the phone asks Lucid's cloud for your vehicle's state and sends commands to it. That traffic is between

@@ -18,11 +18,14 @@ class InfoView extends WatchUi.View {
         var h = dc.getHeight();
         dc.setColor(GREEN, Graphics.COLOR_BLACK);
         dc.clear();
-        row(dc, w / 2, h * 0.22, "Car data", s != null ? s["ts"] as Number? : null);
-        row(dc, w / 2, h * 0.55, "Phone update", s != null ? s["pt"] as Number? : null);
-        // which build is on the watch, for matching it to the phone app and to bug reports
+        row(dc, w / 2, h * 0.17, "Car data", s != null ? s["ts"] as Number? : null);
+        row(dc, w / 2, h * 0.46, "Phone update", s != null ? s["pt"] as Number? : null);
+        // which builds are on the watch and the phone, for spotting a mismatch and for bug reports
         dc.setColor(DIM, Graphics.COLOR_BLACK);
-        dc.drawText(w / 2, h * 0.89, Graphics.FONT_XTINY, "Orbit " + WatchUi.loadResource(Rez.Strings.Version),
+        var pv = s != null ? s["pv"] as String? : null;
+        dc.drawText(w / 2, h * 0.80, Graphics.FONT_XTINY, "Orbit " + WatchUi.loadResource(Rez.Strings.Version),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(w / 2, h * 0.89, Graphics.FONT_XTINY, "Phone " + (pv != null ? pv : "--"),
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 

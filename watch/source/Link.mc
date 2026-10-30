@@ -15,7 +15,8 @@ const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlock
 // short on purpose: the main screen shows these inside a round bezel, where about 15 characters fit on every watch
 const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
     "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unsupported" => "Can't do that",
-    "novehicle" => "No car found", "unknown" => "Unknown error", "nolink" => "No phone link"};
+    "novehicle" => "No car found", "badcmd" => "Update phone",
+    "unknown" => "Unknown error", "nolink" => "No phone link"};
 
 // Phone link per docs/protocol.md: caches the last reply, drops replies to superseded requests.
 class Link {
@@ -48,7 +49,8 @@ class Link {
         if (USE_STUB) {
             _timer.start(method(:stubReply), 2000, false);
         } else {
-            var msg = {"v" => 1, "id" => _id, "cmd" => cmd};
+            // wv: this app's version, so the phone app can show it and a mismatch is easy to spot
+            var msg = {"v" => 1, "id" => _id, "cmd" => cmd, "wv" => WatchUi.loadResource(Rez.Strings.Version)};
             if (temp != null) { msg["temp"] = temp; }
             Communications.transmit(msg, null, new LinkListener(self));
             // the phone's first reply (even "pending") arrives within seconds; silence means no service is listening

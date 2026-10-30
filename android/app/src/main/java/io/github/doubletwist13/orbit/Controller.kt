@@ -25,6 +25,8 @@ data class UiState(
     /** When the watch last answered a push, and whether it was delivered; null before the first answer. */
     val pushAtMs: Long? = null,
     val pushOk: Boolean = true,
+    /** The watch app's version, from its last request; null until it has sent one. */
+    val watchVersion: String? = null,
 )
 
 /** A command failed in a way the watch protocol names (see docs/protocol.md error codes). */
@@ -40,6 +42,9 @@ class Controller(context: Context) {
         UiState(loggedIn = store.load() != null, pushOn = prefs.getBoolean("push", true)),
     )
     val state = _state.asStateFlow()
+
+    /** This app's version, sent to the watch so its info screen can show it. */
+    private val version = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: ""
     private var watchJob: Job? = null
     private var pushJob: Job? = null
 
@@ -89,7 +94,7 @@ class Controller(context: Context) {
         pushJob?.cancel()
         pushJob = scope.launch {
             pushLoop(
-                { _state.value.pushOn && _state.value.loggedIn }, ::poll, send, ::logout,
+                { _state.value.pushOn && _state.value.loggedIn }, ::poll, { send(it + ("pv" to version)) }, ::logout,
                 { System.currentTimeMillis() - watchAt < ACTIVE_WINDOW_MS },
             )
         }
@@ -108,11 +113,17 @@ class Controller(context: Context) {
     fun refresh() = run("Refreshing") { fetch() }
 
     /** Handles one watch request; [reply] gets pending updates, then the final reply. Unknown input is ignored. */
-    fun onWatch(req: Map<*, *>, reply: (Map<String, Any>) -> Unit) {
+    fun onWatch(req: Map<*, *>, send: (Map<String, Any>) -> Unit) {
         if ((req["v"] as? Number)?.toInt() != 1) return
         val id = req["id"] as? Number ?: return
         val cmd = req["cmd"] as? String ?: return
-        if (cmd !in WATCH_COMMANDS) return
+        val reply = { m: Map<String, Any> -> send(m + ("pv" to version)) }
+        (req["wv"] as? String)?.let { w -> _state.update { it.copy(watchVersion = w) } }
+        if (cmd !in WATCH_COMMANDS) {
+            // a watch newer than this app: say so, rather than let it wait for a reply that never comes
+            reply(watchError(id, "badcmd"))
+            return
+        }
         watchAt = System.currentTimeMillis()
         // a newer request drops the older one's confirmation polling, not a command already on its way
         watchJob?.cancel()
@@ -124,7 +135,7 @@ class Controller(context: Context) {
                 throw e
             } catch (e: Exception) {
                 if (e is LucidException && e.unauthenticated) logout()
-                reply(mapOf("v" to 1, "id" to id, "ok" to false, "err" to errCode(e)))
+                reply(watchError(id, errCode(e)))
             }
         }
     }
@@ -259,6 +270,9 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
     }
     pending?.let { put("pending", it) }
 }
+
+internal fun watchError(id: Number, code: String): Map<String, Any> =
+    mapOf("v" to 1, "id" to id, "ok" to false, "err" to code)
 
 /** A car that reports no state for a lid cannot confirm the change, so any answer after the send counts as done. */
 internal fun closureDone(reported: Boolean?, wantOpen: Boolean): Boolean = reported == null || reported == wantOpen

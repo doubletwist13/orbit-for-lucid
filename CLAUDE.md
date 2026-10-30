@@ -25,9 +25,10 @@ machine-specific notes go in the gitignored `PLAN.local.md`, never in PLAN.md.
 - Phone makes all Lucid calls; the watch holds no secrets. Watch<->phone messages are defined in `docs/protocol.md`.
 - Store only the refresh token (Keystore-encrypted); `allowBackup=false`. Refresh JWT only when <60 s remain.
 - Gateway resets streams sending HTTP/2 `content-length`: stream the body, strip `Content-Length`/`Accept-Encoding`.
-- Lucid calls are on-demand, plus one status fetch every 5 minutes pushed to the watch whether or not it is
-  connected (a setting turns it off); never poll `GetUserVehicles` faster (about 5 calls a minute), and back off after
-  a rate-limit answer. After a command, poll `GetVehicleState` (no limit seen) every 1.5 s, then every 5 s.
+- Lucid calls are on-demand, plus a background `GetVehicleState` read (60 s asleep, 30 s awake or charging, 10 s for
+  2 minutes after a watch request) whose changes are pushed to the watch whether or not it is connected (a setting
+  turns it off). Never poll `GetUserVehicles` faster (about 5 calls a minute), and back off after a rate-limit
+  answer. After a command, poll `GetVehicleState` (no limit seen) every 1.5 s, then every 5 s.
 - Venu 3 is the primary target (CIQ API 5.2); don't use newer APIs without a fallback.
 
 ## Tooling

@@ -45,8 +45,10 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   - **Bottom line.** How old the car's data is (for example `2m`), or what is in progress ("Unlocking...") or an
     error. The car only reports while awake, so after 30 minutes the whole screen dims and the age turns amber; that is
     normal, not an error.
-- **Stays current.** About every 5 minutes the phone fetches status and sends it to the watch, even while the
-  app is closed, so the glance and the main screen open on recent data. It does this whether or not the watch is
+- **Stays current.** The phone reads the car every 30 s while it is awake or charging and every 60 s while it
+  sleeps (every 10 s for 2 minutes after the watch asks for anything), and sends the watch a change at most once a
+  minute, or every 5 minutes if nothing changed. It does this even while the app is closed, so the glance and the
+  main screen open on recent data. It does this whether or not the watch is
   connected at that moment; a send to an absent watch just fails. Android can delay the timer while the phone
   sleeps. A switch in the phone app turns this off; turning it back on sends the last status at once, which is a
   quick way to refresh a watch that was out of range or plugged in. If Garmin Connect restarts, the phone reconnects
@@ -56,7 +58,7 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   down buttons, which carry on to the next page.
 - **Refresh** is a small button under them, on both pages: it asks the car for its state again.
 - **Info** is the small `i` button beside it. It shows when the car last reported and when the phone last sent
-  status to the watch, so you can tell whether the 5 minute updates are arriving, and the watch app's version at
+  status to the watch, so you can tell whether the updates are arriving, and the watch app's version at
   the bottom. The phone app shows the same times, plus when it last asked Lucid.
 - **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
   not depend on that state. Unlock then asks you to confirm.
@@ -142,11 +144,11 @@ out in the phone screenshot.
   for about 105 seconds, then gives up with "no confirmation yet" (the command may still have worked).
 - **Rate limits.** Lucid's gateway throttles frequent status calls. Polling is deliberately gentle, and you may still
   see a "rate" error if you hammer it.
-- **Lucid sees a status request every 5 minutes.** Besides your taps, the phone asks Lucid for status on that timer
+- **Lucid sees a status request every 30-60 s.** Besides your taps, the phone asks Lucid for status on that timer
   (see "Stays current"), from your account, whether or not you are using the app. That is the kind of thing Lucid's
   terms (above) may not welcome; you can turn it off with the switch in the phone app. It does not wake the car.
 - **Little testing of failure cases.** Offline, logged-out, a car on wifi, battery impact over days (including the
-  5 minute updates), and surviving reboots are not well tested yet.
+  background updates), and surviving reboots are not well tested yet.
 - **The API is unofficial.** It can change or disappear without notice.
 
 ## How it works
@@ -196,8 +198,8 @@ Orbit has no server, no accounts and no analytics. The author receives nothing f
   privacy terms.
 - **Car data:** the phone asks Lucid's cloud for your vehicle's state and sends commands to it. That traffic is between
   your phone and Lucid and is covered by Lucid's terms. Orbit does not log tokens, emails or VINs, and it does not
-  request or use your phone's location or the car's. About every 5 minutes the phone also asks Lucid for status unasked,
-  whether or not your watch is connected, and sends it to the watch; a switch in the app turns that off.
+  request or use your phone's location or the car's. Every 30-60 s the phone also asks Lucid for status unasked,
+  whether or not your watch is connected, and sends changes to the watch; a switch in the app turns that off.
 
 ## Security
 

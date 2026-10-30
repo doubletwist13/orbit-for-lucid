@@ -121,6 +121,6 @@ private fun Status(s: UiState, vm: Controller) {
     }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Switch(s.pushOn, vm::setPush)
-        Text("Update the watch every 5 minutes", color = dim)
+        Text("Keep the watch up to date", color = dim)
     }
 }

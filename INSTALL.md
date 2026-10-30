@@ -74,7 +74,7 @@ cd watch
    glance settings.
 
 Open the app on the watch, give it a moment, and it should show your state of charge. **Open it once after every
-install:** that is when the watch registers to be woken by the phone's 5 minute status updates, and until then the
+install:** that is when the watch registers to be woken by the phone's status updates, and until then the
 glance stays as it was.
 
 ## Other watch models

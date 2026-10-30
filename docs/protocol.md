@@ -62,15 +62,19 @@ Status fields are omitted from an error reply that has no state to show.
 
 ## Pushed status
 
-About every 5 minutes the phone fetches status and sends it to the watch unasked, so the glance and the app open on
-fresh data. Android may delay the timer while the phone sleeps. The phone does not check that a watch is connected
-first: a send to an absent watch only fails, and the status is still fetched. It is a reply with the same status
+The phone reads the car on a timer and sends the watch a status unasked when something the watch shows has changed,
+so the glance and the app open on fresh data. Android may delay the timer while the phone sleeps. The phone does not
+check that a watch is connected first: a send to an absent watch only fails, and the status is still read. It is a
+reply with the same status
 fields and `age`, but `push` is `true` and `id` is `0`; it answers nothing, so the watch skips the request-id check,
 merges it into its saved state and saves it. When the app is closed the same message wakes the app's background
 service (`Background.registerForPhoneAppMessageEvent`), which does the same merge and exits.
 
-- The interval is fixed. After a rate-limit answer from Lucid the phone waits twice as long, up to an hour, and goes
-  back to 5 minutes after the next success. A setting in the phone app turns pushes off.
+- The read interval depends on the car's last state: 60 s asleep, 30 s awake or charging, and 10 s for 2 minutes after
+  the watch last sent a request. A change is pushed at most once a minute (every 10 s in that window); with no change
+  the phone still pushes every 5 minutes. Temperatures count as changed only per whole degree, and `age` is ignored.
+  After a rate-limit answer from Lucid the phone waits twice as long, up to an hour, and goes back to the normal
+  interval after the next success. A setting in the phone app turns pushes off.
 - A push is skipped while logged out, and a failed fetch sends nothing.
 - A push carries no error and no `pending`.
 

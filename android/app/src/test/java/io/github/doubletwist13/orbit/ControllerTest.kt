@@ -73,6 +73,15 @@ class ControllerTest {
         assertEquals(mapOf("v" to 1, "id" to 7, "ok" to false, "err" to "badcmd"), watchError(7, "badcmd"))
     }
 
+    @Test fun onlyClosingAGasStrutFrunkIsRefused() {
+        val gas = status.copy(frunkPowered = false)
+        assertTrue(gasStrutCloseRefused(frunk = true, open = false, s = gas))
+        assertFalse(gasStrutCloseRefused(frunk = true, open = true, s = gas)) // it can still be opened
+        assertFalse(gasStrutCloseRefused(frunk = false, open = false, s = gas)) // the trunk is not the frunk
+        assertFalse(gasStrutCloseRefused(frunk = true, open = false, s = status)) // powered
+        assertFalse(gasStrutCloseRefused(frunk = true, open = false, s = null)) // nothing known yet
+    }
+
     @Test fun lockedIsLeftOutOfTheReplyWhenTheCarDoesNotKnow() {
         assertEquals(true, watchReply(1, status, null)["locked"])
         assertEquals(false, watchReply(1, status.copy(locked = false), null)["locked"])

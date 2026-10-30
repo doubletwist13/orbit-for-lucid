@@ -42,6 +42,9 @@ class Controller(context: Context) {
     val state = _state.asStateFlow()
     private var watchJob: Job? = null
     private var pushJob: Job? = null
+
+    /** When the watch last asked for anything; the push loop reads and pushes faster for a while after it. */
+    @Volatile private var watchAt = 0L
     private var pushSend: ((Map<String, Any>) -> Unit)? = null
 
     fun login(user: String, password: String) = run("Logging in") {
@@ -75,17 +78,20 @@ class Controller(context: Context) {
     }
 
     /**
-     * Every [PUSH_INTERVAL_MS] fetch status and hand it to [send] for the watch, so its glance and app open on fresh
-     * data; [send] reports the delivery through [pushResult]. This is the one place Lucid is called without a
-     * request; it is slow on purpose (the gateway throttled polling every few seconds) and backs off after a
-     * rate-limit answer. It runs whether or not a watch is connected: a connection check here once never passed
+     * Read the car (see [pollInterval]) and hand a changed status to [send] for the watch, so its glance and app open
+     * on fresh data; [send] reports the delivery through [pushResult]. This is the one place Lucid is called without a
+     * request. It reads with GetVehicleState, which showed no rate limit, unlike GetUserVehicles, and backs off after
+     * a rate-limit answer. It runs whether or not a watch is connected: a connection check here once never passed
      * and silently stopped every push, and a send to an absent watch only fails.
      */
     fun startPush(send: (Map<String, Any>) -> Unit) {
         pushSend = send
         pushJob?.cancel()
         pushJob = scope.launch {
-            pushLoop({ _state.value.pushOn && _state.value.loggedIn }, ::fetch, send, ::logout)
+            pushLoop(
+                { _state.value.pushOn && _state.value.loggedIn }, ::poll, send, ::logout,
+                { System.currentTimeMillis() - watchAt < ACTIVE_WINDOW_MS },
+            )
         }
     }
 
@@ -107,6 +113,7 @@ class Controller(context: Context) {
         val id = req["id"] as? Number ?: return
         val cmd = req["cmd"] as? String ?: return
         if (cmd !in WATCH_COMMANDS) return
+        watchAt = System.currentTimeMillis()
         // a newer request drops the older one's confirmation polling, not a command already on its way
         watchJob?.cancel()
         watchJob = scope.launch {
@@ -260,36 +267,86 @@ internal fun closureDone(reported: Boolean?, wantOpen: Boolean): Boolean = repor
 internal const val POLL_COUNT = 35
 internal fun pollDelayMs(i: Int): Long = if (i < 20) 1_500L else 5_000L
 
+/** The longest the watch goes without a push, and the wait when the car's state is not known yet. */
 internal const val PUSH_INTERVAL_MS = 5 * 60_000L
 internal const val PUSH_MAX_MS = 60 * 60_000L
 
-/** The body of [Controller.startPush], apart from the controller so a test can drive it with a fake [fetch]. */
+// How often to read the car, by its last state. A sleeping car's cloud copy is frozen, so it is read slowly.
+// shortcut: untested values, to be tuned by a battery run (#47).
+internal const val POLL_ASLEEP_MS = 60_000L
+internal const val POLL_AWAKE_MS = 30_000L
+internal const val POLL_CHARGING_MS = 30_000L
+// After the watch asks for anything, read faster and let a change reach it sooner for a while.
+internal const val POLL_ACTIVE_MS = 10_000L
+internal const val ACTIVE_WINDOW_MS = 2 * 60_000L
+// The fewest ms between pushes of a change, so the watch's background handler is not woken constantly.
+internal const val PUSH_MIN_GAP_MS = 60_000L
+internal const val PUSH_ACTIVE_GAP_MS = 10_000L
+
+/** How long to wait before reading the car again, from what the last read showed. */
+internal fun pollInterval(s: VehicleStatus, watchActive: Boolean): Long {
+    val byState = when {
+        !s.awake -> POLL_ASLEEP_MS
+        s.chargeState == "CHARGING" -> POLL_CHARGING_MS
+        else -> POLL_AWAKE_MS
+    }
+    return if (watchActive) minOf(byState, POLL_ACTIVE_MS) else byState
+}
+
+/**
+ * What the watch would show, to tell whether a push has anything new. The car's report age is left out (it changes on
+ * every read) and temperatures are rounded to a whole degree, or they would differ on almost every read.
+ */
+internal fun watchView(s: VehicleStatus): Map<String, Any> {
+    val view = watchReply(0, s, null) - setOf("v", "id", "ok", "age")
+    return view.mapValues { (k, v) -> if ((k == "tin" || k == "tout") && v is Double) Math.round(v) else v }
+}
+
+/**
+ * The body of [Controller.startPush], apart from the controller so a test can drive it with a fake [fetch]. Reads the
+ * car at [pollInterval] and pushes when what the watch shows has changed (at most once per [PUSH_MIN_GAP_MS], or
+ * [PUSH_ACTIVE_GAP_MS] while [watchActive]), and at least every [PUSH_INTERVAL_MS] so the watch knows the link is up.
+ */
 internal suspend fun pushLoop(
     active: () -> Boolean,
     fetch: suspend () -> VehicleStatus,
     send: (Map<String, Any>) -> Unit,
     onUnauthenticated: () -> Unit,
+    watchActive: () -> Boolean = { false },
 ) {
     var wait = PUSH_INTERVAL_MS
+    var normal = PUSH_INTERVAL_MS
+    var lastSent: Map<String, Any>? = null
+    var sinceSend = 0L
     while (true) {
         if (active()) {
             wait = try {
-                send(pushReply(fetch()))
-                PUSH_INTERVAL_MS
+                val s = fetch()
+                val view = watchView(s)
+                val fast = watchActive()
+                val gap = if (fast) PUSH_ACTIVE_GAP_MS else PUSH_MIN_GAP_MS
+                if (lastSent == null || sinceSend >= PUSH_INTERVAL_MS || (view != lastSent && sinceSend >= gap)) {
+                    send(pushReply(s))
+                    lastSent = view
+                    sinceSend = 0
+                }
+                normal = pollInterval(s, fast)
+                normal
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 if (e is LucidException && e.unauthenticated) onUnauthenticated()
-                nextPushDelay(wait, e is LucidException && e.grpcStatus == 8)
+                nextPushDelay(wait, e is LucidException && e.grpcStatus == 8, normal)
             }
         }
         delay(wait)
+        sinceSend += wait
     }
 }
 
-/** After a rate-limit answer wait twice as long (up to an hour); after any other failure, the normal interval. */
-internal fun nextPushDelay(current: Long, rateLimited: Boolean): Long =
-    if (rateLimited) (current * 2).coerceAtMost(PUSH_MAX_MS) else PUSH_INTERVAL_MS
+/** After a rate-limit answer wait twice as long (up to an hour); after any other failure, the [normal] interval. */
+internal fun nextPushDelay(current: Long, rateLimited: Boolean, normal: Long = PUSH_INTERVAL_MS): Long =
+    if (rateLimited) (current * 2).coerceAtMost(PUSH_MAX_MS) else normal
 
 /** A status the phone sends unasked: the same fields as a reply, flagged `push` instead of answering a request id. */
 internal fun pushReply(s: VehicleStatus): Map<String, Any> = watchReply(0, s, null) + ("push" to true)

@@ -10,7 +10,7 @@ import android.os.IBinder
 
 /**
  * Keeps the Connect IQ SDK registered so watch messages reach a backgrounded app. Makes no Lucid calls itself; the
- * 5 minute status push runs in [Controller.startPush] while this keeps the process alive.
+ * background status push runs in [Controller.startPush] while this keeps the process alive.
  */
 class BridgeService : Service() {
     override fun onCreate() {

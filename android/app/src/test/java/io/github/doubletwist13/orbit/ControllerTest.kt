@@ -132,6 +132,52 @@ class ControllerTest {
         assertEquals(2, sent.size)
     }
 
+    @Test fun readIntervalFollowsTheCarStateAndSpeedsUpWhileTheWatchIsActive() {
+        assertEquals(POLL_ASLEEP_MS, pollInterval(status.copy(awake = false), false))
+        assertEquals(POLL_AWAKE_MS, pollInterval(status, false))
+        assertEquals(POLL_CHARGING_MS, pollInterval(status.copy(chargeState = "CHARGING"), false))
+        assertEquals(POLL_ACTIVE_MS, pollInterval(status.copy(awake = false), true))
+    }
+
+    @Test fun watchViewIgnoresReportAgeAndRoundsTemperatures() {
+        val a = status.copy(insideC = 21.2, outsideC = 10.1)
+        assertEquals(watchView(a), watchView(a.copy(insideC = 21.4, updatedMs = a.updatedMs + 30_000)))
+        assertTrue(watchView(a) != watchView(a.copy(insideC = 22.0)))
+        assertTrue(watchView(a) != watchView(a.copy(locked = false)))
+    }
+
+    @Test fun pushLoopPushesAChangeOnlyAfterTheMinimumGapAndOtherwiseOnTheHeartbeat() = runTest {
+        var current = status
+        val sent = mutableListOf<Map<String, Any>>()
+        backgroundScope.launch { pushLoop({ true }, { current }, { sent += it }, {}) }
+        runCurrent()
+        assertEquals(1, sent.size)
+        current = status.copy(locked = false) // changed 10 s in, but the last push was too recent
+        advanceTimeBy(POLL_AWAKE_MS)
+        runCurrent()
+        assertEquals(1, sent.size)
+        advanceTimeBy(PUSH_MIN_GAP_MS - POLL_AWAKE_MS) // 60 s since the push
+        runCurrent()
+        assertEquals(2, sent.size)
+        advanceTimeBy(PUSH_INTERVAL_MS - 1) // nothing new: quiet until the heartbeat
+        runCurrent()
+        assertEquals(2, sent.size)
+        advanceTimeBy(1)
+        runCurrent()
+        assertEquals(3, sent.size)
+    }
+
+    @Test fun pushLoopPushesSoonerWhileTheWatchIsActive() = runTest {
+        var current = status
+        val sent = mutableListOf<Map<String, Any>>()
+        backgroundScope.launch { pushLoop({ true }, { current }, { sent += it }, {}, { true }) }
+        runCurrent()
+        current = status.copy(locked = false)
+        advanceTimeBy(POLL_ACTIVE_MS)
+        runCurrent()
+        assertEquals(2, sent.size)
+    }
+
     @Test fun pushLoopSkipsTheFetchWhileSwitchedOffOrLoggedOut() = runTest {
         var active = false
         var fetches = 0

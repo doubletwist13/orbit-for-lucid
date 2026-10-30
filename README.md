@@ -1,7 +1,7 @@
 # Orbit for Lucid
 
 Control the core functions of a Lucid vehicle (status/SOC, lock, unlock, precondition) from a Garmin watch, through an
-Android companion app.
+Android companion app. **It needs an Android phone: there is no iPhone version.**
 
 > **Unofficial.** Not affiliated with, endorsed by, or sponsored by Lucid Motors or Garmin. It uses an
 > undocumented, reverse-engineered API that may change or be withdrawn at any time, and using it may conflict with
@@ -15,6 +15,10 @@ or stop climate at a temperature you pick (in the watch's own units), open and c
 horn, flash the lights, and refresh. Unlock, climate, frunk, trunk and horn ask for a confirm tap; lock and lights
 do not.
 Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
+
+Only one car, phone and watch have been tried. If you run it on another setup, please
+[send a test report](https://github.com/doubletwist13/orbit-for-lucid/issues/new?template=test-report.yml), whether it
+works or not.
 
 | Watch | Status |
 |---|---|

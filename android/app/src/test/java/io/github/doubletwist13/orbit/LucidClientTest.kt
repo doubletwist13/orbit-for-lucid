@@ -7,6 +7,7 @@ import mobilegateway.protos.LoginSessionOuterClass.LoginResponse
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
 import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
+import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateResponse
 import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
@@ -89,6 +90,31 @@ class LucidClientTest {
         }.status("rt")
         assertEquals("v1", status.vehicleId)
         assertEquals(listOf("GetNewJWTToken", "GetUserVehicles", "GetUserVehicles"), seen)
+    }
+
+    @Test
+    fun stateReadsGetVehicleStateAndKeepsTheListedConfig() = runTest {
+        val listed = GetUserVehiclesResponse.newBuilder().addUserVehicleData(
+            Vehicle.newBuilder().setVehicleId("v1")
+                .setConfig(VehicleConfig.newBuilder().setNickname("nick").setModel(Model.MODEL_AIR)),
+        ).build().toByteArray()
+        val newer = GetVehicleStateResponse.newBuilder().setVehicleId("v1").setState(
+            VehicleState.newBuilder().setBody(BodyState.newBuilder().setFrontCargo(DoorState.DOOR_STATE_OPEN)),
+        ).build().toByteArray()
+        val seen = mutableListOf<String>()
+        val client = scripted(seen) { method, _ ->
+            0 to when (method) {
+                "GetNewJWTToken" -> session(2000).toByteArray()
+                "GetUserVehicles" -> listed
+                else -> newer
+            }
+        }
+        assertEquals(null, client.state("rt").frunkOpen) // nothing listed yet: falls back to the vehicle list
+        val s = client.state("rt")
+        assertEquals(true, s.frunkOpen)
+        assertEquals("AIR", s.model) // the config is not in a GetVehicleState reply
+        assertEquals("nick", s.nickname)
+        assertEquals(listOf("GetNewJWTToken", "GetUserVehicles", "GetVehicleState"), seen)
     }
 
     @Test

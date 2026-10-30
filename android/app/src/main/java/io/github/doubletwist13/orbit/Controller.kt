@@ -192,12 +192,14 @@ class Controller(context: Context) {
         return if (done == null) sent else pollUntil(done) ?: throw CommandFailed("timeout", "No confirmation yet")
     }
 
-    // shortcut: 3 quick 5 s polls, then 10 s (about 105 s); GetUserVehicles hit the gateway's rate limit (status 8)
-    // when polled steadily at 4-6 s, so only the first seconds are fast. Tune once more latencies are measured.
+    /** The cheap read for polling after a command: GetVehicleState showed no rate limit (see docs/research). */
+    private suspend fun poll(): VehicleStatus =
+        client.state(token()).also { s -> _state.update { it.copy(status = s) } }
+
     private suspend fun pollUntil(done: (VehicleStatus) -> Boolean): VehicleStatus? {
-        repeat(12) { i ->
-            delay(if (i < 3) 5_000 else 10_000)
-            fetch().let { if (done(it)) return it }
+        repeat(POLL_COUNT) { i ->
+            delay(pollDelayMs(i))
+            poll().let { if (done(it)) return it }
         }
         return null
     }
@@ -253,6 +255,10 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
 
 /** A car that reports no state for a lid cannot confirm the change, so any answer after the send counts as done. */
 internal fun closureDone(reported: Boolean?, wantOpen: Boolean): Boolean = reported == null || reported == wantOpen
+
+// The car lags a command by 10-40 s, so poll fast for the first 30 s, then slowly to about 105 s in all.
+internal const val POLL_COUNT = 35
+internal fun pollDelayMs(i: Int): Long = if (i < 20) 1_500L else 5_000L
 
 internal const val PUSH_INTERVAL_MS = 5 * 60_000L
 internal const val PUSH_MAX_MS = 60 * 60_000L

@@ -63,6 +63,12 @@ class ControllerTest {
         assertEquals("AIR", watchReply(1, status.copy(model = "AIR"), null)["model"])
     }
 
+    @Test fun commandPollingIsFastAtFirstAndEndsAtAboutOneHundredFiveSeconds() {
+        assertEquals(1_500L, pollDelayMs(0))
+        assertEquals(5_000L, pollDelayMs(POLL_COUNT - 1))
+        assertEquals(105_000L, (0 until POLL_COUNT).sumOf { pollDelayMs(it) })
+    }
+
     @Test fun lidChangeIsDoneWhenReportedOrWhenNothingIsReported() {
         assertTrue(closureDone(true, true))
         assertFalse(closureDone(false, true)) // still closed: keep waiting

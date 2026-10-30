@@ -88,6 +88,7 @@ service (`Background.registerForPhoneAppMessageEvent`), which does the same merg
 | `timeout` | Command accepted but the car did not confirm within about 105 s | Not confirmed |
 | `wake` | Car did not wake | Car didn't wake |
 | `unsupported` | `frunk_close` on a car whose frunk has a gas strut | Can't do that |
+| `novehicle` | The Lucid account lists no vehicle | No car found |
 | `unknown` | Anything else | Unknown error |
 
 The phone never puts raw exception text in `err`. The watch itself shows "No phone link" when the phone does not

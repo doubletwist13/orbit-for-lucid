@@ -379,6 +379,7 @@ private const val TEMP_TOLERANCE_C = 0.5
 
 internal fun errCode(e: Exception): String = when {
     e is CommandFailed -> e.code
+    e is NoVehicleException -> "novehicle"
     e is LucidException -> when (e.grpcStatus) {
         16 -> "auth"
         8 -> "rate"

@@ -13,6 +13,9 @@ Tested 2026-10-24 against one real account (MFA enabled) and one vehicle (Lucid 
   in quick succession returned an equivalent session. Refresh only when under ~60-90 s remain.
 - Refresh token lifetime on the server: unknown. Re-test after days/weeks. Handle `UNAUTHENTICATED` by asking the user
   to log in again.
+- Rotation: `python-lucidmotors` documents that the refresh token does not rotate (a refresh returns the same one), so
+  Orbit keeps the token it was given and does not store the one in a refresh reply. This is the library's finding, not
+  ours; if a logged-out phone ever follows a long quiet spell, check it first.
 
 ## Status (read)
 

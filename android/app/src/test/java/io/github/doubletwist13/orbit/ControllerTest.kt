@@ -119,6 +119,7 @@ class ControllerTest {
         assertEquals("auth", errCode(LucidException(16, "x")))
         assertEquals("rate", errCode(LucidException(8, "x")))
         assertEquals("unknown", errCode(LucidException(2, "x")))
+        assertEquals("novehicle", errCode(NoVehicleException()))
         assertEquals("offline", errCode(IOException("no route")))
         assertEquals("timeout", errCode(CommandFailed("timeout", "x")))
         assertEquals("unknown", errCode(IllegalStateException("raw text must not leak")))

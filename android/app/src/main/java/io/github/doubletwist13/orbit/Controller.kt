@@ -164,7 +164,7 @@ class Controller(context: Context) {
     private suspend fun closure(name: String, open: Boolean, progress: (String) -> Unit): VehicleStatus {
         val frunk = name == "frunk"
         // the watch never offers this; the check is for a request that skips the watch's menu
-        if (frunk && !open && _state.value.status?.frunkPowered == false) {
+        if (gasStrutCloseRefused(frunk, open, _state.value.status)) {
             throw CommandFailed("unsupported", "Gas strut frunk cannot be closed")
         }
         return command(
@@ -273,6 +273,10 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
 
 internal fun watchError(id: Number, code: String): Map<String, Any> =
     mapOf("v" to 1, "id" to id, "ok" to false, "err" to code)
+
+/** A gas-strut frunk can be unlatched but not closed by the car; an unknown status or strut is given the benefit. */
+internal fun gasStrutCloseRefused(frunk: Boolean, open: Boolean, s: VehicleStatus?): Boolean =
+    frunk && !open && s?.frunkPowered == false
 
 /** A car that reports no state for a lid cannot confirm the change, so any answer after the send counts as done. */
 internal fun closureDone(reported: Boolean?, wantOpen: Boolean): Boolean = reported == null || reported == wantOpen

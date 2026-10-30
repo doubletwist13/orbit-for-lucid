@@ -14,6 +14,7 @@ message whose `v` it does not know.
 | `id` | int | Request id chosen by the watch; echoed in every reply so stale replies can be dropped |
 | `cmd` | string | One of the commands below |
 | `temp` | number | `climate_on` only, optional: cabin set point in Celsius (see below) |
+| `wv` | string | Optional: the watch app's version, e.g. `0.3.0`, shown on the phone app's status screen |
 
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
   `trunk_close`, `horn`, `flash`.
@@ -52,6 +53,7 @@ for an `id` has `pending` absent or empty.
 | `tin`, `tout` | number | Cabin and outside air temperature in Celsius; each omitted if unreported or outside -50..70 |
 | `awake` | bool | Car awake |
 | `age` | int | Seconds since the car last reported (from `last_updated_ms`) |
+| `pv` | string | The phone app's version, in every reply and push, shown on the watch's info screen |
 | `pending` | string | Short label while a command is in progress, e.g. `Waking`, `Unlocking`; absent when done |
 | `err` | string | Error code, see below |
 
@@ -89,6 +91,7 @@ service (`Background.registerForPhoneAppMessageEvent`), which does the same merg
 | `wake` | Car did not wake | Car didn't wake |
 | `unsupported` | `frunk_close` on a car whose frunk has a gas strut | Can't do that |
 | `novehicle` | The Lucid account lists no vehicle | No car found |
+| `badcmd` | The phone does not know the `cmd`: it is older than the watch app | Update phone |
 | `unknown` | Anything else | Unknown error |
 
 The phone never puts raw exception text in `err`. The watch itself shows "No phone link" when the phone does not

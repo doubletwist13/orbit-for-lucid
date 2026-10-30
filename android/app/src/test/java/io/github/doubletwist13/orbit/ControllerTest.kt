@@ -69,6 +69,10 @@ class ControllerTest {
         assertEquals(105_000L, (0 until POLL_COUNT).sumOf { pollDelayMs(it) })
     }
 
+    @Test fun anErrorReplyKeepsTheRequestIdSoTheWatchAcceptsIt() {
+        assertEquals(mapOf("v" to 1, "id" to 7, "ok" to false, "err" to "badcmd"), watchError(7, "badcmd"))
+    }
+
     @Test fun lockedIsLeftOutOfTheReplyWhenTheCarDoesNotKnow() {
         assertEquals(true, watchReply(1, status, null)["locked"])
         assertEquals(false, watchReply(1, status.copy(locked = false), null)["locked"])

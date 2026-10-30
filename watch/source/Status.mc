@@ -30,6 +30,8 @@ module Status {
         st["ts"] = now - (d["age"] != null ? d["age"] as Number : 0);
         // when the phone last told us anything, shown on the info screen; "ts" only says when the car last reported
         st["pt"] = now;
+        // the phone app's version, shown on the info screen; kept only while the phone keeps sending it
+        if (d["pv"] != null) { st["pv"] = d["pv"]; } else { st.remove("pv"); }
         return st;
     }
 }

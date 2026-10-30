@@ -1,0 +1,57 @@
+name: Test report
+description: Tell us how Orbit works on your car, phone and watch, whether it works or not.
+labels: ["test-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Orbit has been tried on one car, phone and watch, so every report helps. Please do **not** paste a VIN, an
+        email address, a token or a raw API response; anything private belongs outside a public issue.
+  - type: input
+    id: car
+    attributes:
+      label: Car
+      description: Model, trim and software version (for example Air Touring, 2.x.x).
+    validations:
+      required: true
+  - type: input
+    id: watch
+    attributes:
+      label: Watch
+      description: Model and firmware version.
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone
+      description: Model and Android version.
+    validations:
+      required: true
+  - type: input
+    id: orbit
+    attributes:
+      label: Orbit version
+      description: Shown on the watch info screen and in the phone's app list.
+    validations:
+      required: true
+  - type: checkboxes
+    id: tried
+    attributes:
+      label: What did you try?
+      options:
+        - label: Status (charge, lock, temperatures)
+        - label: Lock / unlock
+        - label: Climate on / off and set point
+        - label: Frunk
+        - label: Trunk
+        - label: Horn
+        - label: Lights
+        - label: The 5 minute background update
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened?
+      description: What worked, what did not, and any message the watch showed.
+    validations:
+      required: true

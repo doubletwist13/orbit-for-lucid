@@ -16,7 +16,7 @@ const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlock
 const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
     "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unsupported" => "Can't do that",
     "novehicle" => "No car found", "badcmd" => "Update phone",
-    "unknown" => "Unknown error", "nolink" => "No phone link"};
+    "unknown" => "Try again later", "nolink" => "No phone link"};
 
 // Phone link per docs/protocol.md: caches the last reply, drops replies to superseded requests.
 class Link {

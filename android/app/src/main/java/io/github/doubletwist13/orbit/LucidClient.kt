@@ -275,7 +275,9 @@ internal fun Vehicle.toStatus() = VehicleStatus(
         LockState.LOCK_STATE_UNLOCKED -> false
         else -> null
     },
-    awake = state.power != PowerState.POWER_STATE_SLEEP,
+    // sleep-charge (6) is awake: a plugged-in car reports live (docs/research/vehicle-state-findings.md). Sleep-update
+    // (8) is asleep by the WearOS app's finding, not yet measured here; an unknown state counts as awake.
+    awake = state.power != PowerState.POWER_STATE_SLEEP && state.power != PowerState.POWER_STATE_SLEEP_UPDATE,
     chargeState = state.charging.chargeState.name.removePrefix("CHARGE_STATE_"),
     hvacOn = state.hvac.power != HvacPower.HVAC_OFF,
     setTempC = state.hvac.frontLeftSetTemperature,

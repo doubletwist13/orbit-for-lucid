@@ -92,7 +92,7 @@ the app's background service (`Background.registerForPhoneAppMessageEvent`), whi
 | `unsupported` | `frunk_close` on a car whose frunk has a gas strut | Can't do that |
 | `novehicle` | The Lucid account lists no vehicle | No car found |
 | `badcmd` | The phone does not know the `cmd`: it is older than the watch app | Update phone |
-| `unknown` | Anything else | Unknown error |
+| `unknown` | Anything else | Try again later |
 
 The phone never puts raw exception text in `err`. The watch itself shows "No phone link" when the phone does not
 answer at all; that is not an `err` code.

@@ -10,6 +10,7 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
 import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateResponse
 import mobilegateway.protos.VehicleStateServiceOuterClass.LockState
 import mobilegateway.protos.VehicleStateServiceOuterClass.Model
+import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
 import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
 import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleConfig
@@ -87,6 +88,18 @@ class LucidClientTest {
         assertEquals(true, locked(LockState.LOCK_STATE_LOCKED))
         assertEquals(false, locked(LockState.LOCK_STATE_UNLOCKED))
         assertEquals(null, locked(LockState.LOCK_STATE_UNKNOWN))
+    }
+
+    @Test
+    fun onlySleepAndSleepUpdateCountAsAsleep() {
+        fun awake(p: Int) = Vehicle.newBuilder().setVehicleId("v1")
+            .setState(VehicleState.newBuilder().setPowerValue(p)).build().toStatus().awake
+        fun awake(p: PowerState) = awake(p.number)
+        assertEquals(false, awake(PowerState.POWER_STATE_SLEEP))
+        assertEquals(false, awake(PowerState.POWER_STATE_SLEEP_UPDATE))
+        assertEquals(true, awake(PowerState.POWER_STATE_SLEEP_CHARGE)) // a plugged-in car reports live
+        assertEquals(true, awake(PowerState.POWER_STATE_DRIVE))
+        assertEquals(true, awake(99)) // a state this build does not know (the WearOS app saw 12 and 13)
     }
 
     @Test

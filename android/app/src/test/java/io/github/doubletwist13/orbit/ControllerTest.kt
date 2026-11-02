@@ -138,6 +138,11 @@ class ControllerTest {
         assertEquals("unknown", errCode(IllegalStateException("raw text must not leak")))
     }
 
+    @Test fun phoneErrorsSayWhatToTry() {
+        assertTrue(withHint(LucidException(8, "Rate limited")).contains("wait a minute"))
+        assertTrue(withHint(LucidException(13, "Internal")).contains("Try again later"))
+    }
+
     @Test fun pushLoopFetchesAndSendsNowThenEveryInterval() = runTest {
         val sent = mutableListOf<Map<String, Any>>()
         backgroundScope.launch { pushLoop({ true }, { status }, { sent += it }, {}) }

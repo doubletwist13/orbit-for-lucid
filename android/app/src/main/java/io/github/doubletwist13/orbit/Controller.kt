@@ -231,7 +231,7 @@ class Controller(context: Context) {
             try {
                 block()
             } catch (e: LucidException) {
-                if (e.unauthenticated) logout() else _state.update { it.copy(message = e.message) }
+                if (e.unauthenticated) logout() else _state.update { it.copy(message = withHint(e)) }
             } catch (e: Exception) {
                 _state.update { it.copy(message = e.message ?: e.javaClass.simpleName) }
             } finally {
@@ -396,6 +396,12 @@ internal fun climateDone(s: VehicleStatus, on: Boolean, tempC: Double): Boolean 
 
 // the car reads back within about 0.2 C of what was sent (measured in 0.5 F steps), so this is loose enough
 private const val TEMP_TOLERANCE_C = 0.5
+
+/** Lucid's answer plus what to try; the API is unofficial, so an unrecognised failure may mean it has changed. */
+internal fun withHint(e: LucidException): String = when (e.grpcStatus) {
+    8 -> "${e.message}. Lucid is limiting requests: wait a minute and try again."
+    else -> "${e.message}. Try again later; if it keeps failing, Lucid may have changed its service."
+}
 
 internal fun errCode(e: Exception): String = when {
     e is CommandFailed -> e.code

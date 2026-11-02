@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.doubletwist13.orbit"
         minSdk = 29
         targetSdk = 37
-        versionCode = 6
-        versionName = "0.3.0"
+        versionCode = 7
+        versionName = "0.4.0"
     }
 
     buildTypes {

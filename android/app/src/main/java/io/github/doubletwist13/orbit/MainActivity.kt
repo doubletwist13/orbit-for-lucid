@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
                 BackHandler(details) { details = false }
                 Surface(Modifier.fillMaxSize()) {
                     if (details && raw != null) {
-                        Details(raw, s.trips, vm::resetTrip) { details = false }
+                        Details(raw, s.trips) { details = false }
                     } else {
                         Column(
                             Modifier.safeDrawingPadding().padding(24.dp),
@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
 /** Everything the car last reported, grouped by topic (see [vehicleDetails]); the system back button returns. */
 @Composable
 private fun Details(
-    vehicle: Vehicle, trips: List<Pair<String, String>>, onResetTrip: (String) -> Unit, onClose: () -> Unit,
+    vehicle: Vehicle, trips: List<Pair<String, String>>, onClose: () -> Unit,
 ) {
     val dim = MaterialTheme.colorScheme.onSurfaceVariant
     Column(
@@ -120,10 +120,6 @@ private fun Details(
                     Text(value, modifier = Modifier.weight(0.6f), style = MaterialTheme.typography.bodyMedium)
                 }
             }
-        }
-        Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton({ onResetTrip("A") }) { Text("Reset trip A") }
-            OutlinedButton({ onResetTrip("B") }) { Text("Reset trip B") }
         }
         Spacer(Modifier.height(24.dp))
     }

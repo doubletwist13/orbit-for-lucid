@@ -166,23 +166,11 @@ class Controller(context: Context) {
         val samples = energy.samples()
         if (samples.isEmpty()) return emptyList()
         val date = java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT)
-        fun trip(name: String): Pair<String, String> {
-            val from = prefs.getLong("trip$name", 0L)
-            val since = if (from > 0) "since ${date.format(from)}" else "since the log began"
-            return "Trip $name ($since)" to efficiencySince(samples, from).text()
-        }
         return listOf(
             "Since last charge" to efficiencySince(samples, lastChargeEndMs(samples)).text(),
             "Last 30 mi" to efficiencyOverLast(samples, 30 / Efficiency.KM_TO_MI).text(),
-            trip("A"), trip("B"),
             "All logged (${date.format(samples.first().timeMs)} on)" to efficiencySince(samples, 0).text(),
         )
-    }
-
-    /** Starts trip [name] ("A" or "B") from now. */
-    fun resetTrip(name: String) {
-        prefs.edit().putLong("trip$name", System.currentTimeMillis()).apply()
-        _state.update { it.copy(trips = tripRows()) }
     }
 
     private suspend fun execute(cmd: String, tempC: Double, progress: (String) -> Unit): VehicleStatus = when (cmd) {

@@ -17,14 +17,18 @@ message whose `v` it does not know.
 | `wv` | string | Optional: the watch app's version, e.g. `0.3.0`, shown on the phone app's status screen |
 
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
-  `trunk_close`, `horn`, `flash`.
+  `trunk_close`, `horn`, `flash`, `windows_close`.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
 - The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn` or any frunk
-  or trunk command. The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without one.
+  or trunk command. The phone does not repeat the confirmation. `lock`, `flash`, `windows_close` and `status` are sent
+  without one.
 - `horn` and `flash` (flash the lights) have no state to read back: Lucid's answer to both is an empty message, and
   nothing in the car's state is known to report them. The phone wakes the car if needed, sends, and answers `ok` at
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
-  "Sending", never "Honking". The frunk and trunk commands wait for the car to report the lid open or closed, like
+  "Sending", never "Honking". `windows_close` closes all four windows and waits for the car to report them closed (each
+  one fully closed or at its upper stop, or the "all windows" value); a car that reports no window state answers after
+  the next status fetch. The API's other window choices (vent, open all) are not offered. The frunk and trunk commands
+  wait for the car to report the lid open or closed, like
   `lock`; a car that reports no state for a lid answers after the next status fetch.
 - `temp` is clamped to 15..30 by the phone and defaults to 21 when missing or not a number. It is also sent while
   climate is already on, to change the set point.

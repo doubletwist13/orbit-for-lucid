@@ -15,6 +15,9 @@ import mobilegateway.protos.LoginSessionOuterClass.LoginResponse
 import mobilegateway.protos.LoginSessionOuterClass.NotificationChannelType
 import mobilegateway.protos.LoginSessionOuterClass.Os
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
+import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowControlRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowPosition
+import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorLocksControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
 import mobilegateway.protos.VehicleStateServiceOuterClass.FrontCargoControlRequest
@@ -34,6 +37,8 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.UnattendedOccupantDete
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
 import mobilegateway.protos.VehicleStateServiceOuterClass.WakeupVehicleRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.WarningState
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowPositionStatus
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowSwitchState
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -89,6 +94,8 @@ data class VehicleStatus(
     val energyKwh: Double? = null,
     /** The car's battery health level, in whatever scale the car uses (not yet known); null when not reported. */
     val healthLevel: Double? = null,
+    /** All four windows closed; null when the car reports no window state, so a close cannot be confirmed. */
+    val windowsClosed: Boolean? = null,
     /** The car's unattended-occupant detection is in any warning stage: someone, or a pet, may be left inside. */
     val occupantAlert: Boolean = false,
     /** Everything the car last reported, for the details screen; not sent to the watch. */
@@ -221,6 +228,13 @@ class LucidClient(
         LightsControlRequest.newBuilder().setVehicleId(vehicleId).setAction(LightAction.LIGHT_ACTION_FLASH).build(),
     )
 
+    /** Closes all four windows. Only closing is offered: the API's other choices (vent, open all) are left out. */
+    suspend fun closeWindows(refreshToken: String, vehicleId: String) = command(
+        refreshToken, "AllWindowControl",
+        AllWindowControlRequest.newBuilder().setVehicleId(vehicleId)
+            .setState(WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL).build(),
+    )
+
     private fun doorState(open: Boolean) = if (open) DoorState.DOOR_STATE_OPEN else DoorState.DOOR_STATE_CLOSED
 
     private suspend fun command(refreshToken: String, method: String, req: MessageLite) {
@@ -328,6 +342,7 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     odometerKm = state.chassis.odometerKm.takeIf { state.hasChassis() && it > 0 },
     energyKwh = state.battery.kwhr.takeIf { state.hasBattery() && it > 0 },
     healthLevel = state.battery.batteryHealthLevel.takeIf { state.hasBattery() && it > 0 },
+    windowsClosed = state.body.windowsClosed(),
     occupantAlert = when (state.body.unattendedOccupantDetectionStatus) {
         UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_1,
         UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_2,
@@ -343,6 +358,27 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     },
     updatedMs = state.lastUpdatedMs,
 )
+
+/**
+ * Whether every window is shut, from the four positions, or the car's "all windows" value when it sends no positions.
+ * Any window known to be somewhere else makes it false; null when the car says nothing either way.
+ */
+internal fun BodyState.windowsClosed(): Boolean? {
+    val w = windowPosition
+    val known = listOf(w.leftFront, w.leftRear, w.rightFront, w.rightRear)
+        .filter { it != WindowPositionStatus.WINDOW_POSITION_STATUS_UNKNOWN }
+    if (known.isNotEmpty()) {
+        return known.size == 4 && known.all {
+            it == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED ||
+                it == WindowPositionStatus.WINDOW_POSITION_STATUS_HARD_STOP_UP
+        }
+    }
+    return when (allWindowsPosition) {
+        AllWindowPosition.ALL_WINDOW_POSITION_CLOSED -> true
+        AllWindowPosition.ALL_WINDOW_POSITION_OPEN -> false
+        else -> null
+    }
+}
 
 private fun DoorState.isOpen(): Boolean? = when (this) {
     DoorState.DOOR_STATE_OPEN, DoorState.DOOR_STATE_AJAR -> true

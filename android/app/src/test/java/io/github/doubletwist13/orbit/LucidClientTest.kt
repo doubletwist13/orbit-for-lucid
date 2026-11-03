@@ -5,6 +5,7 @@ import mobilegateway.protos.LoginSessionOuterClass.GetNewJWTTokenResponse
 import mobilegateway.protos.LoginSessionOuterClass.GetUserVehiclesResponse
 import mobilegateway.protos.LoginSessionOuterClass.LoginResponse
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
+import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowPosition
 import mobilegateway.protos.VehicleStateServiceOuterClass.BatteryState
 import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
 import mobilegateway.protos.VehicleStateServiceOuterClass.ChargingState
@@ -20,6 +21,8 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleConfig
 import mobilegateway.protos.VehicleStateServiceOuterClass.UnattendedOccupantDetectionStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleState
 import mobilegateway.protos.VehicleStateServiceOuterClass.WarningState
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowPositionState
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowPositionStatus
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -98,6 +101,28 @@ class LucidClientTest {
         val bare = Vehicle.newBuilder().setVehicleId("v1").build().toStatus()
         assertEquals(false, bare.doorOpen)
         assertEquals(false, bare.tireWarning)
+    }
+
+    @Test
+    fun windowsAreClosedOnlyWhenEveryOneIsReportedShut() {
+        val shut = WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED
+        val open = WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN
+        fun closed(w: WindowPositionState.Builder?, all: AllWindowPosition? = null): Boolean? {
+            val b = BodyState.newBuilder()
+            w?.let { b.setWindowPosition(it) }
+            all?.let { b.setAllWindowsPosition(it) }
+            return b.build().windowsClosed()
+        }
+        fun four(a: WindowPositionStatus, b: WindowPositionStatus) = WindowPositionState.newBuilder()
+            .setLeftFront(a).setRightFront(a).setLeftRear(b).setRightRear(b)
+        assertEquals(true, closed(four(shut, shut)))
+        assertEquals(false, closed(four(shut, open)))
+        // a window that is not reported cannot be called shut
+        assertEquals(false, closed(WindowPositionState.newBuilder().setLeftFront(shut)))
+        // no positions at all: the car's "all windows" value decides, and without it nothing is known
+        assertEquals(true, closed(null, AllWindowPosition.ALL_WINDOW_POSITION_CLOSED))
+        assertEquals(false, closed(null, AllWindowPosition.ALL_WINDOW_POSITION_OPEN))
+        assertEquals(null, closed(null))
     }
 
     @Test

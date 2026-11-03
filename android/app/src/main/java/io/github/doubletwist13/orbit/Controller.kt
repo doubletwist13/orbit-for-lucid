@@ -198,6 +198,10 @@ class Controller(context: Context) {
         // the labels say "Sending", not "Honking". Revisit if mobile_app_request proves to report them.
         "horn" -> command("Sending horn", null, progress) { s -> client.honk(token(), s.vehicleId) }
         "flash" -> command("Sending lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
+        // confirmed by the car's window positions; a car that reports none answers after the next status read
+        "windows_close" -> command("Closing windows", { it.windowsClosed != false }, progress) { s ->
+            client.closeWindows(token(), s.vehicleId)
+        }
         else -> error("unhandled command $cmd")
     }
 
@@ -283,7 +287,7 @@ class Controller(context: Context) {
     private companion object {
         val WATCH_COMMANDS = setOf(
             "status", "lock", "unlock", "climate_on", "climate_off", "frunk_open", "frunk_close", "trunk_open",
-            "trunk_close", "horn", "flash",
+            "trunk_close", "horn", "flash", "windows_close",
         )
     }
 }

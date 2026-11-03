@@ -11,7 +11,7 @@ const USE_STUB = false;
 const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlocking",
     "climate_on" => "Climate on", "climate_off" => "Climate off", "frunk_open" => "Opening frunk",
     "frunk_close" => "Closing frunk", "trunk_open" => "Opening trunk", "trunk_close" => "Closing trunk",
-    "horn" => "Sending horn", "flash" => "Sending lights"};
+    "horn" => "Sending horn", "flash" => "Sending lights", "windows_close" => "Closing windows"};
 // short on purpose: the main screen shows these inside a round bezel, where about 15 characters fit on every watch
 const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
     "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unsupported" => "Can't do that",

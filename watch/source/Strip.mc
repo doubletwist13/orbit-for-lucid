@@ -8,7 +8,7 @@ import Toybox.WatchUi;
 const ABOUT_PAGE = 0;
 const INFO_PAGE = 1;
 const MAIN_PAGE = 2;
-const STRIP_PAGES = 5;
+const STRIP_PAGES = 4;
 
 // The view and delegate for a page of the strip
 function stripView(page as Number) as [WatchUi.View, WatchUi.BehaviorDelegate] {
@@ -19,15 +19,17 @@ function stripView(page as Number) as [WatchUi.View, WatchUi.BehaviorDelegate] {
     } else if (page == MAIN_PAGE) {
         return [new MainView(), new MainDelegate()];
     }
+    // access and the frequent actions: lock in the middle, round it frunk and trunk on top, climate and the windows at
+    // the sides, and the lights and horn below (docs/watch-design.md)
     var s = link().state;
-    var menu = new IconMenu(page == MAIN_PAGE + 1 ? [
+    var menu = new IconMenu([
         {:icon => s != null && s["locked"] == false ? :unlock : :lock, :id => "lock_menu"},
-        {:icon => s != null && s["hvac"] == false ? :hvacoff : :hvac, :id => "climate_menu"},
         {:icon => lidIcon("frunk", s != null && s["frunk"] == true), :id => "frunk_menu"},
-        {:icon => lidIcon("trunk", s != null && s["trunk"] == true), :id => "trunk_menu"}] : [
-        {:icon => :horn, :id => "horn"},
+        {:icon => lidIcon("trunk", s != null && s["trunk"] == true), :id => "trunk_menu"},
+        {:icon => :windows, :id => "windows_close"},
         {:icon => :lights, :id => "flash"},
-        {:icon => :refresh, :id => "status", :small => true}]);
+        {:icon => :horn, :id => "horn"},
+        {:icon => s != null && s["hvac"] == false ? :hvacoff : :hvac, :id => "climate_menu"}]);
     // set before the delegate is made, which reads it
     menu.stripIndex = page;
     return [menu, new ActionsDelegate(menu)];

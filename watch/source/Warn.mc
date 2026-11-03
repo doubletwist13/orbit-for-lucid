@@ -19,6 +19,15 @@ module Warn {
         dc.drawCircle(Icons.px(x, 18.0, u), Icons.px(y, 18.6, u), (3.2 * u).toNumber());
     }
 
+    // a door window with an arrow up: close all the windows
+    function windows(dc as Dc, x as Number, y as Number, size as Number) as Void {
+        var u = size / 24.0;
+        dc.setPenWidth(size / 16 < 2 ? 2 : size / 16);
+        Icons.poly(dc, x, y, u, [3.0, 20.0, 3.0, 11.0, 9.0, 4.0, 21.0, 4.0, 21.0, 20.0, 3.0, 20.0] as Array<Float>);
+        Icons.poly(dc, x, y, u, [8.5, 14.0, 13.0, 9.5, 17.5, 14.0] as Array<Float>);
+        Icons.line(dc, x, y, u, 13.0, 10.0, 13.0, 18.0);
+    }
+
     // a person with an exclamation mark beside them: something may be left inside the car
     function occupant(dc as Dc, x as Number, y as Number, size as Number) as Void {
         var u = size / 24.0;

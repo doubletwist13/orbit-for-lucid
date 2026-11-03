@@ -6,12 +6,14 @@ import Toybox.WatchUi;
 // A screen of big round icon choices. Touch: tap one. Buttons: select picks the highlighted one; up/down moves the
 // highlight on a choice screen, but on a strip page (stripIndex set) they change page, so only a touch screen can
 // reach every icon there.
-// Two big items sit side by side, three form a triangle and four a grid. Items marked :small are small buttons in a
-// row under them. Any other count would need a new row in BIG or SMALL.
+// Two big items sit side by side, three form a triangle, four a grid, and seven a hexagon round the first (the biggest,
+// which should be the one used most). Items marked :small are small buttons in a row under them. Any other count would
+// need a new row in BIG or SMALL.
 class IconMenu extends WatchUi.View {
     // centre of each item as a fraction of width and height, per count of big or small items
     private const BIG = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
-        4 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.62], [0.70, 0.62]]};
+        4 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.62], [0.70, 0.62]],
+        7 => [[0.50, 0.50], [0.36, 0.25], [0.64, 0.25], [0.79, 0.50], [0.64, 0.75], [0.36, 0.75], [0.21, 0.50]]};
     private const SMALL = {1 => [[0.50, 0.89]], 2 => [[0.38, 0.89], [0.62, 0.89]]};
     var items as Array<Dictionary>;
     var sel as Number = 0;
@@ -47,7 +49,8 @@ class IconMenu extends WatchUi.View {
     }
 
     private function radius(w as Number, i as Number) as Float {
-        return w * (small(i) ? 0.065 : count(false) == 2 ? 0.15 : count(false) == 4 ? 0.12 : 0.14);
+        var n = count(false);
+        return w * (small(i) ? 0.065 : n == 2 ? 0.15 : n == 4 ? 0.12 : n == 7 ? (i == 0 ? 0.115 : 0.10) : 0.14);
     }
 
     function onUpdate(dc as Dc) as Void {
@@ -63,7 +66,12 @@ class IconMenu extends WatchUi.View {
             dc.setColor(GREEN, Graphics.COLOR_BLACK);
             dc.drawCircle(c[0], c[1], r);
             dc.setPenWidth(3);
-            Icons.draw(dc, items[i][:icon] as Symbol, c[0] - size / 2, c[1] - size / 2, size);
+            var icon = items[i][:icon] as Symbol;
+            if (icon == :windows) {
+                Warn.windows(dc, c[0] - size / 2, c[1] - size / 2, size);
+            } else {
+                Icons.draw(dc, icon, c[0] - size / 2, c[1] - size / 2, size);
+            }
             var label = items[i][:label] as String?;
             if (label != null) {
                 dc.setColor(GREEN, Graphics.COLOR_BLACK);
@@ -83,15 +91,22 @@ class IconMenu extends WatchUi.View {
         return [(w * f[0]).toNumber(), (h * f[1]).toNumber()];
     }
 
-    // index of the item under a tap, or -1; a little slack because a wrist tap is imprecise
+    // Index of the item under a tap, or -1; a little slack because a wrist tap is imprecise. Where the slack of two
+    // items overlaps, the one the tap is nearest to (as a share of its reach) wins.
     function hit(x as Number, y as Number, w as Number, h as Number) as Number {
+        var best = -1;
+        var bestShare = 1.0;
         for (var i = 0; i < items.size(); i++) {
             // the small button gets more slack, since a wrist tap on something that size is hard to land
             var reach = radius(w, i) * (small(i) ? 1.8 : 1.25);
             var c = center(i, w, h);
-            if ((x - c[0]) * (x - c[0]) + (y - c[1]) * (y - c[1]) <= reach * reach) { return i; }
+            var share = ((x - c[0]) * (x - c[0]) + (y - c[1]) * (y - c[1])) / (reach * reach);
+            if (share <= bestShare) {
+                best = i;
+                bestShare = share;
+            }
         }
-        return -1;
+        return best;
     }
 
     // step the highlight, wrapping round at either end

@@ -24,8 +24,8 @@ works or not.
 | Watch | Status |
 |---|---|
 | Venu 3 | Tested on a real watch |
-| fenix 7 | Builds and runs in Garmin's simulator (layout and buttons checked); never on a real watch |
-| Venu X1 | Builds and runs in Garmin's simulator (layout and touch checked); never on a real watch |
+| fenix 7 | Builds; 0.4.0 was checked in Garmin's simulator, 0.5.0's redesign not yet; never on a real watch |
+| Venu X1 | Builds; 0.4.0 was checked in Garmin's simulator, 0.5.0's redesign not yet; never on a real watch |
 
 The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs them on hardware.
 
@@ -156,12 +156,14 @@ to vary wildly: expect results that are much faster or much slower, and don't re
 </p>
 <p>
   <img src="docs/images/phone.jpg" width="260"
-       alt="The Orbit Android app: car status, refresh, log out and the watch update switch">
+       alt="The Orbit Android app: car status, refresh, vehicle details and the watch update switch">
+  <img src="docs/images/phone-details.jpg" width="260"
+       alt="The phone app's vehicle details: battery and charging rows, including the charging schedule time">
 </p>
 
 Top: the watch app on a Venu 3 (glance, main screen, info, actions, lock or unlock, climate). Bottom: the
-phone app, which shows status and settings only; the car is controlled from the watch. The car's nickname is blurred
-out in the phone screenshot.
+phone app, which shows status, settings and the car's details (part of that screen is shown); the car is controlled
+from the watch. The car's nickname is blurred out in the phone screenshot.
 
 ## Limitations
 
@@ -179,8 +181,10 @@ out in the phone screenshot.
   (app and website) may say more; the author has not read them. Whether this is allowed is your call, and any
   consequences for your account are yours.
 - **Tested on the Venu 3 only.** The Venu 3 is the only watch it has run on. The manifest also lists the Venu X1
-  and the fenix 7 (see the table under Status). Both build without errors and their screens (main, actions, info,
-  climate, the set point list and the confirm) have been run in Garmin's simulator, but never on a real watch. The
+  and the fenix 7 (see the table under Status). Both build without errors. Their 0.4.0 screens (main, actions, info,
+  climate, the set point list and the confirm) were run in Garmin's simulator; the redesigned screens of 0.5.0 (the
+  main screen's bezel marks, the page strip, the seven-icon Actions page) have not been, and neither has run on a
+  real watch. The
   simulator draws Garmin's stock menus differently from real hardware, and memory use and the glance on those
   watches are untested. The Venu X1 needs a Connect IQ SDK with API level 6.0.3 or newer. To try another watch, add its
   id to `manifest.xml` and build with `-d <id>`; if you do, please report what happens. The glance shows cached state
@@ -246,6 +250,10 @@ Step-by-step instructions for building both apps and sideloading them (including
 - **Android:** the Connect IQ Mobile SDK is pulled from Maven Central by Gradle.
 - Install the secret-scanning hook: `git config core.hooksPath .githooks` (requires
   [gitleaks](https://github.com/gitleaks/gitleaks)).
+- **Update both apps together.** The watch and phone apps share a message format, and a new watch app can send a
+  command an older phone app does not know (the watch then shows "Update phone"). When you update one, update the
+  other to the same version; both show theirs (the version and update page on the watch, the main screen of the phone
+  app).
 
 ## Privacy
 
@@ -254,9 +262,14 @@ Orbit has no server, no accounts and no analytics. The author receives nothing f
 - **Lucid password:** typed once in the phone app and sent only to Lucid's login service. It is not stored.
 - **Lucid session:** only a refresh token is kept, encrypted with a key held in the phone's Android Keystore. Android
   backup is disabled, so it is not copied to the cloud or to a new phone. Log out in the app to delete it.
-- **Watch:** stores a cached copy of the last state (charge, lock state, charging, climate and its set point, the
-  inside and outside air temperature, when the car last reported, and the phone app's version). No credentials or
-  tokens are ever sent to the watch.
+- **Watch:** stores a cached copy of the last state: charge and charging power, lock state, climate and its set
+  point, the inside and outside air temperature, open doors, frunk and trunk, warnings (tires, an unattended
+  occupant), pet mode, battery health and cell temperatures, tire pressures, **the odometer**, when the car last
+  reported, and the phone app's version. No credentials or tokens are ever sent to the watch, and neither the VIN
+  nor the car's location is.
+- **Energy log (phone):** to work out efficiency, the phone keeps a plain text log of timestamped odometer and battery
+  energy readings in the app's private storage (at most 20,000 lines; the oldest quarter is dropped when it fills).
+  It never leaves the phone, Android backup is off, and clearing the app's data or uninstalling it deletes it.
 - **Watch to phone:** messages travel over Bluetooth through Garmin Connect Mobile, which is covered by Garmin's own
   privacy terms.
 - **Car data:** the phone asks Lucid's cloud for your vehicle's state and sends commands to it. That traffic is between

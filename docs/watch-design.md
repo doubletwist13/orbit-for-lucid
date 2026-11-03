@@ -1,7 +1,8 @@
 # Watch layout design note (#55)
 
-Status: partly built. The main screen, the page strip, the info pages and the warning icons below are in the app; the
-actions pages still use the old layout and the questions under "Open" are undecided.
+Status: built for 0.5.0 except the Charging page. The main screen, the page strip, the info and version pages, the
+warning icons and the Access page below are in the app; the Charging page is planned (see "Next") and the questions
+under "Open" are undecided.
 
 ## Principles
 
@@ -22,13 +23,13 @@ readable, so check them for the Venu X1 and fenix):
    `WatchUi.ViewLoop`: it draws its own blue page indicator, which cannot be turned off.
 2. **Main is the home page, in the middle of a strip.** It opens there, from the glance or the launcher.
    ```
-   About        <- versions and the ages of the car's and the phone's data
+   About        <- versions and the ages of the car's and the phone's data; tap to refresh
    Info         <- the car's numbers as text (see "Data inventory")
    MAIN         <- glance-level state, no controls
-   Actions 1    <- swipe up from Main
-   Actions 2
+   Access       <- swipe up from Main: lock and the frequent actions
    ```
-   The Up and Down buttons do the same as the swipes. Five dots down the left edge show the place in the strip.
+   The Up and Down buttons do the same as the swipes. Four dots down the left edge show the place in the strip; a
+   Charging page below Access (see "Next") would make five.
 3. **The top right button on Main opens the lock/unlock choice**, and so does a tap on the bezel mark or the padlock
    pair beside it. Unlock still gets the confirm tap. Elsewhere a tap on Main does nothing, so a wrist brush cannot open
    anything (Main's delegate does not call the base class, which would turn a tap into the button's select).
@@ -45,19 +46,36 @@ readable, so check them for the Venu X1 and fenix):
    too large, which is untested. The phone has a details screen with the rest of the car's data, and it works out
    efficiency from the odometer and battery energy, since the API has no trip or efficiency data.
 
+7. **One Access page of seven icons**, a "flower": the lock in the middle (the one used most) and six round it at about
+   0.17 x width each on the Venu 3: frunk and trunk on top, climate and close-all-windows at the sides, the lights and
+   horn below. Lock, frunk, trunk and climate open a choice screen (so the choice never depends on cached state);
+   the lights and windows act at once. Unlock, climate, horn, frunk, trunk and windows ask for a confirm tap; lock,
+   lights and pet mode do not, and every send shows a toast so a tap is seen to count. Climate's choice screen is off,
+   on (with a set point) and pet mode. Refresh moved to the About page (tap it).
+8. **Dropped, on purpose.** A separate Climate page (defrost, max A/C, seat and steering wheel heat) and a Signals page:
+   those are things you do from the driver's seat, where the car's own controls are, and the car's auto-climate may
+   already switch them on when it preconditions. The phone app stays information only (no controls: Lucid's own app
+   has them). Left out of the app altogether: panic alarm, sentry and security, software update, keys, and the
+   window actions other than close-all. Windows are close-all only; the car ignores many commands in gear or while
+   moving (see the README's Limitations).
+
+## Next
+
+- **A Charging page** below Access: start or stop in the middle and, round it, the charge limit, the AC current limit,
+  battery preconditioning, the charge port, the schedule and V2X discharge (a mockup exists, not built). Each control
+  needs testing on a car first, and the valid AC current values are not known yet (#14). Start and stop, port and
+  preconditioning would ask for a confirm tap; the limit and current are pickers. The schedule is probably on and off
+  only (the times are set in Lucid's app); discharge needs its own look.
+- Per-watch checks of the 0.5.0 layout on the Venu X1 (rectangular) and the fenix 7 (small round), which are untested
+  for any of this.
+
 ## Open
 
-- The Actions pages. Leaning towards pages by topic: Access (lock, frunk, trunk, charge port, windows), Climate (on/off,
-  set point, defrost, seat and steering heat, preconditioning), Charging (start/stop, limit, AC current limit) and
-  Signals (horn, lights). Inside a page, a "flower" of one icon in the middle and six round it fits seven items at about
-  0.17 x width each on the Venu 3. The API also offers schedule, discharge, panic alarm, software update and sentry
-  controls, which are better kept on the phone. Each control needs testing on a car first.
-- Refresh stays on the second Actions page for now; opening the app and the 10 s window after a request already refresh.
 - Whether lock, unlock, frunk and trunk keep their second choice screen. It adds a level; showing the current state and
   offering only the opposite action would remove it, and ties in with #38.
-- Which info goes on which info page, and what counts as "needs attention" on Main.
-- Per-watch layouts: the Venu X1 (rectangular) and the fenix 7 (small round) are untested for any of this.
-- Back from an Actions page: it exits the app, as the pages are not pushed screens. Returning to Main first is untried.
+- Which info goes on which info page, and what counts as "needs attention" on Main. Open windows are not shown on the
+  watch yet (#11).
+- Back from the Access page: it exits the app, as the pages are not pushed screens. Returning to Main first is untried.
 - Button-only watches cannot move the highlight on a strip page, since up/down page; a touch screen reaches every icon.
 
 ## Data inventory
@@ -71,11 +89,11 @@ ones already used.
 | Charge level | `battery.charge_percent` | Yes |
 | Inside and outside temperature | `cabin.interior_temp`, `exterior_temp` | Yes |
 | Plug and charge status | `charging.charge_state` | Plug icon only |
-| Charge speed | `charging.charge_rate_kwh_precise`, `port_power` | No |
-| Tire pressures | `chassis.*_tire_pressure_bar` (4), warning and sensor flags, last-updated time | No |
-| Doors, frunk, trunk, port | `body.front_cargo`, `rear_cargo`, 4 doors, `charge_port` (open, closed, ajar) | Lids |
-| Windows | `body.window_position` (4), `all_windows_position` | No |
-| Cell temperatures | `battery.min_cell_temp`, `max_cell_temp` | No |
+| Charge speed | `charging.charge_rate_kwh_precise`, `port_power` | Yes (kW while charging) |
+| Tire pressures | `chassis.*_tire_pressure_bar` (4), warning and sensor flags, last-updated time | Yes (info, icon) |
+| Doors, frunk, trunk, port | `body.front_cargo`, `rear_cargo`, 4 doors, `charge_port` (open, closed, ajar) | Lids, doors |
+| Windows | `body.window_position` (4), `all_windows_position` | Only to confirm close-all |
+| Cell temperatures | `battery.min_cell_temp`, `max_cell_temp` | Yes (info page) |
 
 Other fields that could be shown or used:
 
@@ -119,5 +137,6 @@ occupant; a charge fault; a software update available.
 
 ## Build order
 
-To be written once the open questions are settled. It will split into issues: the strip and gestures, the Info pages,
-each new action page, and per-watch layout checks.
+Done in 0.5.0: the strip and gestures, Main, the Info and About pages, the warning icons, the Access page.
+Still to do, each as its own issue: the Charging page (#35, #14), open windows on the watch (#11), the state line on the
+choice screens (#38), and per-watch layout checks.

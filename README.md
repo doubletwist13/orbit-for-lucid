@@ -1,7 +1,8 @@
 # Orbit for Lucid
 
 Control the core functions of a Lucid vehicle (status/SOC, lock, unlock, precondition) from a Garmin watch, through an
-Android companion app. **It needs an Android phone: there is no iPhone version.**
+Android companion app. **It needs an Android phone (there is no iPhone version) and a Garmin watch with a
+touchscreen.**
 
 > **Unofficial.** Not affiliated with, endorsed by, or sponsored by Lucid Motors or Garmin. It uses an
 > undocumented, reverse-engineered API that may change or be withdrawn at any time, and using it may conflict with
@@ -28,6 +29,11 @@ works or not.
 | Venu X1 | Builds; 0.4.0 was checked in Garmin's simulator, 0.5.0's redesign not yet; never on a real watch |
 
 The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs them on hardware.
+
+**A touchscreen is required.** The Access page's icons can only be reached by touch (the up and down buttons change
+page), so a button-only watch, such as a Forerunner 255, a fenix 6 or an Instinct, cannot use the actions, and no layout
+exists for those screens. The three watches in the manifest all have touch. If you switch touch off in the watch's
+settings you lose the same things.
 
 ## Using the watch app
 
@@ -64,8 +70,8 @@ The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs
   it off; turning it back on sends the last status at once, which is a quick way to refresh a watch that was out of
   range or plugged in. If Garmin Connect restarts, the phone reconnects to it by itself after about 30 seconds.
 - **Actions** is the last page: big round icons, with the lock in the middle. Around it, clockwise from the top left:
-  frunk, trunk, close all windows, lights, horn and climate. Tap an icon (or, on a watch without touch, highlight it
-  with select). The icons on this page act on their own, or open a second screen to choose from.
+  frunk, trunk, close all windows, lights, horn and climate. Tap an icon. The icons on this page act on their own, or
+  open a second screen to choose from.
 - **Info** (the page above the main screen) lists climate state, cabin and outside temperature, the coolest and
   warmest battery cell, battery health, odometer and the four tire pressures (front and rear pairs, in the watch's
   units).

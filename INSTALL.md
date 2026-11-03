@@ -101,8 +101,9 @@ Things to know:
   Venu X1 needs a newer SDK (API 6.0.3).
 - Leave the manifest's app `id` alone. The phone app only talks to that id (`WATCH_APP_ID` in `WatchBridge.kt`). If you
   change one, change both.
-- The screens have been run in Garmin's simulator for the fenix 7 (layout and buttons) and the Venu X1 (layout and
-  touch), but never on a real watch. The simulator draws Garmin's stock menus differently from real hardware, so please
+- The watch needs a touchscreen (the actions can only be reached by touch). Only touch watches are in the manifest.
+- The screens have been run in Garmin's simulator for the fenix 7 and the Venu X1 (layout and touch), but never on a
+  real watch. The simulator draws Garmin's stock menus differently from real hardware, so please
   report what works and what doesn't.
 - To run the simulator on a recent Fedora host (44 here) you need an Ubuntu distrobox: the simulator crashes against
   Fedora's FreeType because it ships its own.

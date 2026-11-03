@@ -10,7 +10,7 @@ Control the core functions of a Lucid (status/SOC, lock, unlock, precondition) f
 companion app. Priorities: **secure** (no secrets in git, best-practice secret handling on Android and Garmin),
 **responsive** (watch and phone react quickly), **simple**, and following Android and Garmin best practices.
 
-- Android only. Venu 3 primary (only test device); other touch Garmins best-effort.
+- Android only. Venu 3 primary (only test device); other touchscreen Garmins best-effort; no button-only watches.
 - Public GitHub repo. No Play Store / Connect IQ store release until a terms review is done (see Later).
 - Name is a working name (**Orbit for Lucid**) until trademark/store searches are done.
 
@@ -72,7 +72,9 @@ The Venu 3 is the tested target (real hardware). The manifest also lists `fenix7
 Before any store release, trim the manifest to watches a real owner has tried (store distribution covers every
 listed product).
 
-- Every screen must work with touch and with buttons; no touch-only widgets.
+- **A touchscreen is required** (decided for 0.5.0): the Access page's icons are reached by touch only, since up and
+  down change page, so button-only watches (Forerunner 255, fenix 6, Instinct, Edge) are out of scope. Buttons still
+  do page, select and back, but they are not a full way in.
 - One codebase via resource qualifiers (e.g. `resources-round-454x454`) where layouts differ. Use fractions of the
   screen size, not pixels.
 - Memory is the main constraint on MIP watches: keep the app small and bitmaps minimal; the glance limit (64 KB) is the
@@ -84,7 +86,7 @@ Next models worth a tester:
 | Model | Screen | Input | Why include it |
 |---|---|---|---|
 | **Venu 3S** or **vivoactive 5** | 390x390 round AMOLED | touch + buttons | Smaller round AMOLED; scaling check |
-| **fenix 7 / FR255/955** | 240-280 px round MIP | buttons (touch on some) | Popular line; different input model |
+| **fenix 7** | 240-280 px round MIP | touch + buttons | Popular line; the smallest screen |
 | **Venu Sq 2** (optional) | 320x360 rectangular AMOLED | touch + button | Only rectangular layout |
 | **Venu X1** | 448x486 rectangular AMOLED | touch + buttons | Needs API 6.0.3 (SDK 9.x) |
 

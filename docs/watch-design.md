@@ -76,7 +76,9 @@ readable, so check them for the Venu X1 and fenix):
 - Which info goes on which info page, and what counts as "needs attention" on Main. Open windows are not shown on the
   watch yet (#11).
 - Back from the Access page: it exits the app, as the pages are not pushed screens. Returning to Main first is untried.
-- Button-only watches cannot move the highlight on a strip page, since up/down page; a touch screen reaches every icon.
+- Button-only watches cannot move the highlight on a strip page, since up/down page, so a touchscreen is a requirement
+  (README, PLAN.md). Revisit if someone wants a button-only watch: the highlight could step with up and down and hand
+  over to the next page at the ends.
 
 ## Data inventory
 

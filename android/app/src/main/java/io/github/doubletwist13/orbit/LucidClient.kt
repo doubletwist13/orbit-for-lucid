@@ -30,8 +30,10 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
 import mobilegateway.protos.VehicleStateServiceOuterClass.RearCargoControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCabinTemperatureRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
+import mobilegateway.protos.VehicleStateServiceOuterClass.UnattendedOccupantDetectionStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
 import mobilegateway.protos.VehicleStateServiceOuterClass.WakeupVehicleRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.WarningState
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -71,6 +73,26 @@ data class VehicleStatus(
     val trunkOpen: Boolean? = null,
     /** False for a gas-strut frunk: the car can unlatch it but not close it. An unknown strut is treated as powered. */
     val frunkPowered: Boolean = true,
+    /** Charging power in kW; 0 when not reported. Only meaningful while the charge state is CHARGING. */
+    val chargeRateKw: Double = 0.0,
+    /** Any of the four doors open (ajar counts as open). */
+    val doorOpen: Boolean = false,
+    /** The car's own tyre pressure warning (soft or hard) is on for any wheel. */
+    val tireWarning: Boolean = false,
+    /** Tyre pressures in bar, front left, front right, rear left, rear right; null unless all four are plausible. */
+    val tiresBar: List<Double>? = null,
+    /** Coolest and warmest battery cell in Celsius; null when the car sends no battery block. */
+    val cellMinC: Double? = null,
+    val cellMaxC: Double? = null,
+    val odometerKm: Double? = null,
+    /** Energy left in the battery in kWh, for working out efficiency (see [EnergyLog]). */
+    val energyKwh: Double? = null,
+    /** The car's battery health level, in whatever scale the car uses (not yet known); null when not reported. */
+    val healthLevel: Double? = null,
+    /** The car's unattended-occupant detection is in any warning stage: someone, or a pet, may be left inside. */
+    val occupantAlert: Boolean = false,
+    /** Everything the car last reported, for the details screen; not sent to the watch. */
+    val raw: Vehicle? = null,
     /** "AIR" or "GRAVITY"; empty when the car reports none or a model this app has no art for. */
     val model: String = "",
     val updatedMs: Long,
@@ -286,6 +308,34 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     frunkOpen = state.body.frontCargo.isOpen(),
     trunkOpen = state.body.rearCargo.isOpen(),
     frunkPowered = config.frunkStrut != StrutType.STRUT_TYPE_GAS,
+    chargeRateKw = state.charging.chargeRateKwhPrecise,
+    doorOpen = with(state.body) {
+        listOf(frontLeftDoor, frontRightDoor, rearLeftDoor, rearRightDoor).any { it.isOpen() == true }
+    },
+    tireWarning = with(state.chassis) {
+        listOf(
+            hardWarnLeftFront, hardWarnLeftRear, hardWarnRightFront, hardWarnRightRear,
+            softWarnLeftFront, softWarnLeftRear, softWarnRightFront, softWarnRightRear,
+        ).any { it == WarningState.WARNING_ON }
+    },
+    tiresBar = with(state.chassis) {
+        listOf(
+            frontLeftTirePressureBar, frontRightTirePressureBar, rearLeftTirePressureBar, rearRightTirePressureBar,
+        ).takeIf { state.hasChassis() && it.all { p -> p in TIRE_RANGE_BAR } }
+    },
+    cellMinC = state.battery.minCellTemp.takeIf { state.hasBattery() },
+    cellMaxC = state.battery.maxCellTemp.takeIf { state.hasBattery() },
+    odometerKm = state.chassis.odometerKm.takeIf { state.hasChassis() && it > 0 },
+    energyKwh = state.battery.kwhr.takeIf { state.hasBattery() && it > 0 },
+    healthLevel = state.battery.batteryHealthLevel.takeIf { state.hasBattery() && it > 0 },
+    occupantAlert = when (state.body.unattendedOccupantDetectionStatus) {
+        UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_1,
+        UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_2,
+        UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_3,
+        -> true
+        else -> false
+    },
+    raw = this,
     model = when (config.model) {
         Model.MODEL_AIR -> "AIR"
         Model.MODEL_GRAVITY -> "GRAVITY"

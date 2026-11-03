@@ -63,6 +63,55 @@ class ControllerTest {
         assertEquals("AIR", watchReply(1, status.copy(model = "AIR"), null)["model"])
     }
 
+    @Test fun chargePowerIsSentOnlyWhileChargingAndPlausible() {
+        val charging = status.copy(chargeState = "CHARGING")
+        assertEquals(48, watchReply(1, charging.copy(chargeRateKw = 48.4), null)["rate"])
+        assertFalse(watchReply(1, charging.copy(chargeRateKw = 0.1), null).containsKey("rate")) // idle noise
+        assertFalse(watchReply(1, status.copy(chargeRateKw = 48.0), null).containsKey("rate")) // not charging
+    }
+
+    @Test fun chargePowerCeilingFollowsTheModel() {
+        fun rate(model: String, kw: Double) =
+            watchReply(1, status.copy(chargeState = "CHARGING", model = model, chargeRateKw = kw), null)["rate"]
+        assertEquals(350, rate("AIR", 350.0))
+        assertEquals(null, rate("AIR", 351.0))
+        assertEquals(450, rate("GRAVITY", 450.0))
+        assertEquals(null, rate("GRAVITY", 451.0))
+        assertEquals(1_000, rate("", 1_000.0)) // a model we do not know may charge faster than either
+        assertEquals(null, rate("", 9_999.0))
+    }
+
+    @Test fun doorAndTireWarningsAreSentOnlyWhileTheyApply() {
+        val quiet = watchReply(1, status, null)
+        assertFalse(quiet.containsKey("door") || quiet.containsKey("tire"))
+        val r = watchReply(1, status.copy(doorOpen = true, tireWarning = true), null)
+        assertEquals(true, r["door"])
+        assertEquals(true, r["tire"])
+    }
+
+    @Test fun anUnattendedOccupantAlertIsSentOnlyWhileItApplies() {
+        assertFalse(watchReply(1, status, null).containsKey("occ"))
+        assertEquals(true, watchReply(1, status.copy(occupantAlert = true), null)["occ"])
+    }
+
+    @Test fun detailsAreSentOnlyWhenTheCarReportsThemAndAreRounded() {
+        val bare = watchReply(1, status, null)
+        assertFalse(bare.keys.any { it in setOf("tp", "cmin", "cmax", "odo", "soh") })
+        val r = watchReply(
+            1, status.copy(
+                tiresBar = listOf(2.8312, 2.8, 2.7, 2.75), cellMinC = 23.6, cellMaxC = 26.4, odometerKm = 12_345.6,
+                healthLevel = 97.46,
+            ), null,
+        )
+        assertEquals(listOf(2.83, 2.8, 2.7, 2.75), r["tp"])
+        assertEquals(24, r["cmin"])
+        assertEquals(26, r["cmax"])
+        assertEquals(12_346, r["odo"])
+        assertEquals(97.5, r["soh"])
+        // a cell temperature outside what a pack can be is a bad reading
+        assertFalse(watchReply(1, status.copy(cellMinC = -273.0, cellMaxC = 999.0), null).containsKey("cmin"))
+    }
+
     @Test fun commandPollingIsFastAtFirstAndEndsAtAboutOneHundredFiveSeconds() {
         assertEquals(1_500L, pollDelayMs(0))
         assertEquals(5_000L, pollDelayMs(POLL_COUNT - 1))

@@ -48,6 +48,14 @@ for an `id` has `pending` absent or empty.
 | `hvac` | bool | Climate/precondition on |
 | `frunk`, `trunk` | bool | Frunk or trunk open (ajar counts as open); omitted when the car reports no state for it |
 | `fpower` | bool | The frunk has a power strut, so the car can close it; `false` for a gas strut, which only opens |
+| `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
+| `door` | bool | Any of the four doors open (ajar counts); sent only when `true` |
+| `tire` | bool | The car's own tyre pressure warning (soft or hard) is on for a wheel; sent only when `true` |
+| `occ` | bool | Unattended-occupant detection is in any warning stage; sent only when `true` (watch: red icon) |
+| `tp` | array of 4 | Tyre pressures in bar (front left and right, rear left and right), 2 decimals; see below |
+| `cmin`, `cmax` | int | Coolest and warmest battery cell, Celsius, rounded; omitted if unreported or outside -40..100 |
+| `odo` | int | Odometer in km, rounded; the watch converts to miles by its own distance setting |
+| `soh` | number | Battery health in percent (95.0 is 95%), to 1 decimal; omitted when unreported |
 | `model` | string | `AIR` or `GRAVITY`, for the car drawing on the frunk and trunk icons; omitted for any other model |
 | `tset` | number | The car's cabin set point in Celsius (see below) |
 | `tin`, `tout` | number | Cabin and outside air temperature in Celsius; each omitted if unreported or outside -50..70 |
@@ -58,6 +66,10 @@ for an `id` has `pending` absent or empty.
 | `err` | string | Error code, see below |
 
 Status fields are omitted from an error reply that has no state to show.
+
+`rate` is left out above the model's peak, which is a bad reading: Air 350 kW, Gravity 450 kW, any other model 2000 kW.
+`tp` is left out unless all four pressures are plausible (0.5 to 6 bar), so a pressure is never shown for the wrong
+wheel. The car's `remaining_range` is in kilometres, as a rated range scaled by the charge, and is not sent.
 
 `tset` is kept by the car even while climate is off, and is left out when the car reports none or a value outside
 15..30. It reads back within about 0.4 F of what was set, so the watch rounds it to its own list steps.

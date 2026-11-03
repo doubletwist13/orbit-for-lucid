@@ -5,7 +5,10 @@ import mobilegateway.protos.LoginSessionOuterClass.GetNewJWTTokenResponse
 import mobilegateway.protos.LoginSessionOuterClass.GetUserVehiclesResponse
 import mobilegateway.protos.LoginSessionOuterClass.LoginResponse
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
+import mobilegateway.protos.VehicleStateServiceOuterClass.BatteryState
 import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
+import mobilegateway.protos.VehicleStateServiceOuterClass.ChargingState
+import mobilegateway.protos.VehicleStateServiceOuterClass.ChassisState
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
 import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateResponse
 import mobilegateway.protos.VehicleStateServiceOuterClass.LockState
@@ -14,7 +17,9 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
 import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
 import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleConfig
+import mobilegateway.protos.VehicleStateServiceOuterClass.UnattendedOccupantDetectionStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleState
+import mobilegateway.protos.VehicleStateServiceOuterClass.WarningState
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -78,6 +83,61 @@ class LucidClientTest {
         assertEquals(null, bare.frunkOpen) // no state reported
         assertEquals(true, bare.frunkPowered)
         assertEquals("", bare.model)
+    }
+
+    @Test
+    fun doorsTiresAndChargePowerAreReadFromTheVehicle() {
+        val state = VehicleState.newBuilder()
+            .setBody(BodyState.newBuilder().setRearLeftDoor(DoorState.DOOR_STATE_OPEN))
+            .setChassis(ChassisState.newBuilder().setSoftWarnRightRear(WarningState.WARNING_ON))
+            .setCharging(ChargingState.newBuilder().setChargeRateKwhPrecise(48.4))
+        val s = Vehicle.newBuilder().setVehicleId("v1").setState(state).build().toStatus()
+        assertEquals(true, s.doorOpen)
+        assertEquals(true, s.tireWarning)
+        assertEquals(48.4, s.chargeRateKw, 0.0)
+        val bare = Vehicle.newBuilder().setVehicleId("v1").build().toStatus()
+        assertEquals(false, bare.doorOpen)
+        assertEquals(false, bare.tireWarning)
+    }
+
+    @Test
+    fun anyOccupantWarningStageIsAnAlert() {
+        fun alert(st: UnattendedOccupantDetectionStatus) = Vehicle.newBuilder().setVehicleId("v1")
+            .setState(
+                VehicleState.newBuilder().setBody(BodyState.newBuilder().setUnattendedOccupantDetectionStatus(st)),
+            ).build().toStatus().occupantAlert
+        assertEquals(false, alert(UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_NO_REQUEST))
+        assertEquals(false, alert(UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_UNKNOWN))
+        assertEquals(true, alert(UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_1))
+        assertEquals(true, alert(UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_3))
+    }
+
+    @Test
+    fun detailsAreReadFromTheVehicleAndLeftOutWhenAbsent() {
+        val state = VehicleState.newBuilder()
+            .setChassis(
+                ChassisState.newBuilder().setOdometerKm(12_345.6).setFrontLeftTirePressureBar(2.8)
+                    .setFrontRightTirePressureBar(2.8).setRearLeftTirePressureBar(2.7).setRearRightTirePressureBar(2.7),
+            )
+            .setBattery(BatteryState.newBuilder().setMinCellTemp(23.6).setMaxCellTemp(26.4).setBatteryHealthLevel(97.4))
+        val s = Vehicle.newBuilder().setVehicleId("v1").setState(state).build().toStatus()
+        assertEquals(listOf(2.8, 2.8, 2.7, 2.7), s.tiresBar)
+        assertEquals(23.6, s.cellMinC!!, 0.0)
+        assertEquals(26.4, s.cellMaxC!!, 0.0)
+        assertEquals(12_345.6, s.odometerKm!!, 0.0)
+        assertEquals(97.4, s.healthLevel!!, 0.0)
+        val bare = Vehicle.newBuilder().setVehicleId("v1").build().toStatus()
+        assertEquals(null, bare.tiresBar)
+        assertEquals(null, bare.cellMinC)
+        assertEquals(null, bare.odometerKm)
+        assertEquals(null, bare.healthLevel)
+        // one wheel without a reading leaves the whole set out, so a pressure is never shown against the wrong wheel
+        val partial = ChassisState.newBuilder().setFrontLeftTirePressureBar(2.8)
+        assertEquals(
+            null,
+            Vehicle.newBuilder().setVehicleId("v1").setState(VehicleState.newBuilder().setChassis(partial)).build()
+                .toStatus().tiresBar,
+        )
     }
 
     @Test

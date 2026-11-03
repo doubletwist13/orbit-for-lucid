@@ -1,12 +1,9 @@
 import Toybox.Graphics;
 import Toybox.Lang;
-import Toybox.System;
-import Toybox.Time;
-import Toybox.Time.Gregorian;
 import Toybox.WatchUi;
 
-// When the car last reported and when the phone last sent status, so you can tell whether the 5 minute pushes arrive.
-// The age line on the main screen is only the car's.
+// The page above the main screen: the car's numbers as text, label and value in two columns. A value the car did not
+// report shows "--" so every row stays where it is.
 class InfoView extends WatchUi.View {
     function initialize() {
         View.initialize();
@@ -18,35 +15,42 @@ class InfoView extends WatchUi.View {
         var h = dc.getHeight();
         dc.setColor(GREEN, Graphics.COLOR_BLACK);
         dc.clear();
-        row(dc, w / 2, h * 0.17, "Car data", s != null ? s["ts"] as Number? : null);
-        row(dc, w / 2, h * 0.46, "Phone update", s != null ? s["pt"] as Number? : null);
-        // which builds are on the watch and the phone, for spotting a mismatch and for bug reports
-        dc.setColor(DIM, Graphics.COLOR_BLACK);
-        var pv = s != null ? s["pv"] as String? : null;
-        dc.drawText(w / 2, h * 0.80, Graphics.FONT_XTINY, "Orbit " + WatchUi.loadResource(Rez.Strings.Version),
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(w / 2, h * 0.89, Graphics.FONT_XTINY, "Phone " + (pv != null ? pv : "--"),
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        pageDots(dc, INFO_PAGE);
+        var f = Units.fahrenheit();
+        var imperial = Units.imperial();
+        var unit = imperial ? "PSI" : "Bar";
+        var rows = [
+            ["HVAC", s == null || s["hvac"] == null ? "--" : (s["hvac"] ? "On " : "Off ") + temp(s, "tset", f)],
+            ["In/Out", s != null && s["tin"] != null && s["tout"] != null
+                ? temp(s, "tin", f) + " / " + temp(s, "tout", f) : "--"],
+            ["Cells", s != null && s["cmin"] != null && s["cmax"] != null
+                ? Units.whole((s["cmin"] as Numeric).toFloat(), f) + "-" + temp(s, "cmax", f) : "--"],
+            ["SoH", s != null && s["soh"] != null ? (s["soh"] as Numeric).toFloat().format("%.1f") + "%" : "--"],
+            ["Odo", s != null && s["odo"] != null ? Units.distance(s["odo"] as Numeric, imperial) : "--"],
+            [unit + " F", tires(s, 0, imperial)],
+            [unit + " R", tires(s, 2, imperial)]] as Array<Array<String> >;
+        var pitch = h * 0.095;
+        var top = h * 0.5 - pitch * (rows.size() - 1) / 2;
+        for (var i = 0; i < rows.size(); i++) {
+            var y = top + i * pitch;
+            dc.setColor(DIM, Graphics.COLOR_BLACK);
+            dc.drawText(w * 0.42, y, Graphics.FONT_SMALL, rows[i][0],
+                Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.setColor(GREEN, Graphics.COLOR_BLACK);
+            dc.drawText(w * 0.46, y, Graphics.FONT_SMALL, rows[i][1],
+                Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
     }
 
-    // a dim title over "10:02 (3m ago)", or "--" when nothing has arrived yet
-    private function row(dc as Dc, x as Number, y as Float, title as String, at as Number?) as Void {
-        dc.setColor(DIM, Graphics.COLOR_BLACK);
-        dc.drawText(x, y, Graphics.FONT_SMALL, title, Graphics.TEXT_JUSTIFY_CENTER);
-        dc.setColor(GREEN, Graphics.COLOR_BLACK);
-        dc.drawText(x, y + dc.getFontHeight(Graphics.FONT_SMALL), Graphics.FONT_MEDIUM,
-            at != null ? clock(at) + " (" + ago(Time.now().value() - at) + ")" : "--", Graphics.TEXT_JUSTIFY_CENTER);
+    private function temp(s as Dictionary?, key as String, f as Boolean) as String {
+        return s != null && s[key] != null ? Units.whole((s[key] as Numeric).toFloat(), f) + "°" : "--";
     }
 
-    // local time of an epoch second, in the watch's 12 or 24 hour style
-    private function clock(epoch as Number) as String {
-        var t = Gregorian.info(new Time.Moment(epoch), Time.FORMAT_SHORT);
-        var min = t.min.format("%02d");
-        if (System.getDeviceSettings().is24Hour) { return t.hour.format("%02d") + ":" + min; }
-        return (t.hour % 12 == 0 ? 12 : t.hour % 12) + ":" + min + (t.hour < 12 ? "a" : "p");
-    }
-
-    private function ago(secs as Number) as String {
-        return secs < 60 ? "now" : secs < 3600 ? secs / 60 + "m ago" : secs / 3600 + "h ago";
+    // two wheels of the phone's list (front left, front right, rear left, rear right), "41 / 41"; the label has the
+    // unit
+    private function tires(s as Dictionary?, first as Number, imperial as Boolean) as String {
+        var tp = s != null ? s["tp"] as Array<Numeric>? : null;
+        if (tp == null || tp.size() < first + 2) { return "--"; }
+        return Units.pressure(tp[first], imperial) + " / " + Units.pressure(tp[first + 1], imperial);
     }
 }

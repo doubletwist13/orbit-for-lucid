@@ -20,7 +20,7 @@ class OrbitApp extends Application.AppBase {
         // the phone pushes status every few minutes; this wakes the background service when one arrives while the
         // app is closed
         Background.registerForPhoneAppMessageEvent();
-        return [new MainView(), new MainDelegate()];
+        return stripView(MAIN_PAGE);
     }
 
     (:background)

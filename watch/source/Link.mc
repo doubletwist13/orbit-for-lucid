@@ -11,7 +11,8 @@ const USE_STUB = false;
 const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlocking",
     "climate_on" => "Climate on", "climate_off" => "Climate off", "frunk_open" => "Opening frunk",
     "frunk_close" => "Closing frunk", "trunk_open" => "Opening trunk", "trunk_close" => "Closing trunk",
-    "horn" => "Sending horn", "flash" => "Sending lights", "windows_close" => "Closing windows"};
+    "horn" => "Sending horn", "flash" => "Sending lights", "windows_close" => "Closing windows",
+    "pet_on" => "Pet mode on", "pet_off" => "Pet mode off"};
 // short on purpose: the main screen shows these inside a round bezel, where about 15 characters fit on every watch
 const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
     "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unsupported" => "Can't do that",
@@ -51,8 +52,7 @@ class Link {
         } else {
             // wv: this app's version, so the phone app can show it and a mismatch is easy to spot
             var msg = {"v" => 1, "id" => _id, "cmd" => cmd, "wv" => WatchUi.loadResource(Rez.Strings.Version)};
-            if (temp != null) { msg["temp"] = temp; }
-            Communications.transmit(msg, null, new LinkListener(self));
+            if (temp != null) { msg["temp"] = temp; }            Communications.transmit(msg, null, new LinkListener(self));
             // the phone's first reply (even "pending") arrives within seconds; silence means no service is listening
             _silence.stop();
             _silence.start(method(:onSilence), 8000, false);

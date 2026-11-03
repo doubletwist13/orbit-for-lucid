@@ -94,6 +94,11 @@ class ControllerTest {
         assertEquals(true, watchReply(1, status.copy(occupantAlert = true), null)["occ"])
     }
 
+    @Test fun petModeIsSentOnlyWhileItApplies() {
+        assertFalse(watchReply(1, status, null).containsKey("pet"))
+        assertEquals(true, watchReply(1, status.copy(petMode = true), null)["pet"])
+    }
+
     @Test fun detailsAreSentOnlyWhenTheCarReportsThemAndAreRounded() {
         val bare = watchReply(1, status, null)
         assertFalse(bare.keys.any { it in setOf("tp", "cmin", "cmax", "odo", "soh") })

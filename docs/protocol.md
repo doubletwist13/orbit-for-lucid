@@ -17,7 +17,7 @@ message whose `v` it does not know.
 | `wv` | string | Optional: the watch app's version, e.g. `0.3.0`, shown on the phone app's status screen |
 
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
-  `trunk_close`, `horn`, `flash`, `windows_close`.
+  `trunk_close`, `horn`, `flash`, `windows_close`, `pet_on`, `pet_off`.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
 - The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn`, `windows_close` or any
   frunk or trunk command. The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without
@@ -60,6 +60,7 @@ for an `id` has `pending` absent or empty.
 | `door` | bool | Any of the four doors open (ajar counts); sent only when `true` |
 | `tire` | bool | The car's own tyre pressure warning (soft or hard) is on for a wheel; sent only when `true` |
 | `occ` | bool | Unattended-occupant detection is in any warning stage; sent only when `true` (watch: red icon) |
+| `pet` | bool | Pet mode is on; sent only when `true`. `pet_on` and `pet_off` wait for the car to report it (no confirm tap) |
 | `tp` | array of 4 | Tyre pressures in bar (front left and right, rear left and right), 2 decimals; see below |
 | `cmin`, `cmax` | int | Coolest and warmest battery cell, Celsius, rounded; omitted if unreported or outside -40..100 |
 | `odo` | int | Odometer in km, rounded; the watch converts to miles by its own distance setting |

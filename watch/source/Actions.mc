@@ -3,6 +3,9 @@ import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
 
+// the inside of an icon that is switched on
+const ON_FILL = 0x0B3D22;
+
 // A screen of big round icon choices. Touch: tap one. Buttons: select picks the highlighted one; up/down moves the
 // highlight on a choice screen, but on a strip page (stripIndex set) they change page, so only a touch screen can
 // reach every icon there.
@@ -61,7 +64,11 @@ class IconMenu extends WatchUi.View {
             var r = radius(dc.getWidth(), i);
             var c = center(i, dc.getWidth(), dc.getHeight());
             var size = (r * 1.2).toNumber();
-            // a thick ring marks the focus; a filled circle would read as an item that is switched on
+            // a thick ring marks the focus; a filled circle marks an item that is switched on
+            if (items[i][:on] == true) {
+                dc.setColor(ON_FILL, Graphics.COLOR_BLACK);
+                dc.fillCircle(c[0], c[1], r);
+            }
             dc.setPenWidth(showSel && i == sel ? 8 : 3);
             dc.setColor(GREEN, Graphics.COLOR_BLACK);
             dc.drawCircle(c[0], c[1], r);
@@ -69,6 +76,8 @@ class IconMenu extends WatchUi.View {
             var icon = items[i][:icon] as Symbol;
             if (icon == :windows) {
                 Warn.windows(dc, c[0] - size / 2, c[1] - size / 2, size);
+            } else if (icon == :pet) {
+                Warn.pet(dc, c[0] - size / 2, c[1] - size / 2, size);
             } else {
                 Icons.draw(dc, icon, c[0] - size / 2, c[1] - size / 2, size);
             }
@@ -195,8 +204,11 @@ class ActionsDelegate extends IconMenuDelegate {
             var tset = link().state != null ? link().state["tset"] as Numeric? : null;
             var f = Units.fahrenheit();
             var label = tset != null ? Units.label(tset.toFloat(), f) : null;
+            // pet mode toggles, so its icon is filled while the car has it on
+            var pet = link().state != null && link().state["pet"] == true;
             var menu = new IconMenu([{:icon => :hvacoff, :id => "climate_off"},
-                {:icon => :hvac, :id => "climate_on", :label => label}]);
+                {:icon => :hvac, :id => "climate_on", :label => label},
+                {:icon => :pet, :id => pet ? "pet_off" : "pet_on", :on => pet}]);
             WatchUi.pushView(menu, new ClimateDelegate(menu), WatchUi.SLIDE_LEFT);
         } else {
             perform(id, 0, null);
@@ -221,14 +233,14 @@ class ChoiceDelegate extends IconMenuDelegate {
     }
 }
 
-// Climate off, or on with a set point picked next.
+// Climate off, on with a set point picked next, or pet mode on or off.
 class ClimateDelegate extends IconMenuDelegate {
     function initialize(menu as IconMenu) {
         IconMenuDelegate.initialize(menu);
     }
 
     function choose(id as String) as Void {
-        if (id.equals("climate_off")) {
+        if (id.equals("climate_off") || id.equals("pet_on") || id.equals("pet_off")) {
             perform(id, 1, null);
             return;
         }

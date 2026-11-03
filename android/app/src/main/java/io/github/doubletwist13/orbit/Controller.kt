@@ -202,6 +202,13 @@ class Controller(context: Context) {
         "windows_close" -> command("Closing windows", { it.windowsClosed != false }, progress) { s ->
             client.closeWindows(token(), s.vehicleId)
         }
+        // read back from the car's HVAC block like the lock is
+        "pet_on", "pet_off" -> {
+            val on = cmd == "pet_on"
+            command(if (on) "Starting pet mode" else "Stopping pet mode", { it.petMode == on }, progress) { s ->
+                client.setPetMode(token(), s.vehicleId, on)
+            }
+        }
         else -> error("unhandled command $cmd")
     }
 
@@ -287,7 +294,7 @@ class Controller(context: Context) {
     private companion object {
         val WATCH_COMMANDS = setOf(
             "status", "lock", "unlock", "climate_on", "climate_off", "frunk_open", "frunk_close", "trunk_open",
-            "trunk_close", "horn", "flash", "windows_close",
+            "trunk_close", "horn", "flash", "windows_close", "pet_on", "pet_off",
         )
     }
 }
@@ -313,6 +320,7 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         if (it.doorOpen) put("door", true)
         if (it.tireWarning) put("tire", true)
         if (it.occupantAlert) put("occ", true)
+        if (it.petMode) put("pet", true)
         // the details page: rounded to what it shows, so a reading that jitters does not look like a change
         it.tiresBar?.let { t -> put("tp", t.map { p -> Math.round(p * 100) / 100.0 }) }
         it.cellMinC?.takeIf { c -> c in CELL_RANGE_C }?.let { c -> put("cmin", Math.round(c).toInt()) }

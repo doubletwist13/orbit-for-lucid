@@ -28,6 +28,17 @@ module Warn {
         Icons.line(dc, x, y, u, 13.0, 10.0, 13.0, 18.0);
     }
 
+    // a paw: pet mode
+    function pet(dc as Dc, x as Number, y as Number, size as Number) as Void {
+        var u = size / 24.0;
+        dc.setPenWidth(size / 16 < 2 ? 2 : size / 16);
+        dc.drawCircle(Icons.px(x, 12, u), Icons.px(y, 16, u), (4.5 * u).toNumber());
+        var toes = [[5.5, 11], [9.5, 6.5], [14.5, 6.5], [18.5, 11]];
+        for (var i = 0; i < toes.size(); i++) {
+            dc.drawCircle(Icons.px(x, toes[i][0], u), Icons.px(y, toes[i][1], u), (2 * u).toNumber());
+        }
+    }
+
     // a person with an exclamation mark beside them: something may be left inside the car
     function occupant(dc as Dc, x as Number, y as Number, size as Number) as Void {
         var u = size / 24.0;

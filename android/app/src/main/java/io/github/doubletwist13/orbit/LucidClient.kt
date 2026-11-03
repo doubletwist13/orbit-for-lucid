@@ -18,6 +18,7 @@ import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
 import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowPosition
 import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
+import mobilegateway.protos.VehicleStateServiceOuterClass.CreatureComfortMode
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorLocksControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
 import mobilegateway.protos.VehicleStateServiceOuterClass.FrontCargoControlRequest
@@ -25,6 +26,7 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateResponse
 import mobilegateway.protos.VehicleStateServiceOuterClass.HonkHornRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.HvacPower
+import mobilegateway.protos.VehicleStateServiceOuterClass.KeepClimateStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.LightAction
 import mobilegateway.protos.VehicleStateServiceOuterClass.LightsControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.LockState
@@ -32,6 +34,7 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
 import mobilegateway.protos.VehicleStateServiceOuterClass.RearCargoControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCabinTemperatureRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.SetCreatureComfortModeRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
 import mobilegateway.protos.VehicleStateServiceOuterClass.UnattendedOccupantDetectionStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
@@ -98,6 +101,8 @@ data class VehicleStatus(
     val windowsClosed: Boolean? = null,
     /** The car's unattended-occupant detection is in any warning stage: someone, or a pet, may be left inside. */
     val occupantAlert: Boolean = false,
+    /** Pet mode (the car keeps the cabin comfortable while nobody is in it) is on. */
+    val petMode: Boolean = false,
     /** Everything the car last reported, for the details screen; not sent to the watch. */
     val raw: Vehicle? = null,
     /** "AIR" or "GRAVITY"; empty when the car reports none or a model this app has no art for. */
@@ -235,6 +240,14 @@ class LucidClient(
             .setState(WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL).build(),
     )
 
+    suspend fun setPetMode(refreshToken: String, vehicleId: String, on: Boolean) = command(
+        refreshToken, "SetCreatureComfortMode",
+        SetCreatureComfortModeRequest.newBuilder().setVehicleId(vehicleId)
+            .setMode(
+                if (on) CreatureComfortMode.CREATURE_COMFORT_MODE_ON else CreatureComfortMode.CREATURE_COMFORT_MODE_OFF,
+            ).build(),
+    )
+
     private fun doorState(open: Boolean) = if (open) DoorState.DOOR_STATE_OPEN else DoorState.DOOR_STATE_CLOSED
 
     private suspend fun command(refreshToken: String, method: String, req: MessageLite) {
@@ -350,6 +363,7 @@ internal fun Vehicle.toStatus() = VehicleStatus(
         -> true
         else -> false
     },
+    petMode = state.hvac.keepClimateStatus == KeepClimateStatus.KEEP_CLIMATE_STATUS_PET_MODE_ON,
     raw = this,
     model = when (config.model) {
         Model.MODEL_AIR -> "AIR"

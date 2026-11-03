@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 
 data class UiState(
@@ -27,6 +28,8 @@ data class UiState(
     val pushOk: Boolean = true,
     /** The watch app's version, from its last request; null until it has sent one. */
     val watchVersion: String? = null,
+    /** Efficiency over a few spans, worked out from the energy log: label and text. Empty until there is a log. */
+    val trips: List<Pair<String, String>> = emptyList(),
 )
 
 /** A command failed in a way the watch protocol names (see docs/protocol.md error codes). */
@@ -42,6 +45,11 @@ class Controller(context: Context) {
         UiState(loggedIn = store.load() != null, pushOn = prefs.getBoolean("push", true)),
     )
     val state = _state.asStateFlow()
+    private val energy = EnergyLog(File(context.filesDir, "energy.log"))
+
+    init {
+        _state.update { it.copy(trips = tripRows()) }
+    }
 
     /** This app's version, sent to the watch so its info screen can show it. */
     val version =context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: ""
@@ -143,7 +151,27 @@ class Controller(context: Context) {
     private fun token() = store.load() ?: throw LucidException(16, "Logged out")
 
     private suspend fun fetch(): VehicleStatus =
-        client.status(token()).also { s -> _state.update { it.copy(status = s) } }
+        client.status(token()).also { s -> record(s); _state.update { it.copy(status = s) } }
+
+    /** Keeps the odometer and battery energy of each new reading, for the efficiency figures on the details screen. */
+    private fun record(s: VehicleStatus) {
+        val odometer = s.odometerKm ?: return
+        val kwh = s.energyKwh ?: return
+        if (energy.add(EnergySample(System.currentTimeMillis(), odometer, kwh, s.chargeState == "CHARGING"))) {
+            _state.update { it.copy(trips = tripRows()) }
+        }
+    }
+
+    private fun tripRows(): List<Pair<String, String>> {
+        val samples = energy.samples()
+        if (samples.isEmpty()) return emptyList()
+        val date = java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT)
+        return listOf(
+            "Since last charge" to efficiencySince(samples, lastChargeEndMs(samples)).text(),
+            "Last 30 mi" to efficiencyOverLast(samples, 30 / Efficiency.KM_TO_MI).text(),
+            "All logged (${date.format(samples.first().timeMs)} on)" to efficiencySince(samples, 0).text(),
+        )
+    }
 
     private suspend fun execute(cmd: String, tempC: Double, progress: (String) -> Unit): VehicleStatus = when (cmd) {
         // answer at once so the watch's silence timer doesn't fire while a rate-limit retry runs
@@ -158,6 +186,17 @@ class Controller(context: Context) {
         // the labels say "Sending", not "Honking". Revisit if mobile_app_request proves to report them.
         "horn" -> command("Sending horn", null, progress) { s -> client.honk(token(), s.vehicleId) }
         "flash" -> command("Sending lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
+        // confirmed by the car's window positions; a car that reports none answers after the next status read
+        "windows_close" -> command("Closing windows", { it.windowsClosed != false }, progress) { s ->
+            client.closeWindows(token(), s.vehicleId)
+        }
+        // read back from the car's HVAC block like the lock is
+        "pet_on", "pet_off" -> {
+            val on = cmd == "pet_on"
+            command(if (on) "Starting pet mode" else "Stopping pet mode", { it.petMode == on }, progress) { s ->
+                client.setPetMode(token(), s.vehicleId, on)
+            }
+        }
         else -> error("unhandled command $cmd")
     }
 
@@ -212,7 +251,7 @@ class Controller(context: Context) {
 
     /** The cheap read for polling after a command: GetVehicleState showed no rate limit (see docs/research). */
     private suspend fun poll(): VehicleStatus =
-        client.state(token()).also { s -> _state.update { it.copy(status = s) } }
+        client.state(token()).also { s -> record(s); _state.update { it.copy(status = s) } }
 
     private suspend fun pollUntil(done: (VehicleStatus) -> Boolean): VehicleStatus? {
         repeat(POLL_COUNT) { i ->
@@ -243,7 +282,7 @@ class Controller(context: Context) {
     private companion object {
         val WATCH_COMMANDS = setOf(
             "status", "lock", "unlock", "climate_on", "climate_off", "frunk_open", "frunk_close", "trunk_open",
-            "trunk_close", "horn", "flash",
+            "trunk_close", "horn", "flash", "windows_close", "pet_on", "pet_off",
         )
     }
 }
@@ -262,6 +301,20 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         it.frunkOpen?.let { o -> put("frunk", o) }
         it.trunkOpen?.let { o -> put("trunk", o) }
         put("fpower", it.frunkPowered)
+        // power only while charging, in whole kW; the car reports a little above zero at times when it is not
+        if (it.chargeState == "CHARGING" && it.chargeRateKw in MIN_RATE_KW..maxRateKw(it.model)) {
+            put("rate", Math.round(it.chargeRateKw).toInt())
+        }
+        if (it.doorOpen) put("door", true)
+        if (it.tireWarning) put("tire", true)
+        if (it.occupantAlert) put("occ", true)
+        if (it.petMode) put("pet", true)
+        // the details page: rounded to what it shows, so a reading that jitters does not look like a change
+        it.tiresBar?.let { t -> put("tp", t.map { p -> Math.round(p * 100) / 100.0 }) }
+        it.cellMinC?.takeIf { c -> c in CELL_RANGE_C }?.let { c -> put("cmin", Math.round(c).toInt()) }
+        it.cellMaxC?.takeIf { c -> c in CELL_RANGE_C }?.let { c -> put("cmax", Math.round(c).toInt()) }
+        it.odometerKm?.let { km -> put("odo", Math.round(km).toInt()) }
+        it.healthLevel?.let { h -> put("soh", Math.round(h * 10) / 10.0) }
         if (it.model.isNotEmpty()) put("model", it.model)
         if (it.setTempC in MIN_TEMP_C..MAX_TEMP_C) put("tset", it.setTempC)
         // a value outside the plausible air range is a bad reading, not a temperature
@@ -378,6 +431,17 @@ internal fun agoText(thenMs: Long, nowMs: Long): String {
 }
 
 internal val AIR_RANGE_C = -50.0..70.0
+internal val CELL_RANGE_C = -40.0..100.0
+internal val TIRE_RANGE_BAR = 0.5..6.0
+
+// Charging power worth showing: below a kW is idle noise, above what the car can take is a bad reading. The ceilings
+// are the Air's and the Gravity's peak rates; a model this app does not know may charge faster, so it gets a wide one.
+internal const val MIN_RATE_KW = 0.5
+internal fun maxRateKw(model: String): Double = when (model) {
+    "AIR" -> 350.0
+    "GRAVITY" -> 450.0
+    else -> 2_000.0
+}
 
 internal const val DEFAULT_TEMP_C = 21.0
 internal const val MIN_TEMP_C = 15.0 // the API's enforced range

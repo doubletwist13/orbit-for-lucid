@@ -3,18 +3,21 @@ import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
 
-// A screen of big round icon choices, in one or more pages. Touch: tap one, swipe left or right between pages. Buttons:
-// up/down moves the highlight (past the end of a page it goes to the next page), select picks it.
-// Two big items sit side by side, three form a triangle and four a grid. Items marked :small are small buttons in a
-// row under them. Any other count would need a new row in BIG or SMALL.
+// the inside of an icon that is switched on
+const ON_FILL = 0x0B3D22;
+
+// A screen of big round icon choices. Touch: tap one. Buttons: select picks the highlighted one; up/down moves the
+// highlight on a choice screen, but on a strip page (stripIndex set) they change page, so only a touch screen can
+// reach every icon there.
+// Two big items sit side by side, three form a triangle, four a grid, and seven a hexagon round the first (the biggest,
+// which should be the one used most). Items marked :small are small buttons in a row under them. Any other count would
+// need a new row in BIG or SMALL.
 class IconMenu extends WatchUi.View {
     // centre of each item as a fraction of width and height, per count of big or small items
     private const BIG = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
-        4 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.62], [0.70, 0.62]]};
+        4 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.62], [0.70, 0.62]],
+        7 => [[0.50, 0.50], [0.36, 0.25], [0.64, 0.25], [0.79, 0.50], [0.64, 0.75], [0.36, 0.75], [0.21, 0.50]]};
     private const SMALL = {1 => [[0.50, 0.89]], 2 => [[0.38, 0.89], [0.62, 0.89]]};
-    var pages as Array<Array<Dictionary> >;
-    var page as Number = 0;
-    // the current page's items
     var items as Array<Dictionary>;
     var sel as Number = 0;
     // The focus ring only matters to a button user, so a touch screen shows none until a button or vertical swipe
@@ -22,11 +25,12 @@ class IconMenu extends WatchUi.View {
     var showSel as Boolean = !System.getDeviceSettings().isTouchScreen;
     // set by the delegate on the first choice so a second tap before the screen closes does nothing
     var picked as Boolean = false;
+    // this screen's place in the main strip, for the page dots; -1 for a choice screen pushed over it
+    var stripIndex as Number = -1;
 
-    function initialize(pages as Array<Array<Dictionary> >) {
+    function initialize(items as Array<Dictionary>) {
         View.initialize();
-        self.pages = pages;
-        items = pages[0];
+        self.items = items;
     }
 
     // back from a sub-screen makes the menu usable again
@@ -48,32 +52,35 @@ class IconMenu extends WatchUi.View {
     }
 
     private function radius(w as Number, i as Number) as Float {
-        return w * (small(i) ? 0.065 : count(false) == 2 ? 0.15 : count(false) == 4 ? 0.12 : 0.14);
+        var n = count(false);
+        return w * (small(i) ? 0.065 : n == 2 ? 0.15 : n == 4 ? 0.12 : n == 7 ? (i == 0 ? 0.115 : 0.10) : 0.14);
     }
 
     function onUpdate(dc as Dc) as Void {
         dc.setColor(GREEN, Graphics.COLOR_BLACK);
         dc.clear();
-        if (pages.size() > 1) {
-            // one dot per page, the current one filled, at the top where the round bezel leaves room
-            var gap = dc.getWidth() * 0.04;
-            var x0 = dc.getWidth() / 2 - (pages.size() - 1) * gap / 2;
-            for (var p = 0; p < pages.size(); p++) {
-                var x = x0 + p * gap;
-                var y = dc.getHeight() * 0.07;
-                if (p == page) { dc.fillCircle(x, y, gap / 4); } else { dc.drawCircle(x, y, gap / 4); }
-            }
-        }
+        if (stripIndex >= 0) { pageDots(dc, stripIndex); }
         for (var i = 0; i < items.size(); i++) {
             var r = radius(dc.getWidth(), i);
             var c = center(i, dc.getWidth(), dc.getHeight());
             var size = (r * 1.2).toNumber();
-            // a thick ring marks the focus; a filled circle would read as an item that is switched on
+            // a thick ring marks the focus; a filled circle marks an item that is switched on
+            if (items[i][:on] == true) {
+                dc.setColor(ON_FILL, Graphics.COLOR_BLACK);
+                dc.fillCircle(c[0], c[1], r);
+            }
             dc.setPenWidth(showSel && i == sel ? 8 : 3);
             dc.setColor(GREEN, Graphics.COLOR_BLACK);
             dc.drawCircle(c[0], c[1], r);
             dc.setPenWidth(3);
-            Icons.draw(dc, items[i][:icon] as Symbol, c[0] - size / 2, c[1] - size / 2, size);
+            var icon = items[i][:icon] as Symbol;
+            if (icon == :windows) {
+                Warn.windows(dc, c[0] - size / 2, c[1] - size / 2, size);
+            } else if (icon == :pet) {
+                Warn.pet(dc, c[0] - size / 2, c[1] - size / 2, size);
+            } else {
+                Icons.draw(dc, icon, c[0] - size / 2, c[1] - size / 2, size);
+            }
             var label = items[i][:label] as String?;
             if (label != null) {
                 dc.setColor(GREEN, Graphics.COLOR_BLACK);
@@ -93,65 +100,53 @@ class IconMenu extends WatchUi.View {
         return [(w * f[0]).toNumber(), (h * f[1]).toNumber()];
     }
 
-    // index of the item under a tap, or -1; a little slack because a wrist tap is imprecise
+    // Index of the item under a tap, or -1; a little slack because a wrist tap is imprecise. Where the slack of two
+    // items overlaps, the one the tap is nearest to (as a share of its reach) wins.
     function hit(x as Number, y as Number, w as Number, h as Number) as Number {
+        var best = -1;
+        var bestShare = 1.0;
         for (var i = 0; i < items.size(); i++) {
             // the small button gets more slack, since a wrist tap on something that size is hard to land
             var reach = radius(w, i) * (small(i) ? 1.8 : 1.25);
             var c = center(i, w, h);
-            if ((x - c[0]) * (x - c[0]) + (y - c[1]) * (y - c[1]) <= reach * reach) { return i; }
+            var share = ((x - c[0]) * (x - c[0]) + (y - c[1]) * (y - c[1])) / (reach * reach);
+            if (share <= bestShare) {
+                best = i;
+                bestShare = share;
+            }
         }
-        return -1;
+        return best;
     }
 
-    // step the highlight; off either end of a page it lands on the next or previous page (wrapping round)
+    // step the highlight, wrapping round at either end
     function move(by as Number) as Void {
         showSel = true;
-        var s = sel + by;
-        if (s >= items.size()) {
-            show((page + 1) % pages.size(), 0);
-        } else if (s < 0) {
-            var p = (page + pages.size() - 1) % pages.size();
-            show(p, pages[p].size() - 1);
-        } else {
-            sel = s;
-            WatchUi.requestUpdate();
-        }
-    }
-
-    // a swipe to the next or previous page, which stops at the first and last
-    function turn(by as Number) as Boolean {
-        var p = page + by;
-        if (p < 0 || p >= pages.size()) { return false; }
-        show(p, 0);
-        return true;
-    }
-
-    private function show(p as Number, s as Number) as Void {
-        page = p;
-        items = pages[p];
-        sel = s;
+        sel = (sel + by + items.size()) % items.size();
         WatchUi.requestUpdate();
     }
 }
 
-// Subclasses say what a chosen id does. A raw InputDelegate, not a BehaviorDelegate: that one turns a tap into both
-// onTap and onSelect, and the select then picked the highlighted item as well as the one tapped.
-class IconMenuDelegate extends WatchUi.InputDelegate {
+// Subclasses say what a chosen id does. onTap does not call the base class: it would turn the tap into onSelect as
+// well, which then picked the highlighted item as well as the one tapped. Paging and back (swipes, up/down on a strip
+// page) are left to PageDelegate.
+class IconMenuDelegate extends PageDelegate {
     protected var _menu as IconMenu;
 
     function initialize(menu as IconMenu) {
-        InputDelegate.initialize();
+        PageDelegate.initialize(menu.stripIndex);
         _menu = menu;
     }
 
     function choose(id as String) as Void {}
 
-    // Each choice closes screens, so a second one before that happens would close too many and could exit the app.
+    // Each choice closes screens, so a second one before that happens would close too many and could exit the app. A
+    // page of the strip stays on screen after an action that only sends (lights, windows), so nothing would show it
+    // again to clear the flag: clear it here instead.
     private function pick(id as String) as Void {
         if (_menu.picked) { return; }
         _menu.picked = true;
         choose(id);
+        if (_menu.stripIndex >= 0) { _menu.picked = false; }
     }
 
     function onTap(evt as WatchUi.ClickEvent) as Boolean {
@@ -173,37 +168,19 @@ class IconMenuDelegate extends WatchUi.InputDelegate {
                 _menu.showSel = true;
                 WatchUi.requestUpdate();
             }
-        } else if (key == WatchUi.KEY_DOWN) {
+        } else if (_menu.stripIndex < 0 && key == WatchUi.KEY_DOWN) {
             _menu.move(1);
-        } else if (key == WatchUi.KEY_UP) {
+        } else if (_menu.stripIndex < 0 && key == WatchUi.KEY_UP) {
             _menu.move(-1);
         } else {
-            return false;
-        }
-        return true;
-    }
-
-    // a vertical swipe steps the highlight too, and left or right turns the page; a swipe right on the first page
-    // stays the system's back gesture
-    function onSwipe(evt as WatchUi.SwipeEvent) as Boolean {
-        var dir = evt.getDirection();
-        if (dir == WatchUi.SWIPE_UP) {
-            _menu.move(1);
-        } else if (dir == WatchUi.SWIPE_DOWN) {
-            _menu.move(-1);
-        } else if (dir == WatchUi.SWIPE_LEFT) {
-            return _menu.turn(1);
-        } else if (dir == WatchUi.SWIPE_RIGHT) {
-            return _menu.turn(-1);
-        } else {
-            return false;
+            return PageDelegate.onKey(evt);
         }
         return true;
     }
 }
 
 // The actions pages. Lock, climate, frunk and trunk open a second screen so the choice never depends on the cached
-// state; the rest act at once.
+// state; the rest act at once. The pages stay under it, so perform closes only the screens pushed above them.
 class ActionsDelegate extends IconMenuDelegate {
     function initialize(menu as IconMenu) {
         IconMenuDelegate.initialize(menu);
@@ -211,32 +188,38 @@ class ActionsDelegate extends IconMenuDelegate {
 
     function choose(id as String) as Void {
         if (id.equals("lock_menu")) {
-            var menu = new IconMenu([[{:icon => :lock, :id => "lock"}, {:icon => :unlock, :id => "unlock"}]]);
-            WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
+            lockChoice();
         } else if (id.equals("frunk_menu") || id.equals("trunk_menu")) {
             var lid = id.equals("frunk_menu") ? "frunk" : "trunk";
             // a gas strut frunk can be unlatched but not closed by the car, so there is only one choice: skip the menu
             if (lid.equals("frunk") && link().state != null && link().state["fpower"] == false) {
-                perform("frunk_open", 1, null);
+                perform("frunk_open", 0, null);
                 return;
             }
-            var menu = new IconMenu([[{:icon => lidIcon(lid, true), :id => lid + "_open"},
-                {:icon => lidIcon(lid, false), :id => lid + "_close"}]]);
+            var menu = new IconMenu([{:icon => lidIcon(lid, true), :id => lid + "_open"},
+                {:icon => lidIcon(lid, false), :id => lid + "_close"}]);
             WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
         } else if (id.equals("climate_menu")) {
             // the on icon shows the car's current set point, which it keeps even while climate is off
             var tset = link().state != null ? link().state["tset"] as Numeric? : null;
             var f = Units.fahrenheit();
             var label = tset != null ? Units.label(tset.toFloat(), f) : null;
-            var menu = new IconMenu([[{:icon => :hvacoff, :id => "climate_off"},
-                {:icon => :hvac, :id => "climate_on", :label => label}]]);
+            // pet mode toggles, so its icon is filled while the car has it on
+            var pet = link().state != null && link().state["pet"] == true;
+            var menu = new IconMenu([{:icon => :hvacoff, :id => "climate_off"},
+                {:icon => :hvac, :id => "climate_on", :label => label},
+                {:icon => :pet, :id => pet ? "pet_off" : "pet_on", :on => pet}]);
             WatchUi.pushView(menu, new ClimateDelegate(menu), WatchUi.SLIDE_LEFT);
-        } else if (id.equals("info")) {
-            WatchUi.pushView(new InfoView(), new WatchUi.BehaviorDelegate(), WatchUi.SLIDE_LEFT);
         } else {
-            perform(id, 1, null);
+            perform(id, 0, null);
         }
     }
+}
+
+// Lock or unlock, from the main screen's button or the actions page.
+function lockChoice() as Void {
+    var menu = new IconMenu([{:icon => :lock, :id => "lock"}, {:icon => :unlock, :id => "unlock"}]);
+    WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
 }
 
 // The second screen of lock, frunk or trunk: either choice acts at once (the confirm tap comes from perform).
@@ -246,19 +229,19 @@ class ChoiceDelegate extends IconMenuDelegate {
     }
 
     function choose(id as String) as Void {
-        perform(id, 2, null);
+        perform(id, 1, null);
     }
 }
 
-// Climate off, or on with a set point picked next.
+// Climate off, on with a set point picked next, or pet mode on or off.
 class ClimateDelegate extends IconMenuDelegate {
     function initialize(menu as IconMenu) {
         IconMenuDelegate.initialize(menu);
     }
 
     function choose(id as String) as Void {
-        if (id.equals("climate_off")) {
-            perform(id, 2, null);
+        if (id.equals("climate_off") || id.equals("pet_on") || id.equals("pet_off")) {
+            perform(id, 1, null);
             return;
         }
         var tset = link().state != null ? link().state["tset"] as Numeric? : null;
@@ -285,7 +268,7 @@ class TempMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 
     function onSelect(item as WatchUi.MenuItem) as Void {
-        perform("climate_on", 3, Units.at(item.getId() as Number, _f));
+        perform("climate_on", 2, Units.at(item.getId() as Number, _f));
     }
 }
 
@@ -311,6 +294,12 @@ function perform(id as String, depth as Number, temp as Float?) as Void {
     if (question != null) {
         WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id, temp), WatchUi.SLIDE_UP);
     } else {
-        link().send(id, null);
+        sendNow(id, null);
     }
+}
+
+// Send a command and say so with a toast: the actions page shows no progress of its own, and the result comes later.
+function sendNow(cmd as String, temp as Float?) as Void {
+    link().send(cmd, temp);
+    WatchUi.showToast(LABELS[cmd] + "...", null);
 }

@@ -12,6 +12,24 @@ module Units {
         return System.getDeviceSettings().temperatureUnits == System.UNIT_STATUTE;
     }
 
+    // distance and pressure follow the watch's distance setting, since there is no separate pressure one
+    function imperial() as Boolean {
+        return System.getDeviceSettings().distanceUnits == System.UNIT_STATUTE;
+    }
+
+    // an odometer reading from the phone's kilometres, as "7,672 mi" or "12,345 km"
+    function distance(km as Numeric, imperial as Boolean) as String {
+        var n = Math.round(imperial ? km * 0.621371 : km).toNumber();
+        var s = n.toString();
+        return (n >= 1000 ? s.substring(0, s.length() - 3) + "," + s.substring(s.length() - 3, s.length()) : s) +
+            (imperial ? " mi" : " km");
+    }
+
+    // a tyre pressure from the phone's bar, as whole psi or to 2 decimals in bar
+    function pressure(bar as Numeric, imperial as Boolean) as String {
+        return imperial ? Math.round(bar * 14.5038).toNumber().toString() : bar.toFloat().format("%.2f");
+    }
+
     // The set point menu's list: 59..86 F in whole degrees, or 15.0..30.0 C in halves. Values are Celsius either way.
     function count(f as Boolean) as Number {
         return f ? 28 : 31;

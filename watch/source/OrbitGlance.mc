@@ -17,7 +17,11 @@ class OrbitGlance extends WatchUi.GlanceView {
         var left = Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER;
         dc.setColor(0x00FF66, Graphics.COLOR_BLACK);
         dc.clear();
-        dc.drawText(0, h * 0.25, Graphics.FONT_GLANCE, "> Orbit", left);
+        // an unattended occupant is urgent enough to take over the title, in red
+        var occupant = s != null && s["occ"] == true;
+        if (occupant) { dc.setColor(0xFF0000, Graphics.COLOR_BLACK); }
+        dc.drawText(0, h * 0.25, Graphics.FONT_GLANCE, occupant ? "! Occupant in car" : "> Orbit", left);
+        if (occupant) { dc.setColor(0x00FF66, Graphics.COLOR_BLACK); }
         var y = h * 0.70;
         if (s == null) {
             dc.drawText(0, y, Graphics.FONT_GLANCE, "No data", left);
@@ -47,6 +51,19 @@ class OrbitGlance extends WatchUi.GlanceView {
         Icons.draw(dc, unknown ? :lockunknown : s["locked"] ? :lock : :unlock, x, top - (big - size) / 2, big);
         dc.setColor(0x00FF66, Graphics.COLOR_BLACK);
         x += big + gap;
-        Icons.draw(dc, Charge.plug(s["charge"] as String?), x, top, size);
+        var rate = s["rate"] as Number?;
+        if (rate == null) {
+            Icons.draw(dc, Charge.plug(s["charge"] as String?), x, top, size);
+            return;
+        }
+        // charging: the power in kW stands in for the plug, with a bolt; the unit only if there is room for it
+        Icons.draw(dc, :bolt, x - size / 4, top, size);
+        x += size / 2 + gap / 2;
+        var kw = rate.toString();
+        dc.drawText(x, y, Graphics.FONT_GLANCE, kw, left);
+        x += dc.getTextWidthInPixels(kw, Graphics.FONT_GLANCE) + gap / 2;
+        if (x + dc.getTextWidthInPixels("kW", Graphics.FONT_XTINY) <= dc.getWidth()) {
+            dc.drawText(x, y, Graphics.FONT_XTINY, "kW", left);
+        }
     }
 }

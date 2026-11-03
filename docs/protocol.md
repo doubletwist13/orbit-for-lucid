@@ -17,15 +17,23 @@ message whose `v` it does not know.
 | `wv` | string | Optional: the watch app's version, e.g. `0.3.0`, shown on the phone app's status screen |
 
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
-  `trunk_close`, `horn`, `flash`.
+  `trunk_close`, `horn`, `flash`, `windows_close`, `pet_on`, `pet_off`.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
-- The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn` or any frunk
-  or trunk command. The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without one.
+- The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn`, `windows_close` or any
+  frunk or trunk command. The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without
+  one; the watch shows a toast for those and for the confirmed ones once sent.
 - `horn` and `flash` (flash the lights) have no state to read back: Lucid's answer to both is an empty message, and
   nothing in the car's state is known to report them. The phone wakes the car if needed, sends, and answers `ok` at
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
-  "Sending", never "Honking". The frunk and trunk commands wait for the car to report the lid open or closed, like
+  "Sending", never "Honking". `windows_close` closes all four windows and waits for the car to report them closed (each
+  one fully closed or at its upper stop, or the "all windows" value); a car that reports no window state answers after
+  the next status fetch. The API's other window choices (vent, open all) are not offered. The frunk and trunk commands
+  wait for the car to report the lid open or closed, like
   `lock`; a car that reports no state for a lid answers after the next status fetch.
+- Lucid accepts a command without saying whether the car will act on it: many are ignored while the car is in gear (D
+  or R) or moving. For the commands that wait for the car to report a change, that ends as the `timeout` error after
+  about 105 s; for the ones that cannot be read back (`horn`, `flash`) nothing says it was ignored. The car's gear
+  position is in the state (`gear_position`) but the phone does not check it before sending.
 - `temp` is clamped to 15..30 by the phone and defaults to 21 when missing or not a number. It is also sent while
   climate is already on, to change the set point.
 - `soc` is left out of a reply when the car's value is outside 0..100; the watch then shows `--`.
@@ -48,6 +56,15 @@ for an `id` has `pending` absent or empty.
 | `hvac` | bool | Climate/precondition on |
 | `frunk`, `trunk` | bool | Frunk or trunk open (ajar counts as open); omitted when the car reports no state for it |
 | `fpower` | bool | The frunk has a power strut, so the car can close it; `false` for a gas strut, which only opens |
+| `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
+| `door` | bool | Any of the four doors open (ajar counts); sent only when `true` |
+| `tire` | bool | The car's own tyre pressure warning (soft or hard) is on for a wheel; sent only when `true` |
+| `occ` | bool | Unattended-occupant detection is in any warning stage; sent only when `true` (watch: red icon) |
+| `pet` | bool | Pet mode is on; sent only when `true`. `pet_on` and `pet_off` wait for the car to report it (no confirm tap) |
+| `tp` | array of 4 | Tyre pressures in bar (front left and right, rear left and right), 2 decimals; see below |
+| `cmin`, `cmax` | int | Coolest and warmest battery cell, Celsius, rounded; omitted if unreported or outside -40..100 |
+| `odo` | int | Odometer in km, rounded; the watch converts to miles by its own distance setting |
+| `soh` | number | Battery health in percent (95.0 is 95%), to 1 decimal; omitted when unreported |
 | `model` | string | `AIR` or `GRAVITY`, for the car drawing on the frunk and trunk icons; omitted for any other model |
 | `tset` | number | The car's cabin set point in Celsius (see below) |
 | `tin`, `tout` | number | Cabin and outside air temperature in Celsius; each omitted if unreported or outside -50..70 |
@@ -58,6 +75,10 @@ for an `id` has `pending` absent or empty.
 | `err` | string | Error code, see below |
 
 Status fields are omitted from an error reply that has no state to show.
+
+`rate` is left out above the model's peak, which is a bad reading: Air 350 kW, Gravity 450 kW, any other model 2000 kW.
+`tp` is left out unless all four pressures are plausible (0.5 to 6 bar), so a pressure is never shown for the wrong
+wheel. The car's `remaining_range` is in kilometres, as a rated range scaled by the charge, and is not sent.
 
 `tset` is kept by the car even while climate is off, and is left out when the car reports none or a value outside
 15..30. It reads back within about 0.4 F of what was set, so the watch rounds it to its own list steps.

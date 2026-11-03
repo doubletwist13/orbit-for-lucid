@@ -15,6 +15,10 @@ import mobilegateway.protos.LoginSessionOuterClass.LoginResponse
 import mobilegateway.protos.LoginSessionOuterClass.NotificationChannelType
 import mobilegateway.protos.LoginSessionOuterClass.Os
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
+import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowControlRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowPosition
+import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
+import mobilegateway.protos.VehicleStateServiceOuterClass.CreatureComfortMode
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorLocksControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
 import mobilegateway.protos.VehicleStateServiceOuterClass.FrontCargoControlRequest
@@ -22,6 +26,7 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.GetVehicleStateResponse
 import mobilegateway.protos.VehicleStateServiceOuterClass.HonkHornRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.HvacPower
+import mobilegateway.protos.VehicleStateServiceOuterClass.KeepClimateStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.LightAction
 import mobilegateway.protos.VehicleStateServiceOuterClass.LightsControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.LockState
@@ -29,9 +34,14 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
 import mobilegateway.protos.VehicleStateServiceOuterClass.RearCargoControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCabinTemperatureRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.SetCreatureComfortModeRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
+import mobilegateway.protos.VehicleStateServiceOuterClass.UnattendedOccupantDetectionStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
 import mobilegateway.protos.VehicleStateServiceOuterClass.WakeupVehicleRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.WarningState
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowPositionStatus
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowSwitchState
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -71,6 +81,30 @@ data class VehicleStatus(
     val trunkOpen: Boolean? = null,
     /** False for a gas-strut frunk: the car can unlatch it but not close it. An unknown strut is treated as powered. */
     val frunkPowered: Boolean = true,
+    /** Charging power in kW; 0 when not reported. Only meaningful while the charge state is CHARGING. */
+    val chargeRateKw: Double = 0.0,
+    /** Any of the four doors open (ajar counts as open). */
+    val doorOpen: Boolean = false,
+    /** The car's own tyre pressure warning (soft or hard) is on for any wheel. */
+    val tireWarning: Boolean = false,
+    /** Tyre pressures in bar, front left, front right, rear left, rear right; null unless all four are plausible. */
+    val tiresBar: List<Double>? = null,
+    /** Coolest and warmest battery cell in Celsius; null when the car sends no battery block. */
+    val cellMinC: Double? = null,
+    val cellMaxC: Double? = null,
+    val odometerKm: Double? = null,
+    /** Energy left in the battery in kWh, for working out efficiency (see [EnergyLog]). */
+    val energyKwh: Double? = null,
+    /** The car's battery health level, in whatever scale the car uses (not yet known); null when not reported. */
+    val healthLevel: Double? = null,
+    /** All four windows closed; null when the car reports no window state, so a close cannot be confirmed. */
+    val windowsClosed: Boolean? = null,
+    /** The car's unattended-occupant detection is in any warning stage: someone, or a pet, may be left inside. */
+    val occupantAlert: Boolean = false,
+    /** Pet mode (the car keeps the cabin comfortable while nobody is in it) is on. */
+    val petMode: Boolean = false,
+    /** Everything the car last reported, for the details screen; not sent to the watch. */
+    val raw: Vehicle? = null,
     /** "AIR" or "GRAVITY"; empty when the car reports none or a model this app has no art for. */
     val model: String = "",
     val updatedMs: Long,
@@ -199,6 +233,21 @@ class LucidClient(
         LightsControlRequest.newBuilder().setVehicleId(vehicleId).setAction(LightAction.LIGHT_ACTION_FLASH).build(),
     )
 
+    /** Closes all four windows. Only closing is offered: the API's other choices (vent, open all) are left out. */
+    suspend fun closeWindows(refreshToken: String, vehicleId: String) = command(
+        refreshToken, "AllWindowControl",
+        AllWindowControlRequest.newBuilder().setVehicleId(vehicleId)
+            .setState(WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL).build(),
+    )
+
+    suspend fun setPetMode(refreshToken: String, vehicleId: String, on: Boolean) = command(
+        refreshToken, "SetCreatureComfortMode",
+        SetCreatureComfortModeRequest.newBuilder().setVehicleId(vehicleId)
+            .setMode(
+                if (on) CreatureComfortMode.CREATURE_COMFORT_MODE_ON else CreatureComfortMode.CREATURE_COMFORT_MODE_OFF,
+            ).build(),
+    )
+
     private fun doorState(open: Boolean) = if (open) DoorState.DOOR_STATE_OPEN else DoorState.DOOR_STATE_CLOSED
 
     private suspend fun command(refreshToken: String, method: String, req: MessageLite) {
@@ -286,6 +335,36 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     frunkOpen = state.body.frontCargo.isOpen(),
     trunkOpen = state.body.rearCargo.isOpen(),
     frunkPowered = config.frunkStrut != StrutType.STRUT_TYPE_GAS,
+    chargeRateKw = state.charging.chargeRateKwhPrecise,
+    doorOpen = with(state.body) {
+        listOf(frontLeftDoor, frontRightDoor, rearLeftDoor, rearRightDoor).any { it.isOpen() == true }
+    },
+    tireWarning = with(state.chassis) {
+        listOf(
+            hardWarnLeftFront, hardWarnLeftRear, hardWarnRightFront, hardWarnRightRear,
+            softWarnLeftFront, softWarnLeftRear, softWarnRightFront, softWarnRightRear,
+        ).any { it == WarningState.WARNING_ON }
+    },
+    tiresBar = with(state.chassis) {
+        listOf(
+            frontLeftTirePressureBar, frontRightTirePressureBar, rearLeftTirePressureBar, rearRightTirePressureBar,
+        ).takeIf { state.hasChassis() && it.all { p -> p in TIRE_RANGE_BAR } }
+    },
+    cellMinC = state.battery.minCellTemp.takeIf { state.hasBattery() },
+    cellMaxC = state.battery.maxCellTemp.takeIf { state.hasBattery() },
+    odometerKm = state.chassis.odometerKm.takeIf { state.hasChassis() && it > 0 },
+    energyKwh = state.battery.kwhr.takeIf { state.hasBattery() && it > 0 },
+    healthLevel = state.battery.batteryHealthLevel.takeIf { state.hasBattery() && it > 0 },
+    windowsClosed = state.body.windowsClosed(),
+    occupantAlert = when (state.body.unattendedOccupantDetectionStatus) {
+        UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_1,
+        UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_2,
+        UnattendedOccupantDetectionStatus.UNATTENDED_OCCUPANT_DETECTION_STATUS_STAGE_3,
+        -> true
+        else -> false
+    },
+    petMode = state.hvac.keepClimateStatus == KeepClimateStatus.KEEP_CLIMATE_STATUS_PET_MODE_ON,
+    raw = this,
     model = when (config.model) {
         Model.MODEL_AIR -> "AIR"
         Model.MODEL_GRAVITY -> "GRAVITY"
@@ -293,6 +372,27 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     },
     updatedMs = state.lastUpdatedMs,
 )
+
+/**
+ * Whether every window is shut, from the four positions, or the car's "all windows" value when it sends no positions.
+ * Any window known to be somewhere else makes it false; null when the car says nothing either way.
+ */
+internal fun BodyState.windowsClosed(): Boolean? {
+    val w = windowPosition
+    val known = listOf(w.leftFront, w.leftRear, w.rightFront, w.rightRear)
+        .filter { it != WindowPositionStatus.WINDOW_POSITION_STATUS_UNKNOWN }
+    if (known.isNotEmpty()) {
+        return known.size == 4 && known.all {
+            it == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED ||
+                it == WindowPositionStatus.WINDOW_POSITION_STATUS_HARD_STOP_UP
+        }
+    }
+    return when (allWindowsPosition) {
+        AllWindowPosition.ALL_WINDOW_POSITION_CLOSED -> true
+        AllWindowPosition.ALL_WINDOW_POSITION_OPEN -> false
+        else -> null
+    }
+}
 
 private fun DoorState.isOpen(): Boolean? = when (this) {
     DoorState.DOOR_STATE_OPEN, DoorState.DOOR_STATE_AJAR -> true

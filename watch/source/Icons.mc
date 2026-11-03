@@ -27,8 +27,6 @@ module Icons {
             refresh(dc, x, y, u);
         } else if (id == :battery) {
             battery(dc, x, y, u);
-        } else if (id == :info) {
-            info(dc, x, y, u);
         } else if (id == :frunk || id == :frunkopen || id == :trunk || id == :trunkopen) {
             lid(dc, x, y, u, id == :frunk || id == :frunkopen, id == :frunkopen || id == :trunkopen, false);
         } else if (id == :afrunk || id == :afrunkopen || id == :atrunk || id == :atrunkopen) {
@@ -105,12 +103,6 @@ module Icons {
         dc.drawArc(px(x, 12, u), px(y, 12, u), (8 * u).toNumber(), Graphics.ARC_CLOCKWISE, 0, 46);
         line(dc, x, y, u, 20, 3, 20, 8);
         line(dc, x, y, u, 20, 8, 15, 8);
-    }
-
-    // a lowercase "i": a dot over a stem
-    function info(dc as Dc, x as Number, y as Number, u as Float) as Void {
-        dc.fillCircle(px(x, 12, u), px(y, 6, u), (1.8 * u).toNumber());
-        line(dc, x, y, u, 12, 10, 12, 19);
     }
 
     // The front and back of the car in line art, as x, y pairs on the grid: the nose and the tail, the window line, the

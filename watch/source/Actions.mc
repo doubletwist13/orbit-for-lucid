@@ -130,11 +130,14 @@ class IconMenuDelegate extends PageDelegate {
 
     function choose(id as String) as Void {}
 
-    // Each choice closes screens, so a second one before that happens would close too many and could exit the app.
+    // Each choice closes screens, so a second one before that happens would close too many and could exit the app. A
+    // page of the strip stays on screen after an action that only sends (lights, windows), so nothing would show it
+    // again to clear the flag: clear it here instead.
     private function pick(id as String) as Void {
         if (_menu.picked) { return; }
         _menu.picked = true;
         choose(id);
+        if (_menu.stripIndex >= 0) { _menu.picked = false; }
     }
 
     function onTap(evt as WatchUi.ClickEvent) as Boolean {
@@ -279,6 +282,12 @@ function perform(id as String, depth as Number, temp as Float?) as Void {
     if (question != null) {
         WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id, temp), WatchUi.SLIDE_UP);
     } else {
-        link().send(id, null);
+        sendNow(id, null);
     }
+}
+
+// Send a command and say so with a toast: the actions page shows no progress of its own, and the result comes later.
+function sendNow(cmd as String, temp as Float?) as Void {
+    link().send(cmd, temp);
+    WatchUi.showToast(LABELS[cmd] + "...", null);
 }

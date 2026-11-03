@@ -13,7 +13,7 @@ const TRACK_DIM = 0x12251A;
 const STALE_SECS = 1800;
 const CONFIRM = {"unlock" => "Unlock?", "climate_off" => "Climate off?", "horn" => "Honk horn?",
     "frunk_open" => "Open frunk?", "frunk_close" => "Close frunk?", "trunk_open" => "Open trunk?",
-    "trunk_close" => "Close trunk?"};
+    "trunk_close" => "Close trunk?", "windows_close" => "Close windows?"};
 
 class MainView extends WatchUi.View {
     function initialize() {
@@ -247,7 +247,7 @@ class CommandConfirm extends WatchUi.ConfirmationDelegate {
     }
 
     function onResponse(response as WatchUi.Confirm) as Boolean {
-        if (response == WatchUi.CONFIRM_YES) { link().send(_cmd, _temp); }
+        if (response == WatchUi.CONFIRM_YES) { sendNow(_cmd, _temp); }
         return true;
     }
 }

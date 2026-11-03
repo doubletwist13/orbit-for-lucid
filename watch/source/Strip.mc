@@ -13,7 +13,7 @@ const STRIP_PAGES = 4;
 // The view and delegate for a page of the strip
 function stripView(page as Number) as [WatchUi.View, WatchUi.BehaviorDelegate] {
     if (page == ABOUT_PAGE) {
-        return [new AboutView(), new PageDelegate(ABOUT_PAGE)];
+        return [new AboutView(), new AboutDelegate()];
     } else if (page == INFO_PAGE) {
         return [new InfoView(), new PageDelegate(INFO_PAGE)];
     } else if (page == MAIN_PAGE) {

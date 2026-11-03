@@ -112,6 +112,10 @@ out in the phone screenshot.
   The app uses the first vehicle the account returns and has no way to pick another. Multi-vehicle accounts are
   untested and probably don't work properly; reports and patches are welcome. An account with no vehicle shows
   "No car found" on the watch.
+- **The car ignores some commands in gear or while moving.** Many actions, close all windows among them, are sent and
+  accepted by Lucid, but the car does nothing if it is in drive or reverse, or moving. The watch's "sent" toast only
+  means the request went out, not that the car did it. Park the car first; a close that is not confirmed shows
+  "Not confirmed" after about 105 seconds.
 - **Lucid's terms.** Orbit has you type your Lucid credentials into software that isn't Lucid's. Section 3 of Lucid's
   Connectivity Services Terms and Conditions tells you not to do anything that might jeopardize the security of your
   password or account, and section 12.3 lets Lucid suspend or cancel accounts at its discretion. Lucid's other terms

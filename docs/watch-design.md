@@ -91,7 +91,7 @@ ones already used.
 | Plug and charge status | `charging.charge_state` | Plug icon only |
 | Charge speed | `charging.charge_rate_kwh_precise`, `port_power` | Yes (kW while charging) |
 | Tire pressures | `chassis.*_tire_pressure_bar` (4), warning and sensor flags, last-updated time | Yes (info, icon) |
-| Doors, frunk, trunk, port | `body.front_cargo`, `rear_cargo`, 4 doors, `charge_port` (open, closed, ajar) | Lids, doors |
+| Doors, lids, port | `body.front_cargo`, `rear_cargo`, 4 doors, `charge_port` (open, closed, ajar) | Lids, doors |
 | Windows | `body.window_position` (4), `all_windows_position` | Only to confirm close-all |
 | Cell temperatures | `battery.min_cell_temp`, `max_cell_temp` | Yes (info page) |
 

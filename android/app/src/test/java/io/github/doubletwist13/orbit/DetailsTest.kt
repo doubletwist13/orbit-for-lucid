@@ -26,6 +26,13 @@ class DetailsTest {
 
     private fun rows(group: String) = vehicleDetails(vehicle).first { it.title == group }.rows.toMap()
 
+    @Test fun scheduleTimeIsUtcMinutesShownInTheLocalZone() {
+        val chicago = java.util.TimeZone.getTimeZone("America/Chicago")
+        val nov2 = 1_793_600_000_000L // 2026-11-02, after the daylight saving change
+        val shown = scheduleTime(300, chicago, java.util.Locale.US, nov2)
+        assertEquals("11:00 PM", shown.replace(' ', ' '))
+    }
+
     @Test fun valuesAreFormattedWithBothUnits() {
         assertEquals("12,346 km (7,671 mi)", rows("Tires and chassis")["Odometer"])
         assertEquals("2.80 bar (40.6 psi)", rows("Tires and chassis")["Tire FL"])

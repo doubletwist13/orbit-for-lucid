@@ -65,7 +65,7 @@ internal fun vehicleDetails(v: Vehicle): List<DetailGroup> {
             "This session" to "${c.chargeSessionKwh.one()} kWh, ${c.chargeSessionMi.one()} mi",
             "Time left" to "${c.sessionMinutesRemaining} min",
             "Limit" to "${c.chargeLimitPercent.one()} % (${c.chargeLimit})",
-            "Schedule" to "${c.scheduledCharge.nice()}, at ${c.chargeScheduledTime}",
+            "Schedule" to "${c.scheduledCharge.nice()}, at ${scheduleTime(c.chargeScheduledTime)}",
             "Cable lock" to c.cableLock.nice(),
             "AC current limit" to "${c.activeSessionAcCurrentLimit} A (car ${c.energyAcCurrentLimit} A)",
             "Restart allowed" to c.chargingSessionRestartAllowed.nice(),
@@ -140,6 +140,22 @@ internal fun vehicleDetails(v: Vehicle): List<DetailGroup> {
 /** An enum value as lower-case words. The generated names repeat their type's prefix; nothing here can strip it. */
 private fun Enum<*>.nice(): String =
     name.lowercase(Locale.ROOT).replace('_', ' ').let { if (it == "unrecognized") "?" else it }
+
+/**
+ * The car's scheduled charge time as a local clock time. It is minutes after midnight UTC (an 11 PM schedule in US
+ * Central standard time reads 300), so it is shown in the phone's zone as of [now]; a daylight saving change since the
+ * schedule was set can shift it by an hour.
+ */
+internal fun scheduleTime(
+    utcMinutes: Int,
+    zone: java.util.TimeZone = java.util.TimeZone.getDefault(),
+    locale: Locale = Locale.getDefault(),
+    now: Long = System.currentTimeMillis(),
+): String {
+    val midnightUtc = now - Math.floorMod(now, 86_400_000L)
+    return DateFormat.getTimeInstance(DateFormat.SHORT, locale).apply { timeZone = zone }
+        .format(Date(midnightUtc + utcMinutes * 60_000L))
+}
 
 private fun Double.one() = String.format(Locale.US, "%.1f", this)
 

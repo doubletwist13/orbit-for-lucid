@@ -68,7 +68,7 @@ Decisions (the reasoning and test results are in `docs/research/phone-bridge-fin
 
 ## Target devices
 The Venu 3 is the tested target (real hardware). The manifest also lists `fenix7` and `venux1`; both build and the
-0.4.0 screens were checked in the simulator only (0.5.0's redesign is not yet), so the README calls them untested.
+0.5.0 main, info and Access pages were looked over in the simulator only, so the README calls them untested.
 Before any store release, trim the manifest to watches a real owner has tried (store distribution covers every
 listed product).
 
@@ -136,7 +136,6 @@ the releases.
 **Next**
 - Open windows on the watch (#11).
 - Choice screens (lock, climate, frunk, trunk) show the last known state and its age (#38).
-- Check the 0.5.0 layout on the Venu X1 and fenix 7.
 
 **Later**
 - Multi-vehicle support (#33). Needs a tester with a second car; the WearOS app already stores a selected vehicle id.

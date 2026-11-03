@@ -25,8 +25,8 @@ works or not.
 | Watch | Status |
 |---|---|
 | Venu 3 | Tested on a real watch |
-| fenix 7 | Builds; 0.4.0 was checked in Garmin's simulator, 0.5.0's redesign not yet; never on a real watch |
-| Venu X1 | Builds; 0.4.0 was checked in Garmin's simulator, 0.5.0's redesign not yet; never on a real watch |
+| fenix 7 | Builds and runs in Garmin's simulator (0.5.0 screens look right by touch); never on a real watch |
+| Venu X1 | Builds and runs in Garmin's simulator (0.5.0 screens look right by touch); never on a real watch |
 
 The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs them on hardware.
 
@@ -187,10 +187,8 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
   (app and website) may say more; the author has not read them. Whether this is allowed is your call, and any
   consequences for your account are yours.
 - **Tested on the Venu 3 only.** The Venu 3 is the only watch it has run on. The manifest also lists the Venu X1
-  and the fenix 7 (see the table under Status). Both build without errors. Their 0.4.0 screens (main, actions, info,
-  climate, the set point list and the confirm) were run in Garmin's simulator; the redesigned screens of 0.5.0 (the
-  main screen's bezel marks, the page strip, the seven-icon Actions page) have not been, and neither has run on a
-  real watch. The
+  and the fenix 7 (see the table under Status). Both build without errors, and the 0.5.0 main, info and
+  Access pages were looked over in Garmin's simulator by touch, but neither has run on a real watch. The
   simulator draws Garmin's stock menus differently from real hardware, and memory use and the glance on those
   watches are untested. The Venu X1 needs a Connect IQ SDK with API level 6.0.3 or newer. To try another watch, add its
   id to `manifest.xml` and build with `-d <id>`; if you do, please report what happens. The glance shows cached state

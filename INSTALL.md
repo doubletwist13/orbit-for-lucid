@@ -7,8 +7,7 @@ unofficial, lightly tested software that controls a real car, and it was written
 ## What you need
 
 - An Android phone (tested on a Pixel 10 Pro) with **Garmin Connect Mobile** installed and your watch paired to it.
-- A Garmin touchscreen watch. Only the **Venu 3** has been tested on a real watch; the fenix 7 and 8, Epix 2 Pro and
-  Venu X1 have been run in the simulator only, and many others build but are untested. See
+- A Garmin touchscreen watch. Only the **Venu 3** has been tested on a real watch; for the others, see
   [Other watch models](#other-watch-models).
 - A Lucid account that works in the official Lucid app. The app uses the first vehicle on the account.
 - A computer (Linux, macOS or Windows) with:
@@ -80,10 +79,8 @@ glance stays as it was.
 
 ## Other watch models
 
-The manifest (`watch/manifest.xml`) lists the devices the app will build for: the Venu 3, 3S, 4 and X1, the Vivoactive
-5 and 6, the fenix 7 and 8 families, the Epix 2 and Pro, and the Forerunner 265, 570, 965 and 970. Only the Venu 3
-has been run on a real watch; the fenix 7, fenix 8 (47 mm), Epix 2 Pro (47 mm) and Venu X1 have been run in the
-simulator; the rest compile and nothing more.
+The manifest (`watch/manifest.xml`) lists the devices the app will build for. Only the Venu 3 has been run on a real
+watch; see the table under Status in the README for what was checked on the others.
 
 To build for one of them, download its device profile in the SDK Manager and build with its id from the manifest, for
 example:

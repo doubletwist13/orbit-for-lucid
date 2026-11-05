@@ -27,12 +27,16 @@ works or not.
 | Venu 3 | Tested on a real watch |
 | fenix 7 | Builds and runs in Garmin's simulator (0.5.0 screens look right by touch); never on a real watch |
 | Venu X1 | Builds and runs in Garmin's simulator (0.5.0 screens look right by touch); never on a real watch |
+| fenix 8 (47 mm), Epix 2 Pro (47 mm) | Builds and runs in Garmin's simulator (screens look right); never on a watch |
+| Venu 3S and 4, Vivoactive 5 and 6, other fenix 7 and 8 models | Builds only; not run in the simulator or on a watch |
+| Epix 2, other Epix 2 Pro sizes, Forerunner 265, 570, 965, 970 | Builds only; not run in the simulator or on a watch |
 
-The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs them on hardware.
+The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs them on hardware, and the rest as
+less tested still. The full list of device ids is in `watch/manifest.xml`.
 
 **A touchscreen is required.** The Access page's icons can only be reached by touch (the up and down buttons change
 page), so a button-only watch, such as a Forerunner 255, a fenix 6 or an Instinct, cannot use the actions, and no layout
-exists for those screens. The three watches in the manifest all have touch. If you switch touch off in the watch's
+exists for those screens. Every watch in the manifest has touch. If you switch touch off in the watch's
 settings you lose the same things.
 
 ## Using the watch app
@@ -190,9 +194,10 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
   and the fenix 7 (see the table under Status). Both build without errors, and the 0.5.0 main, info and
   Access pages were looked over in Garmin's simulator by touch, but neither has run on a real watch. The
   simulator draws Garmin's stock menus differently from real hardware, and memory use and the glance on those
-  watches are untested. The Venu X1 needs a Connect IQ SDK with API level 6.0.3 or newer. To try another watch, add its
-  id to `manifest.xml` and build with `-d <id>`; if you do, please report what happens. The glance shows cached state
-  only (no widget).
+  watches are untested. The Venu X1 needs a Connect IQ SDK with API level 6.0.3 or newer. Many more touchscreen
+  watches are in the manifest and build, but nobody has run them (see the table under Status); if you try one, please
+  report what happens. The Venu 2 family and Venu Sq 2 are left out: they only support an older API level. The
+  glance shows cached state only (no widget).
 - **Tested on one phone.** Android only, tested on a Pixel 10 Pro. Needs Garmin Connect Mobile installed and paired
   with the watch.
 - **Not in any app store.** You build both apps yourself and sideload them. See Building.

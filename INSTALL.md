@@ -7,8 +7,9 @@ unofficial, lightly tested software that controls a real car, and it was written
 ## What you need
 
 - An Android phone (tested on a Pixel 10 Pro) with **Garmin Connect Mobile** installed and your watch paired to it.
-- A Garmin watch. Only the **Venu 3** has been tested on a real watch; the fenix 7 and Venu X1 have been run in the
-  simulator only. Others: see [Other watch models](#other-watch-models).
+- A Garmin touchscreen watch. Only the **Venu 3** has been tested on a real watch; the fenix 7 and 8, Epix 2 Pro and
+  Venu X1 have been run in the simulator only, and many others build but are untested. See
+  [Other watch models](#other-watch-models).
 - A Lucid account that works in the official Lucid app. The app uses the first vehicle on the account.
 - A computer (Linux, macOS or Windows) with:
   - **JDK 21** and the **Android SDK** (Android Studio installs both), to build the phone app.
@@ -79,26 +80,32 @@ glance stays as it was.
 
 ## Other watch models
 
-The manifest (`watch/manifest.xml`) lists the devices the app will build for. It currently has `venu3`, `venux1` and
-`fenix7`. Only the Venu 3 has been run on a real watch; the other two compile and have been run in the simulator.
+The manifest (`watch/manifest.xml`) lists the devices the app will build for: the Venu 3, 3S, 4 and X1, the Vivoactive
+5 and 6, the fenix 7 and 8 families, the Epix 2 and Pro, and the Forerunner 265, 570, 965 and 970. Only the Venu 3
+has been run on a real watch; the fenix 7, fenix 8 (47 mm), Epix 2 Pro (47 mm) and Venu X1 have been run in the
+simulator; the rest compile and nothing more.
 
-To try a watch that isn't listed:
+To build for one of them, download its device profile in the SDK Manager and build with its id from the manifest, for
+example:
 
-1. Open the SDK Manager and download that watch's device profile.
-2. Add a line to the `<iq:products>` section of `watch/manifest.xml`:
-   ```
-   <iq:product id="fenix7pro"/>
-   ```
-   Device ids match the folder names in your SDK's device folder (for example `~/.Garmin/ConnectIQ/Devices` on
-   Linux).
-3. Build with that id: `monkeyc -f monkey.jungle -d fenix7pro -o build/orbit-fenix7pro.prg -y /path/to/developer_key -w`
-4. Sideload the resulting file as in step 3 above.
+```
+monkeyc -f monkey.jungle -d fenix847mm -o build/orbit-fenix847mm.prg -y /path/to/developer_key -w
+```
+
+Then sideload the resulting file as in step 3 above. To try a watch that isn't listed, add a line to the
+`<iq:products>` section of `watch/manifest.xml` first:
+
+```
+<iq:product id="fenix7pro"/>
+```
+
+Device ids match the folder names in your SDK's device folder (for example `~/.Garmin/ConnectIQ/Devices` on Linux).
 
 Things to know:
 
 - A `.prg` is built for one device. A file built for the Venu 3 will not load on another model.
 - The app needs Connect IQ API level 5.2 or higher. Older watches will fail the build with an API-level error. The
-  Venu X1 needs a newer SDK (API 6.0.3).
+  Venu X1 needs a newer SDK (API 6.0.3). The Venu 2 family and Venu Sq 2 are not in the manifest for this reason.
 - Leave the manifest's app `id` alone. The phone app only talks to that id (`WATCH_APP_ID` in `WatchBridge.kt`). If you
   change one, change both.
 - The watch needs a touchscreen (the actions can only be reached by touch). Only touch watches are in the manifest.

@@ -66,8 +66,9 @@ readable, so check them for the Venu X1 and fenix):
   needs testing on a car first, and the valid AC current values are not known yet (#14). Start and stop, port and
   preconditioning would ask for a confirm tap; the limit and current are pickers. The schedule is probably on and off
   only (the times are set in Lucid's app); discharge needs its own look.
-- The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular) and the fenix 7 (small round); neither has
-  been tried on a real watch.
+- The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular), the fenix 7 (small round), the fenix 8
+  (47 mm) and the Epix 2 Pro (47 mm); none has been tried on a real watch. The About page, redone in 0.5.1 for the
+  Colour button, was checked on the Venu 3 and in the fenix 7 simulator.
 
 ## Open
 
@@ -157,5 +158,6 @@ out from it, so there is only one value to pick. Presets are readable on black a
 ## Build order
 
 Done in 0.5.0: the strip and gestures, Main, the Info and About pages, the warning icons, the Access page.
+Done in 0.5.1: the accent colour theme (#65) and a glance that draws on the system's card background (#68).
 Still to do, each as its own issue: the Charging page (#35, #14), open windows on the watch (#11), the state line on the
-choice screens (#38), and a check of the layout on real Venu X1 and fenix 7 hardware.
+choice screens (#38), and a check of the layout on real hardware other than the Venu 3.

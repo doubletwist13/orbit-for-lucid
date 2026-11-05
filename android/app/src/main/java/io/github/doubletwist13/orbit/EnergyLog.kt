@@ -1,6 +1,7 @@
 package io.github.doubletwist13.orbit
 
 import java.io.File
+import java.security.MessageDigest
 import java.util.Locale
 
 /** One reading of the car's odometer and the energy left in its battery, kept to work out efficiency. */
@@ -51,6 +52,19 @@ class EnergyLog(private val file: File, private val max: Int = 20_000) {
         }
         list.also { cache = it }
     }
+}
+
+/** Names a car's log by a hash of its id, as the id is account data. */
+internal fun energyKey(vehicleId: String): String =
+    MessageDigest.getInstance("SHA-256").digest(vehicleId.toByteArray()).take(6).joinToString("") { "%02x".format(it) }
+
+/** The log file for a car; a null [key] is the single log from before logs were kept per car. */
+internal fun energyFile(dir: File, key: String?) = File(dir, if (key == null) "energy.log" else "energy-$key.log")
+
+/** The first car seen takes over the pre-per-car log, unless it already has one. */
+internal fun adoptLegacyLog(dir: File, key: String) {
+    val to = energyFile(dir, key)
+    if (!to.exists()) energyFile(dir, null).renameTo(to)
 }
 
 /** Distance driven and energy used over some span of readings. */

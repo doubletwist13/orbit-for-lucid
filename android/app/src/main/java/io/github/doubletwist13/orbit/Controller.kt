@@ -13,9 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.IOException
-import java.security.MessageDigest
 
 data class UiState(
     val loggedIn: Boolean = false,
@@ -50,10 +48,12 @@ class Controller(context: Context) {
     private val filesDir = context.filesDir
 
     /** Which car the energy log is for: a hash of its id, as the id is account data. Null for the pre-0.5.1 log. */
-    private var energyKey = prefs.getString("energyKey", null)
-    private var energy = EnergyLog(energyFile(energyKey))
+    private var currentKey = prefs.getString("energyKey", null)
+    @Volatile private var energy = EnergyLog(energyFile(filesDir, currentKey))
 
-    private fun energyFile(key: String?) = File(filesDir, if (key == null) "energy.log" else "energy-$key.log")
+    /** The id [idKey] was worked out for; it never changes between readings, so the hash is done once. */
+    private var hashedId: String? = null
+    private var idKey = ""
 
     init {
         _state.update { it.copy(trips = tripRows()) }
@@ -164,18 +164,20 @@ class Controller(context: Context) {
 
     /** Keeps the odometer and battery energy of each new reading, for the efficiency figures on the details screen. */
     @Synchronized private fun record(s: VehicleStatus) {
-        val odometer = s.odometerKm ?: return
-        val kwh = s.energyKwh ?: return
-        val key = MessageDigest.getInstance("SHA-256").digest(s.vehicleId.toByteArray()).take(6)
-            .joinToString("") { "%02x".format(it) }
-        if (key != energyKey) {
-            // the first car seen takes over the log from before logs were kept per car
-            if (energyKey == null) energyFile(null).renameTo(energyFile(key))
-            energyKey = key
-            prefs.edit().putString("energyKey", key).apply()
-            energy = EnergyLog(energyFile(key))
+        if (s.vehicleId != hashedId) {
+            hashedId = s.vehicleId
+            idKey = energyKey(s.vehicleId)
+        }
+        // switch before the null checks, so the figures follow the car even if this reading has no odometer
+        if (idKey != currentKey) {
+            if (currentKey == null) adoptLegacyLog(filesDir, idKey)
+            currentKey = idKey
+            prefs.edit().putString("energyKey", idKey).apply()
+            energy = EnergyLog(energyFile(filesDir, idKey))
             _state.update { it.copy(trips = tripRows()) }
         }
+        val odometer = s.odometerKm ?: return
+        val kwh = s.energyKwh ?: return
         if (energy.add(EnergySample(System.currentTimeMillis(), odometer, kwh, s.chargeState == "CHARGING"))) {
             _state.update { it.copy(trips = tripRows()) }
         }

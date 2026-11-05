@@ -70,6 +70,29 @@ class EnergyLogTest {
         assertEquals(listOf(s(1, 100.0, 80.0), s(3, 102.0, 79.0, true)), EnergyLog(f).samples())
     }
 
+    @Test fun eachCarGetsItsOwnLog() {
+        val a = energyKey("car-a")
+        val b = energyKey("car-b")
+        assertEquals(a, energyKey("car-a"))
+        assertTrue(a != b)
+        EnergyLog(energyFile(tmp.root, a)).add(s(1, 100.0, 80.0))
+        EnergyLog(energyFile(tmp.root, b)).add(s(1, 5000.0, 60.0))
+        assertEquals(listOf(s(1, 100.0, 80.0)), EnergyLog(energyFile(tmp.root, a)).samples())
+        assertEquals(listOf(s(1, 5000.0, 60.0)), EnergyLog(energyFile(tmp.root, b)).samples())
+    }
+
+    @Test fun theOldLogMovesToTheFirstCarOnly() {
+        EnergyLog(energyFile(tmp.root, null)).add(s(1, 100.0, 80.0))
+        val a = energyKey("car-a")
+        adoptLegacyLog(tmp.root, a)
+        assertFalse(energyFile(tmp.root, null).exists())
+        assertEquals(listOf(s(1, 100.0, 80.0)), EnergyLog(energyFile(tmp.root, a)).samples())
+        // a car that already has a log keeps it
+        EnergyLog(energyFile(tmp.root, null)).add(s(2, 200.0, 70.0))
+        adoptLegacyLog(tmp.root, a)
+        assertEquals(listOf(s(1, 100.0, 80.0)), EnergyLog(energyFile(tmp.root, a)).samples())
+    }
+
     @Test fun anOverlongLogDropsItsOldestQuarter() {
         val f = tmp.newFile("energy.log")
         val log = EnergyLog(f, max = 8)

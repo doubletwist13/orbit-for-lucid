@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.IOException
 
 data class UiState(
@@ -45,10 +44,15 @@ class Controller(context: Context) {
         UiState(loggedIn = store.load() != null, pushOn = prefs.getBoolean("push", true)),
     )
     val state = _state.asStateFlow()
-    private val energy = EnergyLog(File(context.filesDir, "energy.log"))
+
+    /** Which car the energy log is for is a hash of its id, as the id is account data; null for the pre-0.5.1 log. */
+    private val energy = EnergyTracker(
+        context.filesDir, prefs.getString("energyKey", null), { prefs.edit().putString("energyKey", it).apply() },
+        _state,
+    )
 
     init {
-        _state.update { it.copy(trips = tripRows()) }
+        _state.update { it.copy(trips = energy.tripRows()) }
     }
 
     /** This app's version, sent to the watch so its info screen can show it. */
@@ -68,7 +72,8 @@ class Controller(context: Context) {
             _state.update { it.copy(message = e.message) }
             return@run
         }
-        _state.update { it.copy(loggedIn = true) }
+        // the logout cleared the figures; the log is kept, and a different account's car switches it in record()
+        _state.update { it.copy(loggedIn = true, trips = energy.tripRows()) }
         fetch()
     }
 
@@ -151,27 +156,7 @@ class Controller(context: Context) {
     private fun token() = store.load() ?: throw LucidException(16, "Logged out")
 
     private suspend fun fetch(): VehicleStatus =
-        client.status(token()).also { s -> record(s); _state.update { it.copy(status = s) } }
-
-    /** Keeps the odometer and battery energy of each new reading, for the efficiency figures on the details screen. */
-    private fun record(s: VehicleStatus) {
-        val odometer = s.odometerKm ?: return
-        val kwh = s.energyKwh ?: return
-        if (energy.add(EnergySample(System.currentTimeMillis(), odometer, kwh, s.chargeState == "CHARGING"))) {
-            _state.update { it.copy(trips = tripRows()) }
-        }
-    }
-
-    private fun tripRows(): List<Pair<String, String>> {
-        val samples = energy.samples()
-        if (samples.isEmpty()) return emptyList()
-        val date = java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT)
-        return listOf(
-            "Since last charge" to efficiencySince(samples, lastChargeEndMs(samples)).text(),
-            "Last 30 mi" to efficiencyOverLast(samples, 30 / Efficiency.KM_TO_MI).text(),
-            "All logged (${date.format(samples.first().timeMs)} on)" to efficiencySince(samples, 0).text(),
-        )
-    }
+        client.status(token()).also(energy::record)
 
     private suspend fun execute(cmd: String, tempC: Double, progress: (String) -> Unit): VehicleStatus = when (cmd) {
         // answer at once so the watch's silence timer doesn't fire while a rate-limit retry runs
@@ -251,7 +236,7 @@ class Controller(context: Context) {
 
     /** The cheap read for polling after a command: GetVehicleState showed no rate limit (see docs/research). */
     private suspend fun poll(): VehicleStatus =
-        client.state(token()).also { s -> record(s); _state.update { it.copy(status = s) } }
+        client.state(token()).also(energy::record)
 
     private suspend fun pollUntil(done: (VehicleStatus) -> Boolean): VehicleStatus? {
         repeat(POLL_COUNT) { i ->

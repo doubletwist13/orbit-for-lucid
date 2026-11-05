@@ -13,6 +13,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -139,6 +141,7 @@ private fun Login(busy: Boolean, onLogin: (String, String) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Status(s: UiState, vm: Controller, onDetails: () -> Unit) {
     val v = s.status
@@ -164,7 +167,8 @@ private fun Status(s: UiState, vm: Controller, onDetails: () -> Unit) {
         s.pushAtMs?.let { Text("Watch ${if (s.pushOk) "received" else "send failed"} ${at(it)}", color = dim) }
         Text("Orbit ${vm.version} · watch app ${s.watchVersion ?: "--"}", color = dim)
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    // wraps, or the third button is cut off on a narrow screen
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(vm::refresh, enabled = idle) { Text("Refresh") }
         if (v?.raw != null) OutlinedButton(onDetails) { Text("Vehicle details") }
         OutlinedButton(vm::logout, enabled = idle) { Text("Log out") }

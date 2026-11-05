@@ -4,9 +4,9 @@ import Toybox.Lang;
 // values are literals rather than MainView's consts).
 (:glance)
 module Charge {
-    // green from 50, yellow from 25, orange from 10, red below; no reading keeps the normal green
+    // the accent from 50, yellow from 25, orange from 10, red below; no reading keeps the accent
     function color(soc as Number?) as Number {
-        if (soc == null || soc >= 50) { return 0x00FF66; }
+        if (soc == null || soc >= 50) { return Theme.accent(); }
         return soc >= 25 ? 0xFFDD00 : soc >= 10 ? 0xFF7700 : 0xFF3333;
     }
 

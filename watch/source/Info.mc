@@ -13,7 +13,9 @@ class InfoView extends WatchUi.View {
         var s = link().state;
         var w = dc.getWidth();
         var h = dc.getHeight();
-        dc.setColor(GREEN, Graphics.COLOR_BLACK);
+        var accent = Theme.accent();
+        var dim = Theme.dim();
+        dc.setColor(accent, Graphics.COLOR_BLACK);
         dc.clear();
         pageDots(dc, INFO_PAGE);
         var f = Units.fahrenheit();
@@ -33,10 +35,10 @@ class InfoView extends WatchUi.View {
         var top = h * 0.5 - pitch * (rows.size() - 1) / 2;
         for (var i = 0; i < rows.size(); i++) {
             var y = top + i * pitch;
-            dc.setColor(DIM, Graphics.COLOR_BLACK);
+            dc.setColor(dim, Graphics.COLOR_BLACK);
             dc.drawText(w * 0.42, y, Graphics.FONT_SMALL, rows[i][0],
                 Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
-            dc.setColor(GREEN, Graphics.COLOR_BLACK);
+            dc.setColor(accent, Graphics.COLOR_BLACK);
             dc.drawText(w * 0.46, y, Graphics.FONT_SMALL, rows[i][1],
                 Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
         }

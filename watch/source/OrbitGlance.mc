@@ -15,13 +15,14 @@ class OrbitGlance extends WatchUi.GlanceView {
         var s = Application.Storage.getValue("s") as Dictionary?;
         var h = dc.getHeight();
         var left = Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER;
+        var accent = Theme.accent();
         // no dc.clear() and a transparent background throughout: the system draws the card's gradient behind this view
-        dc.setColor(0x00FF66, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(accent, Graphics.COLOR_TRANSPARENT);
         // an unattended occupant is urgent enough to take over the title, in red
         var occupant = s != null && s["occ"] == true;
         if (occupant) { dc.setColor(0xFF0000, Graphics.COLOR_TRANSPARENT); }
         dc.drawText(0, h * 0.25, Graphics.FONT_GLANCE, occupant ? "! Occupant in car" : "> Orbit", left);
-        if (occupant) { dc.setColor(0x00FF66, Graphics.COLOR_TRANSPARENT); }
+        if (occupant) { dc.setColor(accent, Graphics.COLOR_TRANSPARENT); }
         var y = h * 0.70;
         if (s == null) {
             dc.drawText(0, y, Graphics.FONT_GLANCE, "No data", left);
@@ -42,14 +43,14 @@ class OrbitGlance extends WatchUi.GlanceView {
         x += gap;
         Icons.draw(dc, :battery, x - size / 4, top, size);
         x += size / 2;
-        dc.setColor(0x00FF66, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(accent, Graphics.COLOR_TRANSPARENT);
         // the padlock is a quarter bigger, so its open shackle is easier to tell from a closed one
         var big = size * 5 / 4;
         x += gap;
         var unknown = s["locked"] == null;
         if (unknown) { dc.setColor(0xFFAA33, Graphics.COLOR_TRANSPARENT); } // amber: not locked, not unlocked
         Icons.draw(dc, unknown ? :lockunknown : s["locked"] ? :lock : :unlock, x, top - (big - size) / 2, big);
-        dc.setColor(0x00FF66, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(accent, Graphics.COLOR_TRANSPARENT);
         x += big + gap;
         var rate = s["rate"] as Number?;
         if (rate == null) {

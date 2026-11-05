@@ -51,7 +51,8 @@ Connect IQ profile). If you switch touch off in the watch's settings you lose th
   the car's details, the main screen, and the actions.
 - **Main screen** is information only, so a stray tap does nothing. It opens here, and shows:
   - **Charge.** A ring fills clockwise from the top to match the charge, with the number in percent in the middle.
-    The ring and number are green from 50%, yellow from 25%, orange from 10% and red below that.
+    The ring and number take the accent colour (green by default) from 50%, then yellow from 25%, orange from 10%
+    and red below that.
   - **Charging power.** While charging, a bolt and the power in kW sit above the number (`7 kW`). A second bolt
     shows in the icon row.
   - **Temperatures.** `84° int` and `84° ext` are the cabin and outside air, in the watch's units (`--` for one the
@@ -59,13 +60,18 @@ Connect IQ profile). If you switch touch off in the watch's settings you lose th
   - **Quick lock.** A padlock and an open padlock at the top right, with an arc along the bezel coloured by the
     lock state. Tapping them, or pressing the top-right button, opens the lock or unlock choice. These are the only
     parts of the screen besides the two slices below that react to a tap.
-  - **Icon row.** Red first, then green, then amber, only for what applies: a person with a red `!` (someone may be
-    left in the car), the padlock (closed, open, or amber with `?` if unknown), the plug (slashed when unplugged, a
-    bolt while charging), wavy lines while climate is on, then amber icons for an open frunk, trunk or door and for a
-    tire pressure warning. They shrink to fit.
-  - **Slices.** A green slice at the top (`i`) and one at the bottom (`...`) go to the page above or below when
-    tapped. The bottom line of the screen shows only what is in progress ("Unlocking...") or an error. The car only
-    reports while awake, so after 30 minutes the whole screen dims; that is normal, not an error.
+  - **Icon row.** Red first, then the accent colour, then amber, only for what applies: a person with a red `!`
+    (someone may be left in the car), the padlock (closed, open, or amber with `?` if unknown), the plug (slashed
+    when unplugged, a bolt while charging), wavy lines while climate is on, then amber icons for an open frunk,
+    trunk or door and for a tire pressure warning. They shrink to fit.
+  - **Slices.** An accent-coloured slice at the top (`i`) and one at the bottom (`...`) go to the page above or
+    below when tapped. The bottom line of the screen shows only what is in progress ("Unlocking...") or an error.
+    The car only reports while awake, so after 30 minutes the whole screen dims; that is normal, not an error.
+- **Theme.** The icons, text, page dots and glance take one accent colour, green by default. Pick another of 11 on
+  the version page by tapping **Colour**; on most watches, holding the menu button (the lower button on the Venu 3,
+  the Up button on a fenix, Epix or Forerunner) opens the picker from any page. Venu 4, Venu X1 and Vivoactive 6 have
+  no such button, so use the version page. The charge (ring, number, glance battery) follows the accent while it is
+  50% or more, then turns yellow, orange or red as before; amber warnings and red alerts never change.
 - **Stays current.** The phone reads the car every 30 s while it is awake or charging and every 60 s while it
   sleeps (every 10 s for 2 minutes after the watch asks for anything). It sends the watch a change at most once a
   minute, and a status every 5 minutes even if nothing changed. This happens while the app is closed and whether or
@@ -81,7 +87,8 @@ Connect IQ profile). If you switch touch off in the watch's settings you lose th
   units).
 - **Version and update** (the top page) shows when the car last reported and when the phone last sent status to the
   watch, so you can tell whether the updates are arriving, and the watch app's and the phone app's versions. Tap it
-  to ask the car for its state again (a refresh). The phone app shows the same times, plus when it last asked Lucid.
+  to ask the car for its state again (a refresh). The outlined **Colour** button at the top opens the colour picker
+  (see Theme below). The phone app shows the same times, plus when it last asked Lucid.
   Its "Vehicle details" screen lists everything the car reports, plus efficiency figures worked out from the odometer
   and battery energy the phone has logged.
 - **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does

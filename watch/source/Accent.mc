@@ -2,8 +2,9 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-// The accent picker, opened by holding any page (PageDelegate.onMenu). A stock menu, so every watch draws it in its own
-// theme; each item has a dot in its colour, and choosing one saves it and closes the menu.
+// The accent picker, opened by the Colour button on the About page (the only way in on a watch with no menu button) or
+// by holding any page (PageDelegate.onMenu). A stock menu, so every watch draws it in its own theme; each item has a
+// dot in its colour, and choosing one saves it and closes the menu.
 function pushAccentMenu() as Void {
     var menu = new WatchUi.Menu2({:title => "Colour"});
     for (var i = 0; i < Theme.COLORS.size(); i++) {

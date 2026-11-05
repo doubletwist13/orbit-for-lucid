@@ -96,7 +96,7 @@ class MainView extends WatchUi.View {
             dc.setColor(base, Graphics.COLOR_BLACK);
             dc.drawText(w * 0.58, y, Graphics.FONT_SMALL, t, left);
             dc.setColor(Theme.dim(), Graphics.COLOR_BLACK);
-            dc.drawText(w * 0.58 +dc.getTextWidthInPixels(t, Graphics.FONT_SMALL) + w * 0.012, y + h * 0.01,
+            dc.drawText(w * 0.58 + dc.getTextWidthInPixels(t, Graphics.FONT_SMALL) + w * 0.012, y + h * 0.01,
                 Graphics.FONT_XTINY, labels[i], left);
         }
     }

@@ -37,10 +37,10 @@ readable, so check them for the Venu X1 and fenix):
    target for the page above and below, with a zone larger than what is drawn.
 5. **Main's layout.** The charge is a ring round the number (top left). Temperatures (interior and exterior) sit under
    the lock button's mark, and the charge power with a bolt in the space between the ring and the mark, only while
-   charging. The state row has the lock, plug and climate in green, and in amber an open frunk, trunk or door and a
-   tyre warning, only while they apply; an unattended-occupant alert is a red icon first in the row and takes over the
-   glance title. The status line shows only a pending command or an error. The age of the data is on About, and a stale
-   screen is dimmed.
+   charging. The state row has the lock, plug and climate in the accent colour (green unless changed, see Theme
+   below), and in amber an open frunk, trunk or door and a tyre warning, only while they apply; an
+   unattended-occupant alert is a red icon first in the row and takes over the glance title. The status line shows
+   only a pending command or an error. The age of the data is on About, and a stale screen is dimmed.
 6. **Memory is not the limit.** Measured on the Venu 3: the app uses 37 of 763 KB, the glance 19 of 59 KB and the
    background handler 14 of 59 KB, with about 40 fields saved. More fields are fine until a single phone message gets
    too large, which is untested. The phone has a details screen with the rest of the car's data, and it works out
@@ -66,8 +66,9 @@ readable, so check them for the Venu X1 and fenix):
   needs testing on a car first, and the valid AC current values are not known yet (#14). Start and stop, port and
   preconditioning would ask for a confirm tap; the limit and current are pickers. The schedule is probably on and off
   only (the times are set in Lucid's app); discharge needs its own look.
-- The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular) and the fenix 7 (small round); neither has
-  been tried on a real watch.
+- The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular), the fenix 7 (small round), the fenix 8
+  (47 mm) and the Epix 2 Pro (47 mm); none has been tried on a real watch. The About page, redone in 0.5.1 for the
+  Colour button, was checked on the Venu 3 and in the fenix 7 simulator.
 
 ## Open
 
@@ -137,8 +138,26 @@ occupant; a charge fault; a software update available.
 - Tire pressure has its own last-updated time, so it can be older than the rest of the state.
 - Some fields will be empty on some cars or while the car sleeps; omit them in the reply, as `tin` and `tout` are.
 
+## Theme (#65)
+
+One accent colour, green by default, for the icons, text, page dots, slices and the glance, picked from 11 presets
+(`Theme.mc`) and kept in Storage. The darker shades (dim text, the filled icon background, the ring track) are worked
+out from it, so there is only one value to pick. Presets are readable on black and clear of the warning colours.
+
+- **Follows the accent:** everything above, and the charge ring, number and glance battery while the charge is 50% or
+  more.
+- **Fixed:** the charge's yellow, orange and red below 50%, amber for a warning or an unknown state, and red for an
+  occupant alert or an error, so a warning never looks like decoration.
+- **Where it is set:** on the watch, not in Garmin Connect, since a sideloaded app gets no settings page there. The
+  outlined Colour button at the top of the About page opens the picker (the top fifth of the screen is its tap
+  zone, so it is not confused with the refresh tap below it); holding the menu button does the same on the 26 supported
+  watches that have one. Venu 4, Venu X1 and Vivoactive 6 have none, so the About page is their only way in.
+- **Small palettes:** in the simulator the fenix 7's display shows Mint and Teal, and Violet and Purple, as nearly the
+  same colour; the other presets stay distinct. Left as is. The other MIP watches have not been looked at.
+
 ## Build order
 
 Done in 0.5.0: the strip and gestures, Main, the Info and About pages, the warning icons, the Access page.
+Done in 0.5.1: the accent colour theme (#65) and a glance that draws on the system's card background (#68).
 Still to do, each as its own issue: the Charging page (#35, #14), open windows on the watch (#11), the state line on the
-choice screens (#38), and a check of the layout on real Venu X1 and fenix 7 hardware.
+choice screens (#38), and a check of the layout on real hardware other than the Venu 3.

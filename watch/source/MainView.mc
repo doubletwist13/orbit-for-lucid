@@ -5,11 +5,7 @@ import Toybox.System;
 import Toybox.Time;
 import Toybox.WatchUi;
 
-const GREEN = 0x00FF66;
-const DIM = 0x338855;
 const AMBER = 0xFFAA33;
-const TRACK = 0x12331F;
-const TRACK_DIM = 0x12251A;
 const STALE_SECS = 1800;
 const CONFIRM = {"unlock" => "Unlock?", "climate_off" => "Climate off?", "horn" => "Honk horn?",
     "frunk_open" => "Open frunk?", "frunk_close" => "Close frunk?", "trunk_open" => "Open trunk?",
@@ -28,12 +24,12 @@ class MainView extends WatchUi.View {
         var cx = w / 2;
         // old data is dimmed; the car only reports while awake, so this is normal, not an error
         var stale = s != null && Time.now().value() - (s["ts"] as Number) >= STALE_SECS;
-        var base = stale ? DIM : GREEN;
+        var base = stale ? Theme.dim() : Theme.accent();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
         var soc = s != null ? s["soc"] as Number? : null;
-        // the charge (ring and number) takes its colour from the level; everything else stays green
-        var fg = stale ? DIM : Charge.color(soc);
+        // the charge (ring and number) is the accent until it runs low, then yellow, orange or red (see Charge)
+        var fg = stale ? Theme.dim() : Charge.color(soc);
         var rx = (w * 0.33).toNumber();
         var ry = (h * 0.34).toNumber();
         var rr = (w * 0.19).toNumber();
@@ -51,7 +47,7 @@ class MainView extends WatchUi.View {
         var note = link.pending != null ? link.pending + "..." : link.err != null ? link.err : "";
         if (note.length() == 0) { return; }
         // a transparent background, or the text's box cuts a notch out of the ring behind it
-        dc.setColor(link.err != null ? Graphics.COLOR_RED : DIM, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(link.err != null ? Graphics.COLOR_RED : Theme.dim(), Graphics.COLOR_TRANSPARENT);
         // a long message must stay inside the round bezel: the usable chord at this height, less the ring
         var y = h * 0.87;
         var dy = y - h / 2;
@@ -64,7 +60,7 @@ class MainView extends WatchUi.View {
     private function ring(dc as Dc, soc as Number?, fg as Number, stale as Boolean, x as Number, y as Number,
             r as Number) as Void {
         dc.setPenWidth(dc.getWidth() * 0.026);
-        dc.setColor(stale ? TRACK_DIM : TRACK, Graphics.COLOR_BLACK);
+        dc.setColor(stale ? Theme.trackDim() : Theme.track(), Graphics.COLOR_BLACK);
         dc.drawCircle(x, y, r);
         if (soc == null || soc <= 0) { return; }
         dc.setColor(fg, Graphics.COLOR_BLACK);
@@ -99,7 +95,7 @@ class MainView extends WatchUi.View {
             var y = h * (0.42 + 0.08 * i);
             dc.setColor(base, Graphics.COLOR_BLACK);
             dc.drawText(w * 0.58, y, Graphics.FONT_SMALL, t, left);
-            dc.setColor(DIM, Graphics.COLOR_BLACK);
+            dc.setColor(Theme.dim(), Graphics.COLOR_BLACK);
             dc.drawText(w * 0.58 + dc.getTextWidthInPixels(t, Graphics.FONT_SMALL) + w * 0.012, y + h * 0.01,
                 Graphics.FONT_XTINY, labels[i], left);
         }

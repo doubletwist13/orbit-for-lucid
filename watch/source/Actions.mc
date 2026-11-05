@@ -3,9 +3,6 @@ import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
 
-// the inside of an icon that is switched on
-const ON_FILL = 0x0B3D22;
-
 // A screen of big round icon choices. Touch: tap one. Buttons: select picks the highlighted one; up/down moves the
 // highlight on a choice screen, but on a strip page (stripIndex set) they change page, so only a touch screen can
 // reach every icon there.
@@ -57,7 +54,8 @@ class IconMenu extends WatchUi.View {
     }
 
     function onUpdate(dc as Dc) as Void {
-        dc.setColor(GREEN, Graphics.COLOR_BLACK);
+        var accent = Theme.accent();
+        dc.setColor(accent, Graphics.COLOR_BLACK);
         dc.clear();
         if (stripIndex >= 0) { pageDots(dc, stripIndex); }
         for (var i = 0; i < items.size(); i++) {
@@ -66,11 +64,11 @@ class IconMenu extends WatchUi.View {
             var size = (r * 1.2).toNumber();
             // a thick ring marks the focus; a filled circle marks an item that is switched on
             if (items[i][:on] == true) {
-                dc.setColor(ON_FILL, Graphics.COLOR_BLACK);
+                dc.setColor(Theme.fill(), Graphics.COLOR_BLACK);
                 dc.fillCircle(c[0], c[1], r);
             }
             dc.setPenWidth(showSel && i == sel ? 8 : 3);
-            dc.setColor(GREEN, Graphics.COLOR_BLACK);
+            dc.setColor(accent, Graphics.COLOR_BLACK);
             dc.drawCircle(c[0], c[1], r);
             dc.setPenWidth(3);
             var icon = items[i][:icon] as Symbol;
@@ -83,7 +81,7 @@ class IconMenu extends WatchUi.View {
             }
             var label = items[i][:label] as String?;
             if (label != null) {
-                dc.setColor(GREEN, Graphics.COLOR_BLACK);
+                dc.setColor(accent, Graphics.COLOR_BLACK);
                 dc.drawText(c[0], c[1] + r.toNumber() + 4, Graphics.FONT_SMALL, label, Graphics.TEXT_JUSTIFY_CENTER);
             }
         }

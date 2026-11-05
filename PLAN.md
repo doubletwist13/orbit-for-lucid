@@ -81,14 +81,17 @@ listed product).
   tightest.
 - Skip monochrome Instinct-class watches (tiny, no touch; would need a separate design).
 
-Next models worth a tester:
+The manifest lists 30 touchscreen models (#82; the README's Status table has what was checked on each); all build.
+Watches worth a tester first:
 
 | Model | Screen | Input | Why include it |
 |---|---|---|---|
 | **Venu 3S** or **vivoactive 5** | 390x390 round AMOLED | touch + buttons | Smaller round AMOLED; scaling check |
 | **fenix 7** | 240-280 px round MIP | touch + buttons | Popular line; the smallest screen |
-| **Venu Sq 2** (optional) | 320x360 rectangular AMOLED | touch + button | Only rectangular layout |
-| **Venu X1** | 448x486 rectangular AMOLED | touch + buttons | Needs API 6.0.3 (SDK 9.x) |
+| **Venu X1** | 448x486 rectangular AMOLED | touch + buttons | Needs API 6.0.3 (SDK 9.x); no menu button |
+
+The Venu 2 family and Venu Sq 2 are out: they do not support API level 5.2.0. The Venu 4, Venu X1 and vivoactive 6 have
+no menu button, so the accent colour picker is reached from the About page.
 
 ## Security
 Repo:
@@ -129,25 +132,32 @@ Since 0.5.0 the watch app is a vertical page strip (docs/watch-design.md): a mai
 and a read-only vehicle details screen with efficiency worked out from its own odometer log; it has no controls. See
 the releases.
 
-**Now**
-- A Charging page on the watch: start and stop, charge limit, AC current limit, preconditioning, port, schedule (#35,
-  #14, #13). The AC current values need finding out first.
-
-**Next**
-- Open windows on the watch (#11).
-- Choice screens (lock, climate, frunk, trunk) show the last known state and its age (#38).
+Planned in milestones, each an issue (the GitHub milestones have the lists):
+- **0.5.1, polish:** a per-car efficiency log (#67), the glance background (#68), more watch models (#82), and the
+  accent colour (#65).
+- **0.6.0, charging controls:** a Charging page on the watch: start and stop, charge limit, AC current limit,
+  preconditioning, port, schedule (#35, #14, #13), and a result vibration and toast when a command ends (#72). The AC
+  current values need finding out first.
+- **0.7.0, status and details:** open windows on the watch (#11), the last known state and its age on the choice
+  screens (#38), the charge finish time (#70), the charge limit on the ring (#71), the car's status in the phone's
+  notification (#73), software update availability (#78) and a needs-attention indicator on Main (#79).
+- **0.8.0, history and range:** efficiency history kept for the life of the app data (#66), a history of battery health,
+  charge, efficiency, cell temperatures and tire pressures with charts (#76), and the remaining range worked out from
+  the logged efficiency, on the phone and the watch (#69, #80).
 
 **Later**
 - Multi-vehicle support (#33). Needs a tester with a second car; the WearOS app already stores a selected vehicle id.
 - Watch face and complications (#34). A separate app type; decide after the above shows how the app gets used.
-- A demo mode with canned data, so a tester or store reviewer without a Lucid can try the app (the WearOS app has one).
+- A demo mode with canned data, so a tester or store reviewer without a Lucid can try the app (#81).
 - A user setting for the background read interval (#43).
+- Phone notifications for charging and left-open events (#74), the cost of home charging (#75), and a home-screen
+  widget (#77).
 - Optional biometric gate before unlock.
-- Second watch model with a real owner.
+- A real owner for each new watch model, so they can move off "builds only".
 
 **Decided against** (see docs/watch-design.md): controls on the phone app (Lucid's own app has them); a Climate page
 with defrost, max A/C and seat and steering wheel heat, and a Signals page (they are done from the driver's seat);
-panic alarm, sentry, software update and keys.
+panic alarm, sentry, keys, and starting a software update (showing that one is available is #78).
 - **Store release (only if going to stores):** re-read Garmin's SDK agreement and Developer Guidelines, Lucid's terms,
   Google Play policy on third-party logins and vehicle control; write a privacy policy; do a trademark search; trim the
   manifest to tested watches.

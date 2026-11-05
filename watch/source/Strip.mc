@@ -53,6 +53,12 @@ class PageDelegate extends WatchUi.BehaviorDelegate {
         return turn(-1);
     }
 
+    // holding a page opens the accent colour picker
+    function onMenu() as Boolean {
+        pushAccentMenu();
+        return true;
+    }
+
     private function turn(by as Number) as Boolean {
         var p = _page + by;
         if (_page < 0 || p < 0 || p >= STRIP_PAGES) { return false; }
@@ -67,7 +73,7 @@ function pageDots(dc as Dc, page as Number) as Void {
     var gap = (dc.getHeight() * 0.05).toNumber();
     var x = (dc.getWidth() * 0.07).toNumber();
     var y0 = dc.getHeight() / 2 - (STRIP_PAGES - 1) * gap / 2;
-    dc.setColor(DIM, Graphics.COLOR_BLACK);
+    dc.setColor(Theme.dim(), Graphics.COLOR_BLACK);
     dc.setPenWidth(2);
     for (var p = 0; p < STRIP_PAGES; p++) {
         if (p == page) { dc.fillCircle(x, y0 + p * gap, gap / 4); } else { dc.drawCircle(x, y0 + p * gap, gap / 4); }

@@ -1,5 +1,7 @@
 package io.github.doubletwist13.orbit
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import java.io.File
 import java.security.MessageDigest
 import java.util.Locale
@@ -65,6 +67,60 @@ internal fun energyFile(dir: File, key: String?) = File(dir, if (key == null) "e
 internal fun adoptLegacyLog(dir: File, key: String) {
     val to = energyFile(dir, key)
     if (!to.exists()) energyFile(dir, null).renameTo(to)
+}
+
+/**
+ * Keeps the odometer and battery energy of each new reading, for the efficiency figures on the details screen, and
+ * publishes the status with the figures for its car in one step. Reads can overlap (the push loop and a command),
+ * so publishing apart from the log would let one car's status land beside another car's rows.
+ * [key] is the car the log is for now (null for the pre-per-car log); [saveKey] remembers it across restarts.
+ */
+class EnergyTracker(
+    private val dir: File,
+    private var key: String?,
+    private val saveKey: (String) -> Unit,
+    private val state: MutableStateFlow<UiState>,
+) {
+    private var energy = EnergyLog(energyFile(dir, key))
+
+    /** The id [idKey] was worked out for; it never changes between readings, so the hash is done once. */
+    private var hashedId: String? = null
+    private var idKey = ""
+
+    @Synchronized fun record(s: VehicleStatus) {
+        var changed = false
+        if (s.vehicleId != hashedId) {
+            hashedId = s.vehicleId
+            idKey = energyKey(s.vehicleId)
+        }
+        // switch before the null checks, so the figures follow the car even if this reading has no odometer
+        if (idKey != key) {
+            if (key == null) adoptLegacyLog(dir, idKey)
+            key = idKey
+            saveKey(idKey)
+            energy = EnergyLog(energyFile(dir, idKey))
+            changed = true
+        }
+        val odometer = s.odometerKm
+        val kwh = s.energyKwh
+        if (odometer != null && kwh != null &&
+            energy.add(EnergySample(System.currentTimeMillis(), odometer, kwh, s.chargeState == "CHARGING"))) {
+            changed = true
+        }
+        // unchanged, the rows already in the state are for this car's log
+        state.update { if (changed) it.copy(status = s, trips = tripRows()) else it.copy(status = s) }
+    }
+
+    @Synchronized fun tripRows(): List<Pair<String, String>> {
+        val samples = energy.samples()
+        if (samples.isEmpty()) return emptyList()
+        val date = java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT)
+        return listOf(
+            "Since last charge" to efficiencySince(samples, lastChargeEndMs(samples)).text(),
+            "Last 30 mi" to efficiencyOverLast(samples, 30 / Efficiency.KM_TO_MI).text(),
+            "All logged (${date.format(samples.first().timeMs)} on)" to efficiencySince(samples, 0).text(),
+        )
+    }
 }
 
 /** Distance driven and energy used over some span of readings. */

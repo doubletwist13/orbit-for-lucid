@@ -1,5 +1,6 @@
 package io.github.doubletwist13.orbit
 
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -91,6 +92,28 @@ class EnergyLogTest {
         EnergyLog(energyFile(tmp.root, null)).add(s(2, 200.0, 70.0))
         adoptLegacyLog(tmp.root, a)
         assertEquals(listOf(s(1, 100.0, 80.0)), EnergyLog(energyFile(tmp.root, a)).samples())
+    }
+
+    @Test fun theStatusAndRowsPublishedTogetherAreForTheSameCar() {
+        val state = MutableStateFlow(UiState())
+        val tracker = EnergyTracker(tmp.root, null, {}, state)
+        val a = VehicleStatus(
+            vehicleId = "car-a", nickname = "a", socPercent = 80, locked = true, awake = true,
+            chargeState = "NOT_CONNECTED", hvacOn = false, updatedMs = 0, odometerKm = 100.0, energyKwh = 80.0,
+        )
+        val b = a.copy(vehicleId = "car-b", nickname = "b", odometerKm = 5000.0, energyKwh = 60.0)
+        // each car drives 10 km (6 mi) and 30 km (19 mi) on 2 kWh and 6 kWh
+        tracker.record(a)
+        tracker.record(a.copy(odometerKm = 110.0, energyKwh = 78.0))
+        tracker.record(b)
+        tracker.record(b.copy(odometerKm = 5030.0, energyKwh = 54.0))
+        assertEquals("b", state.value.status!!.nickname)
+        assertTrue(state.value.trips.last().second.endsWith("over 19 mi"))
+
+        // back to car A: its status arrives with its own rows, even from a reading with no odometer or energy
+        tracker.record(a.copy(odometerKm = null, energyKwh = null))
+        assertEquals("a", state.value.status!!.nickname)
+        assertTrue(state.value.trips.last().second.endsWith("over 6 mi"))
     }
 
     @Test fun anOverlongLogDropsItsOldestQuarter() {

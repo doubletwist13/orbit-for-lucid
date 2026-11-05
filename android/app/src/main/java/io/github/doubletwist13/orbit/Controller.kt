@@ -45,18 +45,14 @@ class Controller(context: Context) {
     )
     val state = _state.asStateFlow()
 
-    private val filesDir = context.filesDir
-
-    /** Which car the energy log is for: a hash of its id, as the id is account data. Null for the pre-0.5.1 log. */
-    private var currentKey = prefs.getString("energyKey", null)
-    @Volatile private var energy = EnergyLog(energyFile(filesDir, currentKey))
-
-    /** The id [idKey] was worked out for; it never changes between readings, so the hash is done once. */
-    private var hashedId: String? = null
-    private var idKey = ""
+    /** Which car the energy log is for is a hash of its id, as the id is account data; null for the pre-0.5.1 log. */
+    private val energy = EnergyTracker(
+        context.filesDir, prefs.getString("energyKey", null), { prefs.edit().putString("energyKey", it).apply() },
+        _state,
+    )
 
     init {
-        _state.update { it.copy(trips = tripRows()) }
+        _state.update { it.copy(trips = energy.tripRows()) }
     }
 
     /** This app's version, sent to the watch so its info screen can show it. */
@@ -77,7 +73,7 @@ class Controller(context: Context) {
             return@run
         }
         // the logout cleared the figures; the log is kept, and a different account's car switches it in record()
-        _state.update { it.copy(loggedIn = true, trips = tripRows()) }
+        _state.update { it.copy(loggedIn = true, trips = energy.tripRows()) }
         fetch()
     }
 
@@ -160,39 +156,7 @@ class Controller(context: Context) {
     private fun token() = store.load() ?: throw LucidException(16, "Logged out")
 
     private suspend fun fetch(): VehicleStatus =
-        client.status(token()).also { s -> record(s); _state.update { it.copy(status = s) } }
-
-    /** Keeps the odometer and battery energy of each new reading, for the efficiency figures on the details screen. */
-    @Synchronized private fun record(s: VehicleStatus) {
-        if (s.vehicleId != hashedId) {
-            hashedId = s.vehicleId
-            idKey = energyKey(s.vehicleId)
-        }
-        // switch before the null checks, so the figures follow the car even if this reading has no odometer
-        if (idKey != currentKey) {
-            if (currentKey == null) adoptLegacyLog(filesDir, idKey)
-            currentKey = idKey
-            prefs.edit().putString("energyKey", idKey).apply()
-            energy = EnergyLog(energyFile(filesDir, idKey))
-            _state.update { it.copy(trips = tripRows()) }
-        }
-        val odometer = s.odometerKm ?: return
-        val kwh = s.energyKwh ?: return
-        if (energy.add(EnergySample(System.currentTimeMillis(), odometer, kwh, s.chargeState == "CHARGING"))) {
-            _state.update { it.copy(trips = tripRows()) }
-        }
-    }
-
-    private fun tripRows(): List<Pair<String, String>> {
-        val samples = energy.samples()
-        if (samples.isEmpty()) return emptyList()
-        val date = java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT)
-        return listOf(
-            "Since last charge" to efficiencySince(samples, lastChargeEndMs(samples)).text(),
-            "Last 30 mi" to efficiencyOverLast(samples, 30 / Efficiency.KM_TO_MI).text(),
-            "All logged (${date.format(samples.first().timeMs)} on)" to efficiencySince(samples, 0).text(),
-        )
-    }
+        client.status(token()).also(energy::record)
 
     private suspend fun execute(cmd: String, tempC: Double, progress: (String) -> Unit): VehicleStatus = when (cmd) {
         // answer at once so the watch's silence timer doesn't fire while a rate-limit retry runs
@@ -272,7 +236,7 @@ class Controller(context: Context) {
 
     /** The cheap read for polling after a command: GetVehicleState showed no rate limit (see docs/research). */
     private suspend fun poll(): VehicleStatus =
-        client.state(token()).also { s -> record(s); _state.update { it.copy(status = s) } }
+        client.state(token()).also(energy::record)
 
     private suspend fun pollUntil(done: (VehicleStatus) -> Boolean): VehicleStatus? {
         repeat(POLL_COUNT) { i ->

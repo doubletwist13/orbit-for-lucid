@@ -272,8 +272,9 @@ Orbit has no server, no accounts and no analytics. The author receives nothing f
   reported, and the phone app's version. No credentials or tokens are ever sent to the watch, and neither the VIN
   nor the car's location is.
 - **Energy log (phone):** to work out efficiency, the phone keeps a plain text log of timestamped odometer and battery
-  energy readings in the app's private storage (at most 20,000 lines; the oldest quarter is dropped when it fills).
-  It never leaves the phone, Android backup is off, and clearing the app's data or uninstalling it deletes it.
+  energy readings in the app's private storage, one file per car (named by a hash of the car's id; at most 20,000
+  lines each, the oldest quarter dropped when it fills). It never leaves the phone and Android backup is off. Logging
+  out keeps it, so signing back in finds your history; clearing the app's data or uninstalling deletes it.
 - **Watch to phone:** messages travel over Bluetooth through Garmin Connect Mobile, which is covered by Garmin's own
   privacy terms.
 - **Car data:** the phone asks Lucid's cloud for your vehicle's state and sends commands to it. That traffic is between

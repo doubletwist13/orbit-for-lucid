@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.security.MessageDigest
 
 data class UiState(
     val loggedIn: Boolean = false,
@@ -45,7 +46,14 @@ class Controller(context: Context) {
         UiState(loggedIn = store.load() != null, pushOn = prefs.getBoolean("push", true)),
     )
     val state = _state.asStateFlow()
-    private val energy = EnergyLog(File(context.filesDir, "energy.log"))
+
+    private val filesDir = context.filesDir
+
+    /** Which car the energy log is for: a hash of its id, as the id is account data. Null for the pre-0.5.1 log. */
+    private var energyKey = prefs.getString("energyKey", null)
+    private var energy = EnergyLog(energyFile(energyKey))
+
+    private fun energyFile(key: String?) = File(filesDir, if (key == null) "energy.log" else "energy-$key.log")
 
     init {
         _state.update { it.copy(trips = tripRows()) }
@@ -68,7 +76,8 @@ class Controller(context: Context) {
             _state.update { it.copy(message = e.message) }
             return@run
         }
-        _state.update { it.copy(loggedIn = true) }
+        // the logout cleared the figures; the log is kept, and a different account's car switches it in record()
+        _state.update { it.copy(loggedIn = true, trips = tripRows()) }
         fetch()
     }
 
@@ -154,9 +163,19 @@ class Controller(context: Context) {
         client.status(token()).also { s -> record(s); _state.update { it.copy(status = s) } }
 
     /** Keeps the odometer and battery energy of each new reading, for the efficiency figures on the details screen. */
-    private fun record(s: VehicleStatus) {
+    @Synchronized private fun record(s: VehicleStatus) {
         val odometer = s.odometerKm ?: return
         val kwh = s.energyKwh ?: return
+        val key = MessageDigest.getInstance("SHA-256").digest(s.vehicleId.toByteArray()).take(6)
+            .joinToString("") { "%02x".format(it) }
+        if (key != energyKey) {
+            // the first car seen takes over the log from before logs were kept per car
+            if (energyKey == null) energyFile(null).renameTo(energyFile(key))
+            energyKey = key
+            prefs.edit().putString("energyKey", key).apply()
+            energy = EnergyLog(energyFile(key))
+            _state.update { it.copy(trips = tripRows()) }
+        }
         if (energy.add(EnergySample(System.currentTimeMillis(), odometer, kwh, s.chargeState == "CHARGING"))) {
             _state.update { it.copy(trips = tripRows()) }
         }

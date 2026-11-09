@@ -142,7 +142,9 @@ class Controller(context: Context) {
         watchJob?.cancel()
         watchJob = scope.launch {
             try {
-                val s = execute(cmd, climateTemp(req)) { reply(watchReply(id, _state.value.status, it)) }
+                val s = execute(cmd, climateTemp(req), chargeLimitReq(req)) {
+                    reply(watchReply(id, _state.value.status, it))
+                }
                 reply(watchReply(id, s, null))
             } catch (e: CancellationException) {
                 throw e
@@ -158,7 +160,9 @@ class Controller(context: Context) {
     private suspend fun fetch(): VehicleStatus =
         client.status(token()).also(energy::record)
 
-    private suspend fun execute(cmd: String, tempC: Double, progress: (String) -> Unit): VehicleStatus = when (cmd) {
+    private suspend fun execute(
+        cmd: String, tempC: Double, limit: Int?, progress: (String) -> Unit,
+    ): VehicleStatus = when (cmd) {
         // answer at once so the watch's silence timer doesn't fire while a rate-limit retry runs
         "status" -> { progress("Updating"); fetch() }
         "lock" -> lock(true, progress)
@@ -181,6 +185,27 @@ class Controller(context: Context) {
             command(if (on) "Starting pet mode" else "Stopping pet mode", { it.petMode == on }, progress) { s ->
                 client.setPetMode(token(), s.vehicleId, on)
             }
+        }
+        // read back from the charging block, like the lock is
+        "charge_start", "charge_stop" -> {
+            val start = cmd == "charge_start"
+            command(if (start) "Starting charge" else "Stopping charge", { chargeDone(it, start) }, progress) { s ->
+                // refused here, not left to time out: the car would accept the command and never start
+                if (start) chargeStartRefusal(s)?.let { throw CommandFailed(it, "Charging cannot start") }
+                client.setCharging(token(), s.vehicleId, start)
+            }
+        }
+        "limit" -> {
+            val pct = requireLimit(limit)
+            command("Setting limit", { it.chargeLimit == pct }, progress) { s ->
+                client.setChargeLimit(token(), s.vehicleId, pct)
+            }
+        }
+        "port_open", "port_close" -> {
+            val open = cmd == "port_open"
+            command(
+                if (open) "Opening port" else "Closing port", { closureDone(it.portOpen, open) }, progress,
+            ) { s -> client.setChargePort(token(), s.vehicleId, open) }
         }
         else -> error("unhandled command $cmd")
     }
@@ -267,7 +292,8 @@ class Controller(context: Context) {
     private companion object {
         val WATCH_COMMANDS = setOf(
             "status", "lock", "unlock", "climate_on", "climate_off", "frunk_open", "frunk_close", "trunk_open",
-            "trunk_close", "horn", "flash", "windows_close", "pet_on", "pet_off",
+            "trunk_close", "horn", "flash", "windows_close", "pet_on", "pet_off", "charge_start", "charge_stop",
+            "limit", "port_open", "port_close",
         )
     }
 }
@@ -290,6 +316,8 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         if (it.chargeState == "CHARGING" && it.chargeRateKw in MIN_RATE_KW..maxRateKw(it.model)) {
             put("rate", Math.round(it.chargeRateKw).toInt())
         }
+        it.chargeLimit?.takeIf { l -> l in MIN_LIMIT..MAX_LIMIT }?.let { l -> put("lim", l) }
+        it.portOpen?.let { o -> put("port", o) }
         if (it.doorOpen) put("door", true)
         if (it.tireWarning) put("tire", true)
         if (it.occupantAlert) put("occ", true)
@@ -426,6 +454,33 @@ internal fun maxRateKw(model: String): Double = when (model) {
     "AIR" -> 350.0
     "GRAVITY" -> 450.0
     else -> 2_000.0
+}
+
+// the lowest limit the car's own app offers, shown on the watch only inside this range
+internal const val MIN_LIMIT = 50
+internal const val MAX_LIMIT = 100
+
+/** The charge limit a watch asks for, clamped to the car's range; null when missing or not a number. */
+internal fun chargeLimitReq(req: Map<*, *>): Int? = (req["lim"] as? Number)?.toDouble()?.takeIf { it.isFinite() }
+    ?.let { Math.round(it).toInt().coerceIn(MIN_LIMIT, MAX_LIMIT) }
+
+/** A request without a usable limit is one this phone cannot act on. */
+internal fun requireLimit(limit: Int?): Int = limit ?: throw CommandFailed("badcmd", "No charge limit in the request")
+
+/**
+ * Whether the car reports the charge started or stopped. Starting is done only once it is charging; stopping when it
+ * no longer is (stopped, paused or finished all count).
+ */
+internal fun chargeDone(s: VehicleStatus, start: Boolean): Boolean = (s.chargeState == "CHARGING") == start
+
+/**
+ * The error code for a charge that cannot start, or null when it may: no cable, or the charge already at the limit.
+ * Other states (an error, a charger not ready) are left to the car and end as a timeout.
+ */
+internal fun chargeStartRefusal(s: VehicleStatus): String? = when {
+    s.chargeState == "NOT_CONNECTED" -> "nocable"
+    s.chargeLimit != null && s.socPercent >= s.chargeLimit -> "atlimit"
+    else -> null
 }
 
 internal const val DEFAULT_TEMP_C = 21.0

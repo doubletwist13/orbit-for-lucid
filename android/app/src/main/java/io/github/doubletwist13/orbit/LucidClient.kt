@@ -18,6 +18,9 @@ import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
 import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowPosition
 import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
+import mobilegateway.protos.VehicleStateServiceOuterClass.ChargeAction
+import mobilegateway.protos.VehicleStateServiceOuterClass.ChargeControlRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.ControlChargePortRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.CreatureComfortMode
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorLocksControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.DoorState
@@ -34,6 +37,7 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
 import mobilegateway.protos.VehicleStateServiceOuterClass.RearCargoControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCabinTemperatureRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.SetChargeLimitRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCreatureComfortModeRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.StrutType
 import mobilegateway.protos.VehicleStateServiceOuterClass.UnattendedOccupantDetectionStatus
@@ -83,6 +87,10 @@ data class VehicleStatus(
     val frunkPowered: Boolean = true,
     /** Charging power in kW; 0 when not reported. Only meaningful while the charge state is CHARGING. */
     val chargeRateKw: Double = 0.0,
+    /** The charge limit in percent; null when the car reports none. */
+    val chargeLimit: Int? = null,
+    /** Charge port open (ajar counts as open); null when the car reports no state for it. */
+    val portOpen: Boolean? = null,
     /** Any of the four doors open (ajar counts as open). */
     val doorOpen: Boolean = false,
     /** The car's own tyre pressure warning (soft or hard) is on for any wheel. */
@@ -248,6 +256,22 @@ class LucidClient(
             ).build(),
     )
 
+    suspend fun setCharging(refreshToken: String, vehicleId: String, start: Boolean) = command(
+        refreshToken, "ChargeControl",
+        ChargeControlRequest.newBuilder().setVehicleId(vehicleId)
+            .setAction(if (start) ChargeAction.CHARGE_ACTION_START else ChargeAction.CHARGE_ACTION_STOP).build(),
+    )
+
+    suspend fun setChargeLimit(refreshToken: String, vehicleId: String, percent: Int) = command(
+        refreshToken, "SetChargeLimit",
+        SetChargeLimitRequest.newBuilder().setVehicleId(vehicleId).setLimitPercent(percent).build(),
+    )
+
+    suspend fun setChargePort(refreshToken: String, vehicleId: String, open: Boolean) = command(
+        refreshToken, "ControlChargePort",
+        ControlChargePortRequest.newBuilder().setVehicleId(vehicleId).setClosureState(doorState(open)).build(),
+    )
+
     private fun doorState(open: Boolean) = if (open) DoorState.DOOR_STATE_OPEN else DoorState.DOOR_STATE_CLOSED
 
     private suspend fun command(refreshToken: String, method: String, req: MessageLite) {
@@ -336,6 +360,8 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     trunkOpen = state.body.rearCargo.isOpen(),
     frunkPowered = config.frunkStrut != StrutType.STRUT_TYPE_GAS,
     chargeRateKw = state.charging.chargeRateKwhPrecise,
+    chargeLimit = state.charging.chargeLimitPercent.takeIf { it > 0 }?.let { Math.round(it).toInt() },
+    portOpen = state.body.chargePort.isOpen(),
     doorOpen = with(state.body) {
         listOf(frontLeftDoor, frontRightDoor, rearLeftDoor, rearRightDoor).any { it.isOpen() == true }
     },

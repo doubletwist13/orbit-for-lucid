@@ -1,8 +1,8 @@
 # Watch layout design note (#55)
 
-Status: built for 0.5.0 except the Charging page. The main screen, the page strip, the info and version pages, the
-warning icons and the Access page below are in the app; the Charging page is planned (see "Next") and the questions
-under "Open" are undecided.
+Status: built, with a first Charging page added in 0.6.0 (start and stop, port and limit; the rest is under "Next").
+The main screen, the page strip, the info and version pages, the warning icons and the Access page below are in the
+app, and the questions under "Open" are undecided.
 
 ## Principles
 
@@ -27,9 +27,9 @@ readable, so check them for the Venu X1 and fenix):
    Info         <- the car's numbers as text (see "Data inventory")
    MAIN         <- glance-level state, no controls
    Access       <- swipe up from Main: lock and the frequent actions
+   Charging     <- start or stop, the charge port and the charge limit
    ```
-   The Up and Down buttons do the same as the swipes. Four dots down the left edge show the place in the strip; a
-   Charging page below Access (see "Next") would make five.
+   The Up and Down buttons do the same as the swipes. Five dots down the left edge show the place in the strip.
 3. **The top right button on Main opens the lock/unlock choice**, and so does a tap on the bezel mark or the padlock
    pair beside it. Unlock still gets the confirm tap. Elsewhere a tap on Main does nothing, so a wrist brush cannot open
    anything (Main's delegate does not call the base class, which would turn a tap into the button's select).
@@ -61,11 +61,14 @@ readable, so check them for the Venu X1 and fenix):
 
 ## Next
 
-- **A Charging page** below Access: start or stop in the middle and, round it, the charge limit, the AC current limit,
-  battery preconditioning, the charge port, the schedule and V2X discharge (a mockup exists, not built). Each control
-  needs testing on a car first, and the valid AC current values are not known yet (#14). Start and stop, port and
-  preconditioning would ask for a confirm tap; the limit and current are pickers. The schedule is probably on and off
-  only (the times are set in Lucid's app); discharge needs its own look.
+- **More on the Charging page.** Built so far: a bolt that starts or stops charging (filled while charging, with the
+  power under it), the charge port (open or close) and the charge limit (a stock menu in 5% steps). Every one asks for
+  a confirm tap, and the page redraws from the car's state while it is open. Still to come: the AC current limit,
+  battery preconditioning, the schedule and V2X discharge. The valid AC current values are not known yet (#14). The
+  schedule is probably on and off only (the times are set in Lucid's app). Discharge (V2X) is only named for now: an
+  outlined bolt with a small red arrow on Main, the glance and the Charging page, which says "Discharging" and offers
+  no start or stop. Which field
+  carries the power then is unknown, so no kW is shown; it needs a capture from a car that is giving power out.
 - The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular), the fenix 7 (small round), the fenix 8
   (47 mm) and the Epix 2 Pro (47 mm); none has been tried on a real watch. The About page, redone in 0.5.1 for the
   Colour button, was checked on the Venu 3 and in the fenix 7 simulator.
@@ -94,14 +97,15 @@ ones already used.
 | Plug and charge status | `charging.charge_state` | Plug icon only |
 | Charge speed | `charging.charge_rate_kwh_precise`, `port_power` | Yes (kW while charging) |
 | Tire pressures | `chassis.*_tire_pressure_bar` (4), warning and sensor flags, last-updated time | Yes (info, icon) |
-| Doors, lids, port | `body.front_cargo`, `rear_cargo`, 4 doors, `charge_port` (open, closed, ajar) | Lids, doors |
+| Doors, lids, port | `body.front_cargo`, `rear_cargo`, 4 doors, `charge_port` (open/closed/ajar) | Lids, doors, port |
+| Charge limit | `charging.charge_limit_percent` | Yes (Charging page) |
 | Windows | `body.window_position` (4), `all_windows_position` | Only to confirm close-all |
 | Cell temperatures | `battery.min_cell_temp`, `max_cell_temp` | Yes (info page) |
 
 Other fields that could be shown or used:
 
 - Range: `remaining_range`; energy: `kwhr`, `capacity_kwhr`.
-- Charging: `session_minutes_remaining`, `charge_limit_percent`, `charge_session_kwh`, `charge_scheduled_time`,
+- Charging: `session_minutes_remaining`, `charge_session_kwh`, `charge_scheduled_time`,
   `scheduled_charge`, `cable_lock`, `energy_type`, `active_session_ac_current_limit`.
 - Battery: `battery_health`, `battery_health_level`, `preconditioning_status`, `preconditioning_time_remaining`, low
   and critical charge warnings.
@@ -159,5 +163,6 @@ out from it, so there is only one value to pick. Presets are readable on black a
 
 Done in 0.5.0: the strip and gestures, Main, the Info and About pages, the warning icons, the Access page.
 Done in 0.5.1: the accent colour theme (#65) and a glance that draws on the system's card background (#68).
-Still to do, each as its own issue: the Charging page (#35, #14), open windows on the watch (#11), the state line on the
-choice screens (#38), and a check of the layout on real hardware other than the Venu 3.
+Done for 0.6.0 so far: the Charging page with start and stop, port and limit (#35).
+Still to do, each as its own issue: the rest of the Charging page (#14, #13), open windows on the watch (#11), the
+state line on the choice screens (#38), and a check of the layout on real hardware other than the Venu 3.

@@ -3,12 +3,14 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 
 // The app's pages in one vertical strip, docs/watch-design.md: info above, the main screen (where it opens), then the
-// actions pages. Swipe or the up/down buttons move along it and it stops at both ends. Not a WatchUi.ViewLoop: that
-// draws its own page indicator, which cannot be turned off, and the stock screens show only dots on the left.
+// access page and the charging page. Swipe or the up/down buttons move along it and it stops at both ends. Not a
+// WatchUi.ViewLoop: that draws its own page indicator, which cannot be turned off, and the stock screens show only
+// dots on the left.
 const ABOUT_PAGE = 0;
 const INFO_PAGE = 1;
 const MAIN_PAGE = 2;
-const STRIP_PAGES = 4;
+const CHARGE_PAGE = 4;
+const STRIP_PAGES = 5;
 
 // The view and delegate for a page of the strip
 function stripView(page as Number) as [WatchUi.View, WatchUi.BehaviorDelegate] {
@@ -18,6 +20,10 @@ function stripView(page as Number) as [WatchUi.View, WatchUi.BehaviorDelegate] {
         return [new InfoView(), new PageDelegate(INFO_PAGE)];
     } else if (page == MAIN_PAGE) {
         return [new MainView(), new MainDelegate()];
+    } else if (page == CHARGE_PAGE) {
+        var charge = new ChargeMenu();
+        charge.stripIndex = page;
+        return [charge, new ChargeDelegate(charge)];
     }
     // access and the frequent actions: lock in the middle, round it frunk and trunk on top, climate and the windows at
     // the sides, and the lights and horn below (docs/watch-design.md)

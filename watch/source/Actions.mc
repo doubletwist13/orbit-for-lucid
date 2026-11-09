@@ -281,23 +281,23 @@ function lidIcon(lid as String, open as Boolean) as Symbol {
 }
 
 // Close `depth` menu screens, then send the command, asking first for the ones that change the car beyond locking it.
-// temp is the climate_on set point in Celsius, otherwise null.
-function perform(id as String, depth as Number, temp as Float?) as Void {
+// arg is the climate_on set point in Celsius or the limit in percent, otherwise null.
+function perform(id as String, depth as Number, arg as Float?) as Void {
     for (var i = 0; i < depth; i++) {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
-    // climate_on always comes from the set point menu, so it always has a set point to ask about
-    var question = id.equals("climate_on") ? "Climate on " + Units.label(temp as Float, Units.fahrenheit()) + "?"
-        : CONFIRM[id];
+    // climate_on and limit always come from their pickers, so they always have a value to ask about
+    var question = id.equals("climate_on") ? "Climate on " + Units.label(arg as Float, Units.fahrenheit()) + "?"
+        : id.equals("limit") ? "Limit " + (arg as Float).toNumber() + "%?" : CONFIRM[id];
     if (question != null) {
-        WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id, temp), WatchUi.SLIDE_UP);
+        WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id, arg), WatchUi.SLIDE_UP);
     } else {
         sendNow(id, null);
     }
 }
 
 // Send a command and say so with a toast: the actions page shows no progress of its own, and the result comes later.
-function sendNow(cmd as String, temp as Float?) as Void {
-    link().send(cmd, temp);
+function sendNow(cmd as String, arg as Float?) as Void {
+    link().send(cmd, arg);
     WatchUi.showToast(LABELS[cmd] + "...", null);
 }

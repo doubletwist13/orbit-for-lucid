@@ -128,7 +128,8 @@ more of it adds no Lucid calls.
 background reads that push changes to the watch, faster command confirmation, both app versions shown on each side.
 Since 0.5.0 the watch app is a vertical page strip (docs/watch-design.md): a main screen that is information only
 (charge ring, charging power, temperatures, warnings), an info page, a version and refresh page, and one Access page
-(lock, frunk, trunk, close all windows, climate with pet mode, lights, horn). The phone app shows status and settings
+(lock, frunk, trunk, close all windows, climate with pet mode, lights, horn). A Charging page (start and stop, the
+charge limit and the port, #35) is the first part of 0.6.0. The phone app shows status and settings
 and a read-only vehicle details screen with efficiency worked out from its own odometer log; it has no controls. See
 the releases.
 

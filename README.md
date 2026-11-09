@@ -13,10 +13,11 @@ touchscreen.**
 Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and one Lucid. From the watch you can see
 state of charge, locked/unlocked, plugged/charging and the inside and outside temperature, then lock, unlock, start
 or stop climate at a temperature you pick (in the watch's own units), open and close the frunk and trunk, honk the
-horn, flash the lights, close all the windows, switch pet mode on or off, and refresh. The main screen also shows
-the charging power, an unattended-occupant warning and open-door and tire warnings, and an info page lists battery
-and tire details. Unlock, climate, frunk, trunk, horn and close windows ask for a confirm tap; lock, lights and pet
-mode do not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
+horn, flash the lights, close all the windows, switch pet mode on or off, start or stop charging, set the charge
+limit, open and close the charge port, and refresh. The main screen also shows the charging power, an
+unattended-occupant warning and open-door and tire warnings, and an info page lists battery and tire details. Unlock,
+climate, frunk, trunk, horn, close windows and the charging commands ask for a confirm tap; lock, lights and pet mode
+do not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
 
 Only one car, phone and watch have been tried. If you run it on another setup, please
 [send a test report](https://github.com/doubletwist13/orbit-for-lucid/issues/new?template=test-report.yml), whether it
@@ -45,10 +46,10 @@ Connect IQ profile). If you switch touch off in the watch's settings you lose th
   (an amber padlock with a `?` when the car's lock state is unknown), then a plug icon: a plug with a slash when
   unplugged, a plain plug when plugged in but not charging, and a bolt while charging. The percent and battery icon
   take the main screen's charge colours. It shows what the phone last pushed, with no age.
-- **Pages.** The app is a vertical strip of four pages, with the main screen in the middle. Swipe up or down, or use
-  the up and down buttons, to move along it; it stops at both ends. Swipe right, or press back, to leave a screen
-  opened from a page. Small dots down the left edge show where you are. From the top: the version and update page,
-  the car's details, the main screen, and the actions.
+- **Pages.** The app is a vertical strip of five pages, opening on the main screen. Swipe up or down, or use the up
+  and down buttons, to move along it; it stops at both ends. Swipe right, or press back, to leave a screen opened
+  from a page. Small dots down the left edge show where you are. From the top: the version and update page, the
+  car's details, the main screen, the actions, and charging (start or stop, the charge port and the charge limit).
 - **Main screen** is information only, so a stray tap does nothing. It opens here, and shows:
   - **Charge.** A ring fills clockwise from the top to match the charge, with the number in percent in the middle.
     The ring and number take the accent colour (green by default) from 50%, then yellow from 25%, orange from 10%
@@ -122,6 +123,7 @@ The status icons (glance and main screen):
 | <img src="docs/images/icons/plug.png" alt="Plug"> | Plugged in, not charging |
 | <img src="docs/images/icons/plug-off.png" alt="Slashed plug"> | Not plugged in |
 | <img src="docs/images/icons/bolt.png" alt="Bolt"> | Charging (the main screen adds the power in kW) |
+| <img src="docs/images/icons/discharge.png" alt="Bolt, red arrow"> | The car is giving power out (V2X); no kW shown |
 | <img src="docs/images/icons/battery.png" alt="Battery"> | State of charge (coloured like the ring) |
 | <img src="docs/images/icons/hvac.png" alt="Wavy lines"> | Climate is on |
 | <img src="docs/images/icons/occupant.png" alt="Person with !"> | Unattended occupant (red): someone may be inside |
@@ -130,8 +132,8 @@ The status icons (glance and main screen):
 | <img src="docs/images/icons/door.png" alt="Car with D"> | A door is open (amber) |
 | <img src="docs/images/icons/tire.png" alt="Tire with !"> | The car's tire pressure warning is on (amber) |
 
-The action icons (Actions page and its second screens). The frunk and trunk are drawn here as the Air; a Gravity has
-its own drawings.
+The action icons (Actions and Charging pages and their second screens). The frunk and trunk are drawn here as the
+Air; a Gravity has its own drawings.
 
 | Icon | Action |
 |---|---|
@@ -147,6 +149,10 @@ its own drawings.
 | <img src="docs/images/icons/hvac.png" alt="Wavy lines"> | Climate on, with a set point |
 | <img src="docs/images/icons/hvac-off.png" alt="Slashed wavy lines"> | Climate off |
 | <img src="docs/images/icons/pet.png" alt="Paw"> | Pet mode on or off (filled in while it is on) |
+| <img src="docs/images/icons/bolt.png" alt="Bolt"> | Start or stop charging (Charging page; filled in while charging) |
+| <img src="docs/images/icons/port.png" alt="Closed flap"> | Close the charge port |
+| <img src="docs/images/icons/port-open.png" alt="Open flap, socket"> | Open the charge port |
+| <img src="docs/images/icons/limit.png" alt="Battery, limit line"> | Set the charge limit (shown with its percentage) |
 
 **Timings are anecdotes.** On one car, an unlock from a sleeping car took about 13 seconds without car wifi and 9-10
 seconds with it (measured before confirmations were checked every 1.5 s), and a later one took about 8 seconds. A
@@ -165,6 +171,8 @@ to vary wildly: expect results that are much faster or much slower, and don't re
        tire pressures" width="200">
   <img src="docs/images/watch-actions.png"
        alt="Actions: lock in the middle with frunk, trunk, climate, windows, horn and lights round it" width="200">
+  <img src="docs/images/watch-charging.png"
+       alt="Charging: start or stop, the charge port and the charge limit, with the limit's percentage" width="200">
   <img src="docs/images/watch-lock.png" alt="Choose lock or unlock" width="200">
   <img src="docs/images/watch-climate.png" alt="Choose climate off, on with the car's set point, or pet mode"
        width="200">
@@ -206,8 +214,12 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
 - **Tested on one phone.** Android only, tested on a Pixel 10 Pro. Needs Garmin Connect Mobile installed and paired
   with the watch.
 - **Not in any app store.** You build both apps yourself and sideload them. See Building.
-- **Limited commands.** No charge control, other window actions (vent, open), seat or steering wheel heat, defrost or
+- **Limited commands.** Charging has start and stop, the limit and the port only: no AC current limit, battery
+  preconditioning or schedule. Nor are other window actions (vent, open), seat or steering wheel heat, defrost or
   location. Some of that is on the roadmap; some, like seat heat, is left to the car and Lucid's own app on purpose.
+  Start and stop, the limit and the charge port have been tried on one car. While the car gives power out (V2X)
+  the watch shows an outlined bolt with a red arrow, and "Discharging" on the Charging page, which offers no start
+  or stop; no power is shown: what the car reports then has not been seen yet.
 - **Temperature units follow the watch.** The Fahrenheit list is the one that has been tried; the Celsius one
   (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it
   shows can differ from your pick by a rounding step.
@@ -276,11 +288,11 @@ Orbit has no server, no accounts and no analytics. The author receives nothing f
 - **Lucid password:** typed once in the phone app and sent only to Lucid's login service. It is not stored.
 - **Lucid session:** only a refresh token is kept, encrypted with a key held in the phone's Android Keystore. Android
   backup is disabled, so it is not copied to the cloud or to a new phone. Log out in the app to delete it.
-- **Watch:** stores a cached copy of the last state: charge and charging power, lock state, climate and its set
-  point, the inside and outside air temperature, open doors, frunk and trunk, warnings (tires, an unattended
-  occupant), pet mode, battery health and cell temperatures, tire pressures, **the odometer**, when the car last
-  reported, and the phone app's version. No credentials or tokens are ever sent to the watch, and neither the VIN
-  nor the car's location is.
+- **Watch:** stores a cached copy of the last state: charge, charging power and limit, charge port, lock state,
+  climate and its set point, the inside and outside air temperature, open doors, frunk and trunk, warnings (tires, an
+  unattended occupant), pet mode, battery health and cell temperatures, tire pressures, **the odometer**, when the
+  car last reported, and the phone app's version. No credentials or tokens are ever sent to the watch, and neither
+  the VIN nor the car's location is.
 - **Energy log (phone):** to work out efficiency, the phone keeps a plain text log of timestamped odometer and battery
   energy readings in the app's private storage, one file per car (named by a hash of the car's id; at most 20,000
   lines each, the oldest quarter dropped when it fills). It never leaves the phone and Android backup is off. Logging

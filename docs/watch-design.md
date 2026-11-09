@@ -63,7 +63,8 @@ readable, so check them for the Venu X1 and fenix):
 
 - **More on the Charging page.** Built so far: a bolt that starts or stops charging (filled while charging, with the
   power under it), the charge port (open or close), the charge limit (a stock menu in 5% steps) and battery
-  preconditioning (a battery with a thermometer, filled while on, with the minutes left under it) and the AC current
+  preconditioning (a battery with a thermometer, filled while on, with the minutes left under it when the car reports
+  a real countdown, which the one car tried has not) and the AC current
   limit (a dial with "AC" under it, and the amps under the circle). The bolt is in the middle, as the lock is on the
   Actions page, with the other four round it: the port on top, the AC limit on the right, preconditioning at the
   bottom and the charge limit on the left. The two icons that always have text under them are at the sides, as text

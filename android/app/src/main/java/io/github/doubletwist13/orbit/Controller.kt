@@ -492,9 +492,14 @@ internal const val MAX_LIMIT = 100
 internal const val MIN_AMPS = 10
 internal const val MAX_AMPS = 80
 
-/** The whole number a watch sends under [key], clamped to [range]; null when missing or not a number. */
+/**
+ * The whole number a watch sends under [key], clamped to [range]; null when missing or not a number. It is clamped
+ * before it is rounded: rounding a huge value to an Int first wraps it (1e30 would come out as -1, and then as the
+ * range's minimum instead of its maximum).
+ */
 internal fun numberReq(req: Map<*, *>, key: String, range: IntRange): Int? =
-    (req[key] as? Number)?.toDouble()?.takeIf { it.isFinite() }?.let { Math.round(it).toInt().coerceIn(range) }
+    (req[key] as? Number)?.toDouble()?.takeIf { it.isFinite() }
+        ?.coerceIn(range.first.toDouble(), range.last.toDouble())?.let { Math.round(it).toInt() }
 
 /** The charge limit a watch asks for, clamped to the car's range. */
 internal fun chargeLimitReq(req: Map<*, *>): Int? = numberReq(req, "lim", MIN_LIMIT..MAX_LIMIT)

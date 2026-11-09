@@ -115,8 +115,10 @@ same things.
   - **Port.** A rounded flap, with the socket showing while the port is open. It opens a choice of open or close.
   - **Charge limit.** A battery with a line across it, with the current limit under it. It opens a list of 50 to
     100% in 5% steps.
-  - **Preconditioning.** A battery with a thermometer, filled in while it is on, with the minutes left under it. It
-    gets the battery to temperature before a fast charge. It says "Not available" if the car reports that it cannot.
+  - **Preconditioning.** A battery with a thermometer, filled in while it is on. It gets the battery to temperature
+    before a fast charge. It says "Not available" if the car reports that it cannot. The minutes left show under it
+    only when the car reports a real countdown; on the one car tried it sent a placeholder (65565), which is hidden,
+    so the countdown itself has not been seen.
   - **AC current limit.** A dial with "AC" under it, and the amps that were set under the icon. It opens a list of
     common values (10, 16, 24, 32, 40, 48 and 80 A) and "Other...", which opens a picker over 10 to 80 A. The
     charger's own maximum still applies: the car draws the lower of the two. When the charger is below what you

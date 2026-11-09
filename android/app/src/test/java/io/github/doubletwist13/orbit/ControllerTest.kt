@@ -113,6 +113,11 @@ class ControllerTest {
         assertEquals(80, chargeLimitReq(mapOf("lim" to 80)))
         assertEquals(50, chargeLimitReq(mapOf("lim" to 10)))
         assertEquals(100, chargeLimitReq(mapOf("lim" to 255)))
+        // a huge value must clamp to the nearest end, not wrap: 1e30 rounded to an Int first came out as the minimum
+        assertEquals(100, chargeLimitReq(mapOf("lim" to 1e30)))
+        assertEquals(50, chargeLimitReq(mapOf("lim" to -1e30)))
+        assertEquals(100, chargeLimitReq(mapOf("lim" to Long.MAX_VALUE)))
+        assertEquals(null, chargeLimitReq(mapOf("lim" to Double.POSITIVE_INFINITY))) // not a finite number at all
         assertEquals(null, chargeLimitReq(mapOf<String, Any>()))
         assertEquals(null, chargeLimitReq(mapOf("lim" to "all")))
         assertEquals(null, chargeLimitReq(mapOf("lim" to Double.NaN)))
@@ -162,6 +167,8 @@ class ControllerTest {
         assertEquals(32, acLimitReq(mapOf("amp" to 32)))
         assertEquals(10, acLimitReq(mapOf("amp" to 3)))
         assertEquals(80, acLimitReq(mapOf("amp" to 500)))
+        assertEquals(80, acLimitReq(mapOf("amp" to 1e30))) // clamped before rounding, so it cannot wrap to the minimum
+        assertEquals(10, acLimitReq(mapOf("amp" to -1e30)))
         assertEquals(null, acLimitReq(mapOf<String, Any>()))
         assertEquals(null, acLimitReq(mapOf("amp" to "max")))
         assertEquals(null, acLimitReq(mapOf("lim" to 32))) // the charge limit's key is not the amps'

@@ -123,8 +123,9 @@ the app's background service (`Background.registerForPhoneAppMessageEvent`), whi
 - The read interval depends on the car's last state: 60 s asleep, 30 s awake, charging, preconditioning the battery or
   with the charge port open and no cable (the last two even if it reports asleep), and 10 s for 2 minutes after the
   watch last sent a request. A change is pushed at most once a minute (every 10 s in that window); with no change the
-  phone still pushes every 5 minutes. While preconditioning, `bpm` counts down by the minute, so a push goes out at that
-  gap for the whole run (intended: it is the countdown). Temperatures count as changed only per whole degree, and
+  phone still pushes every 5 minutes. If the car reports a real countdown while preconditioning, `bpm` changes by the
+  minute, so a push goes out at that gap for the whole run (intended; not yet seen, as the one car tried sent the
+  placeholder 65565). Temperatures count as changed only per whole degree, and
   `age` is ignored. After a rate-limit answer from Lucid the phone waits twice as long, up to an hour, and goes back
   to the normal interval after the next success. A setting in the phone app turns pushes off.
 - A push is skipped while logged out, and a failed fetch sends nothing. A push that fails to reach the watch is not

@@ -68,11 +68,11 @@ Decisions (the reasoning and test results are in `docs/research/phone-bridge-fin
 
 ## Target devices
 The Venu 3 is the tested target (real hardware). The manifest also lists `fenix7` and `venux1`; both build and the
-0.5.0 main, info and Access pages were looked over in the simulator only, so the README calls them untested.
+0.5.0 main, info and Actions pages were looked over in the simulator only, so the README calls them untested.
 Before any store release, trim the manifest to watches a real owner has tried (store distribution covers every
 listed product).
 
-- **A touchscreen is required** (decided for 0.5.0): the Access page's icons are reached by touch only, since up and
+- **A touchscreen is required** (decided for 0.5.0): the Actions page's icons are reached by touch only, since up and
   down change page, so button-only watches (Forerunner 255, fenix 6, Instinct, Edge) are out of scope. Buttons still
   do page, select and back, but they are not a full way in.
 - One codebase via resource qualifiers (e.g. `resources-round-454x454`) where layouts differ. Use fractions of the

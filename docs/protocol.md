@@ -35,9 +35,11 @@ message whose `v` it does not know.
   report open (ajar counts) or closed, and a car that reports no port state answers after the next status fetch.
   `precon_on` is done when the battery's preconditioning status is `ON` and `precon_off` when it is `OFF`; a car that
   reports neither (unknown or unavailable) ends as `timeout`. The phone refuses `precon_on` with `unavail` when the car
-  says it is `UNAVAILABLE`. `ac_limit` is done when the car reports the amps as asked, in its setting or in the current
-  session's limit. A plugged-in car caps the limit at the charger's maximum, so a higher request never matches and ends
-  as `timeout`; an unplugged car takes any value from 10 to 80.
+  says it is `UNAVAILABLE`. `ac_limit` is done when the car reports the AC limit it was set to
+  (`active_session_ac_current_limit`) as asked. The car's other number, `energy_ac_current_limit`, is the charger's
+  maximum (40 A on a 40 A charger, 80 A when unplugged) and is not compared, since matching it would confirm a request
+  before the car took it. Seen on one car: 80 A set on a 40 A charger read back as 80 A, and the car drew 40 A, the
+  lower of the two.
 - `horn` and `flash` (flash the lights) have no state to read back: Lucid's answer to both is an empty message, and
   nothing in the car's state is known to report them. The phone wakes the car if needed, sends, and answers `ok` at
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
@@ -75,7 +77,7 @@ for an `id` has `pending` absent or empty.
 | `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
 | `lim` | int | The charge limit in percent; omitted when the car reports none or a value outside 50..100 |
 | `port` | bool | Charge port open (ajar counts as open); omitted when the car reports no state for it |
-| `ac` | int | The AC limit in amps: the session's, else the car's setting; omitted when none or outside 10..80 |
+| `ac` | int | The AC limit that was set, in amps (not the charger's maximum); omitted when none or outside 10..80 |
 | `bp` | bool | Battery preconditioning is on; omitted when the car says it is unavailable or reports nothing |
 | `bpm` | int | Minutes of preconditioning left; sent only while on and plausible (`MAX_PRECON_MIN`, `Controller.kt`) |
 | `door` | bool | Any of the four doors open (ajar counts); sent only when `true` |

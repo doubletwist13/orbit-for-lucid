@@ -153,11 +153,12 @@ class ControllerTest {
 
     @Test fun acCurrentIsSentOnlyInRangeAndRequestedInAmpsClamped() {
         assertFalse(watchReply(1, status, null).containsKey("ac"))
-        assertEquals(32, watchReply(1, status.copy(acLimit = 32), null)["ac"])
-        assertEquals(24, watchReply(1, status.copy(acLimit = 80, acSession = 24), null)["ac"]) // the session's wins
-        assertEquals(24, watchReply(1, status.copy(acSession = 24), null)["ac"])
-        assertFalse(watchReply(1, status.copy(acLimit = 9), null).containsKey("ac")) // under the car's lowest
-        assertFalse(watchReply(1, status.copy(acLimit = 200), null).containsKey("ac"))
+        assertEquals(32, watchReply(1, status.copy(acSet = 32), null)["ac"])
+        // the setting is sent, not the charger's maximum: 80 A set on a 40 A charger reads back 80 A
+        assertEquals(80, watchReply(1, status.copy(acSet = 80, acCharger = 40), null)["ac"])
+        assertFalse(watchReply(1, status.copy(acCharger = 40), null).containsKey("ac")) // no setting reported
+        assertFalse(watchReply(1, status.copy(acSet = 9), null).containsKey("ac")) // under the car's lowest
+        assertFalse(watchReply(1, status.copy(acSet = 200), null).containsKey("ac"))
         assertEquals(32, acLimitReq(mapOf("amp" to 32)))
         assertEquals(10, acLimitReq(mapOf("amp" to 3)))
         assertEquals(80, acLimitReq(mapOf("amp" to 500)))
@@ -166,11 +167,13 @@ class ControllerTest {
         assertEquals(null, acLimitReq(mapOf("lim" to 32))) // the charge limit's key is not the amps'
     }
 
-    @Test fun acCurrentIsDoneWhenTheSettingOrTheSessionMatches() {
-        assertTrue(acLimitDone(status.copy(acLimit = 32), 32))
-        assertTrue(acLimitDone(status.copy(acLimit = 40, acSession = 32), 32))
-        assertFalse(acLimitDone(status.copy(acLimit = 40, acSession = 24), 32)) // capped by the charger: no match
-        assertFalse(acLimitDone(status, 32)) // a car that reports none confirms nothing
+    @Test fun acCurrentIsDoneOnlyWhenTheSettingMatches() {
+        assertTrue(acLimitDone(status.copy(acSet = 32), 32))
+        assertTrue(acLimitDone(status.copy(acSet = 80, acCharger = 40), 80)) // above the charger's 40 A, taken as asked
+        // the charger's maximum is not the setting: asking for 40 A on a 40 A charger must wait for the setting
+        assertFalse(acLimitDone(status.copy(acSet = 80, acCharger = 40), 40))
+        assertFalse(acLimitDone(status.copy(acCharger = 32), 32)) // a car that reports no setting confirms nothing
+        assertFalse(acLimitDone(status, 32))
     }
 
     @Test fun aRequestWithNoNumberIsBadcmd() {

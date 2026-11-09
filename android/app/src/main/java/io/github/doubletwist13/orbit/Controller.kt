@@ -332,7 +332,7 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         }
         it.chargeLimit?.takeIf { l -> l in MIN_LIMIT..MAX_LIMIT }?.let { l -> put("lim", l) }
         it.portOpen?.let { o -> put("port", o) }
-        acShown(it)?.takeIf { a -> a in MIN_AMPS..MAX_AMPS }?.let { a -> put("ac", a) }
+        it.acSet?.takeIf { a -> a in MIN_AMPS..MAX_AMPS }?.let { a -> put("ac", a) }
         // on or off only: an unavailable or unknown state sends nothing, so the watch shows no state for it
         if (it.preconStatus == "ON" || it.preconStatus == "OFF") put("bp", it.preconStatus == "ON")
         // the car once reported 65565 minutes: a value outside a plausible span is a bad reading, not a time
@@ -502,16 +502,11 @@ internal fun chargeLimitReq(req: Map<*, *>): Int? = numberReq(req, "lim", MIN_LI
 internal fun acLimitReq(req: Map<*, *>): Int? = numberReq(req, "amp", MIN_AMPS..MAX_AMPS)
 
 /**
- * The AC limit to show: the session's, which followed the limit set from here on the one car tried (the other number
- * stayed at 80 A), or the car's setting when there is no session limit.
+ * Whether the car reports the AC limit that was set as asked. Only the setting counts: the charger's maximum is a
+ * different number (40 A on a 40 A charger), so matching it would confirm a request before the car took it. A request
+ * above the charger's maximum is still taken as asked, and the car draws the lower of the two.
  */
-internal fun acShown(s: VehicleStatus): Int? = s.acSession ?: s.acLimit
-
-/**
- * Whether the car reports the AC current limit as asked, in its setting or in the session's. A plugged-in car may cap
- * a high request at the charger's maximum, which then never matches and ends as a timeout.
- */
-internal fun acLimitDone(s: VehicleStatus, amps: Int): Boolean = s.acLimit == amps || s.acSession == amps
+internal fun acLimitDone(s: VehicleStatus, amps: Int): Boolean = s.acSet == amps
 
 /** Whether the car reports preconditioning as asked; an unknown or unavailable state confirms neither way. */
 internal fun preconDone(s: VehicleStatus, on: Boolean): Boolean = s.preconStatus == if (on) "ON" else "OFF"

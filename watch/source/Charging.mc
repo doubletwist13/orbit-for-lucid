@@ -3,8 +3,8 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 
 // The AC current limit picker: a few common values and "Other...", which opens a picker over the car's whole range.
-// The range is the phone's MIN_AMPS and MAX_AMPS (Controller.kt), which clamps what is sent. A plugged-in car caps the
-// limit at the charger's maximum, so a high pick may not be taken.
+// The range is the phone's MIN_AMPS and MAX_AMPS (Controller.kt), which clamps what is sent. A pick above the charger's
+// maximum is kept as set, and the car draws the lower of the two, so the amps shown can be more than the car draws.
 const AC_COMMON = [10, 16, 24, 32, 40, 48, 80];
 const AC_MIN = 10;
 const AC_MAX = 80;
@@ -25,7 +25,7 @@ function chargeItems() as Array<Dictionary> {
     var heating = s != null && s["bp"] == true;
     var left = heating && s["bpm"] != null ? (s["bpm"] as Numeric).toNumber() + " min" : null;
     var amps = s != null && s["ac"] != null ? (s["ac"] as Numeric).toNumber() + " A" : null;
-    // The bolt in the middle, as the lock is on the Access page, then clockwise from the top. The text under an icon
+    // The bolt in the middle, as the lock is on the Actions page, then clockwise from the top. The text under an icon
     // would run into the middle one above it, so the icons that always have text (the AC limit and the charge limit)
     // are at the sides, and the port, which has none, is on top. Preconditioning has text only while it is on.
     return [power,

@@ -31,17 +31,18 @@ works or not.
 | Venu 3 | Tested on a real watch |
 | fenix 7 | Builds and runs in Garmin's simulator (0.5.0 screens look right by touch); never on a real watch |
 | Venu X1 | Builds and runs in Garmin's simulator (0.5.0 screens look right by touch); never on a real watch |
-| fenix 8 (47 mm), Epix 2 Pro (47 mm) | Simulator only (0.5.0 main, info, Access, by touch, 2026-11-05) |
+| fenix 8 (47 mm), Epix 2 Pro (47 mm) | Simulator only (0.5.0 main, info, Actions, by touch, 2026-11-05) |
 | Venu 3S and 4, Vivoactive 5 and 6, other fenix 7 and 8 models | Builds only; not run in the simulator or on a watch |
 | Epix 2, other Epix 2 Pro sizes, Forerunner 265, 570, 965, 970 | Builds only; not run in the simulator or on a watch |
 
 The fenix 7 and Venu X1 are tentative: treat them as untested until someone runs them on hardware, and the rest as
 less tested still. The full list of device ids is in `watch/manifest.xml`.
 
-**A touchscreen is required.** The Access page's icons can only be reached by touch (the up and down buttons change
-page), so a button-only watch, such as a Forerunner 255, a fenix 6 or an Instinct, cannot use the actions, and no layout
-exists for those screens. Every watch in the manifest has touch (checked against the `isTouch` flag in each device's
-Connect IQ profile). If you switch touch off in the watch's settings you lose the same things.
+**A touchscreen is required.** The icons on the Actions and Charging pages can only be reached by touch (the up and
+down buttons change page), so a button-only watch, such as a Forerunner 255, a fenix 6 or an Instinct, cannot use the
+actions, and no layout exists for those screens. Every watch in the manifest has touch (checked against the
+`isTouch` flag in each device's Connect IQ profile). If you switch touch off in the watch's settings you lose the
+same things.
 
 ## Using the watch app
 
@@ -50,10 +51,24 @@ Connect IQ profile). If you switch touch off in the watch's settings you lose th
   unplugged, a plain plug when plugged in but not charging, and a bolt while charging. The percent and battery icon
   take the main screen's charge colours. It shows what the phone last pushed, with no age.
 - **Pages.** The app is a vertical strip of five pages, opening on the main screen. Swipe up or down, or use the up
-  and down buttons, to move along it; it stops at both ends. Swipe right, or press back, to leave a screen opened
-  from a page. Small dots down the left edge show where you are. From the top: the version and update page, the
-  car's details, the main screen, the actions, and charging (start or stop, the charge port, the charge limit,
-  battery preconditioning and the AC current limit).
+  and down buttons, to move along it; it stops at both ends. Swipe right, or press the watch's back button, to leave
+  a screen opened from a page. Small dots down the left edge show where you are. From the top: About, Info, Main,
+  Actions and Charging.
+- **About page** (the top page) has the versions, the refresh and the colour:
+  - **Last updated.** When the car last reported and when the phone last sent status to the watch, so you can tell
+    whether the updates are arriving. The phone app shows the same times, plus when it last asked Lucid.
+  - **Versions.** The watch app's and the phone app's.
+  - **Refresh.** Tap anywhere below the Colour button to ask the car for its state again.
+  - **Theme.** The icons, text, page dots and glance take one accent colour, green by default. Pick another of 11 by
+    tapping the outlined **Colour** button at the top. On most watches, holding the menu button (the lower button on
+    the Venu 3, the Up button on a fenix, Epix or Forerunner) opens the picker from any page; the Venu 4, Venu X1 and
+    Vivoactive 6 have no such button, so use the Colour button. The charge (ring, number, glance battery) follows the
+    accent while it is 50% or more, then turns yellow, orange or red as before; amber warnings and red alerts never
+    change.
+- **Info page** (above the main screen) lists climate state, cabin and outside temperature, the coolest and warmest
+  battery cell, battery health, odometer and the four tire pressures (front and rear pairs, in the watch's units).
+  The phone app's "Vehicle details" screen lists everything the car reports, plus efficiency figures worked out from
+  the odometer and battery energy the phone has logged.
 - **Main screen** is information only, so a stray tap does nothing. It opens here, and shows:
   - **Charge.** A ring fills clockwise from the top to match the charge, with the number in percent in the middle.
     The ring and number take the accent colour (green by default) from 50%, then yellow from 25%, orange from 10%
@@ -72,48 +87,50 @@ Connect IQ profile). If you switch touch off in the watch's settings you lose th
   - **Slices.** An accent-coloured slice at the top (`i`) and one at the bottom (`...`) go to the page above or
     below when tapped. The bottom line of the screen shows only what is in progress ("Unlocking...") or an error.
     The car only reports while awake, so after 30 minutes the whole screen dims; that is normal, not an error.
-- **Theme.** The icons, text, page dots and glance take one accent colour, green by default. Pick another of 11 on
-  the version page by tapping **Colour**; on most watches, holding the menu button (the lower button on the Venu 3,
-  the Up button on a fenix, Epix or Forerunner) opens the picker from any page. Venu 4, Venu X1 and Vivoactive 6 have
-  no such button, so use the version page. The charge (ring, number, glance battery) follows the accent while it is
-  50% or more, then turns yellow, orange or red as before; amber warnings and red alerts never change.
-- **Stays current.** The phone reads the car every 30 s while it is awake or charging and every 60 s while it
+- **Actions page** (below the main screen) is big round icons, with the lock in the middle. Around it, clockwise from
+  the top left: frunk, trunk, close all windows, lights, horn and climate. Tap an icon. The icons on this page act on
+  their own, or open a second screen to choose from.
+  - **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
+    not depend on that state. Unlock then asks you to confirm. The main screen's quick lock opens the same choice.
+  - **Frunk** and **trunk** show the front or back of the car (an Air or a Gravity, as the car reports), with an F or
+    a T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to confirm. A
+    frunk with a gas strut can only be unlatched, so it goes straight to the confirm. Tested on a car with a powered
+    frunk; the gas-strut case is untested.
+  - **Windows** closes all four windows after a confirm tap. It is the only window action offered.
+  - **Lights** (flash) act at once. **Horn** (one short honk) asks for a confirm tap. Lucid's API gives no way to
+    confirm either, so the watch shows "Sending..." and then clears: it means Lucid took the request, not that the
+    car acted on it. Watch or listen for the car, and try again if nothing happened. The car ignores these, like the
+    other actions, while in gear (see Limitations).
+  - **Climate** opens a choice of off, on, or pet mode. On shows the car's current set point and opens a scrolling
+    list over the car's range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm.
+    Picking a new temperature while climate is already on changes it. Pet mode (the paw) switches the car's pet mode
+    on or off at once, with no confirm, and the paw is filled in while it is on.
+- **Charging page** (the last page) has the bolt in the middle, with four icons round it (the charge port above,
+  preconditioning below, the charge limit on the left and the AC current limit on the right). Every one asks for a
+  confirm tap before it sends, and the page follows the car's state while it is open.
+  - **Bolt.** Starts or stops charging; it is filled in while the car charges, with the power in kW under it. A start
+    is refused at once with "No cable" when nothing is plugged in, or "At limit" when the charge is already at the
+    limit. While the car gives power out (V2X) it is an outlined bolt with a small red arrow and "Discharging", and
+    tapping it does nothing.
+  - **Port.** A rounded flap, with the socket showing while the port is open. It opens a choice of open or close.
+  - **Charge limit.** A battery with a line across it, with the current limit under it. It opens a list of 50 to
+    100% in 5% steps.
+  - **Preconditioning.** A battery with a thermometer, filled in while it is on, with the minutes left under it. It
+    gets the battery to temperature before a fast charge. It says "Not available" if the car reports that it cannot.
+  - **AC current limit.** A dial with "AC" under it, and the amps that were set under the icon. It opens a list of
+    common values (10, 16, 24, 32, 40, 48 and 80 A) and "Other...", which opens a picker over 10 to 80 A. The
+    charger's own maximum still applies: the car draws the lower of the two, so the amps shown can be more than the
+    car draws.
+- **Toasts.** An action that sends without a confirm (lock, lights, pet mode) or after one shows a short toast
+  ("Locking...") so you know the tap was taken. The result comes later, from the car.
+- **Stays current.** The phone reads the car every 30 s while it is awake or charging, or while the battery is
+  preconditioning or the charge port is open with no cable (even if the car reports asleep), and every 60 s while it
   sleeps (every 10 s for 2 minutes after the watch asks for anything). It sends the watch a change at most once a
   minute, and a status every 5 minutes even if nothing changed. This happens while the app is closed and whether or
   not the watch is connected at that moment (a send to an absent watch just fails), so the glance and the main
   screen open on recent data. Android can delay the timer while the phone sleeps. A switch in the phone app turns
   it off; turning it back on sends the last status at once, which is a quick way to refresh a watch that was out of
   range or plugged in. If Garmin Connect restarts, the phone reconnects to it by itself after about 30 seconds.
-- **Actions** is the last page: big round icons, with the lock in the middle. Around it, clockwise from the top left:
-  frunk, trunk, close all windows, lights, horn and climate. Tap an icon. The icons on this page act on their own, or
-  open a second screen to choose from.
-- **Info** (the page above the main screen) lists climate state, cabin and outside temperature, the coolest and
-  warmest battery cell, battery health, odometer and the four tire pressures (front and rear pairs, in the watch's
-  units).
-- **Version and update** (the top page) shows when the car last reported and when the phone last sent status to the
-  watch, so you can tell whether the updates are arriving, and the watch app's and the phone app's versions. Tap it
-  to ask the car for its state again (a refresh). The outlined **Colour** button at the top opens the colour picker
-  (see Theme below). The phone app shows the same times, plus when it last asked Lucid.
-  Its "Vehicle details" screen lists everything the car reports, plus efficiency figures worked out from the odometer
-  and battery energy the phone has logged.
-- **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
-  not depend on that state. Unlock then asks you to confirm. The main screen's quick lock opens the same choice.
-- **Toasts.** An action that sends without a confirm (lock, lights, pet mode) or after one shows a short toast
-  ("Locking...") so you know the tap was taken. The result comes later, from the car.
-- **Frunk** and **trunk** show the front or back of the car (an Air or a Gravity, as the car reports), with an F or a
-  T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to confirm. A
-  frunk with a gas strut can only be unlatched, so it goes straight to the confirm. Tested on a car with a powered
-  frunk; the gas-strut case is untested.
-- **Horn** (one short honk) asks for a confirm tap. **Lights** (flash) act at once. Honk, lights and the rest of the
-  actions are ignored by the car in gear (see Limitations). Lucid's API gives no way to
-  confirm either, so the watch shows "Sending..." and then clears: it means Lucid took the request, not that the car
-  acted on it. Watch or listen for the car, and try again if nothing happened.
-- **Windows** closes all four windows after a confirm tap. It is the only window action offered.
-- **Climate** opens a choice of off, on, or pet mode. On shows the car's current set point and opens a scrolling list
-  over the car's range (59-86 F, or 15-30 C, following the watch's unit setting), then asks you to confirm. Picking a
-  new temperature while climate is already on changes it. Pet mode (the paw) switches the car's pet mode on or off at
-  once, with no confirm, and the paw is filled in while it is on.
-- **Back** is the watch's back button.
 
 ### Icon legend
 
@@ -224,10 +241,11 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
 - **Limited commands.** Charging has start and stop, the limit, the port, battery preconditioning and the AC current
   limit only: no schedule. Nor are other window actions (vent, open), seat or steering wheel heat, defrost or
   location. Some of that is in the issues; some, like seat heat, is left to the car and Lucid's own app on purpose.
-  Start and stop, the limit, the charge port and preconditioning have been tried on one car; the AC current limit
-  has not. A plugged-in car caps the AC limit at the charger's maximum, so a higher pick may end as "Not confirmed".
-  While the car gives power out (V2X) the watch shows an outlined bolt with a red arrow, and "Discharging" on the
-  Charging page, which offers no start or stop; no power is shown: what the car reports then has not been seen yet.
+  Start and stop, the limit, the charge port, preconditioning and the AC current limit have been tried on one car.
+  The AC amps shown are what was set: a pick above the charger's maximum is kept as set, and the car draws the lower
+  of the two (80 A set on a 40 A charger showed 80 A on the watch, and the car showed 40 A). While the car gives
+  power out (V2X) the watch shows an outlined bolt with a red arrow, and "Discharging" on the Charging page, which
+  offers no start or stop; no power is shown: what the car reports then has not been seen yet.
 - **Temperature units follow the watch.** The Fahrenheit list is the one that has been tried; the Celsius one
   (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it
   shows can differ from your pick by a rounding step.
@@ -286,8 +304,7 @@ Step-by-step instructions for building both apps and sideloading them (including
   [gitleaks](https://github.com/gitleaks/gitleaks)).
 - **Update both apps together.** The watch and phone apps share a message format, and a new watch app can send a
   command an older phone app does not know (the watch then shows "Update phone"). When you update one, update the
-  other to the same version; both show theirs (the version and update page on the watch, the main screen of the phone
-  app).
+  other to the same version; both show theirs (the About page on the watch, the main screen of the phone app).
 
 ## Privacy
 

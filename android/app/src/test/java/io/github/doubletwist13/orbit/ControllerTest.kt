@@ -132,12 +132,23 @@ class ControllerTest {
         }
     }
 
-    @Test fun preconIsDoneWhenTheCarReportsItOnOrNotOn() {
+    @Test fun preconIsDoneOnlyWhenTheCarReportsTheAskedState() {
         assertTrue(preconDone(status.copy(preconStatus = "ON"), true))
         assertFalse(preconDone(status.copy(preconStatus = "OFF"), true))
         assertTrue(preconDone(status.copy(preconStatus = "OFF"), false))
-        assertTrue(preconDone(status.copy(preconStatus = "UNAVAILABLE"), false))
         assertFalse(preconDone(status.copy(preconStatus = "ON"), false))
+        for (silent in listOf("UNKNOWN", "UNAVAILABLE")) { // a car that says nothing confirms neither
+            assertFalse(preconDone(status.copy(preconStatus = silent), true))
+            assertFalse(preconDone(status.copy(preconStatus = silent), false))
+        }
+    }
+
+    @Test fun preconStartIsRefusedOnlyWhenTheCarSaysUnavailable() {
+        assertEquals("unavail", preconStartRefusal(status.copy(preconStatus = "UNAVAILABLE")))
+        for (ok in listOf("ON", "OFF", "UNKNOWN")) {
+            assertEquals(null, preconStartRefusal(status.copy(preconStatus = ok)))
+        }
+        assertEquals("unavail", errCode(CommandFailed("unavail", "x")))
     }
 
     @Test fun aLimitRequestWithNoNumberIsBadcmd() {
@@ -302,10 +313,12 @@ class ControllerTest {
         assertEquals(POLL_ACTIVE_MS, pollInterval(status.copy(awake = false), true))
     }
 
-    @Test fun aRunningPreconditioningOrAnOpenPortIsReadAsOftenAsACharge() {
+    @Test fun aRunningPreconditioningOrAnOpenUnpluggedPortIsReadAsOftenAsACharge() {
         val asleep = status.copy(awake = false)
-        assertEquals(POLL_BUSY_MS, pollInterval(asleep.copy(preconStatus = "ON"), false))
-        assertEquals(POLL_BUSY_MS, pollInterval(asleep.copy(portOpen = true), false))
+        assertEquals(POLL_CHARGING_MS, pollInterval(asleep.copy(preconStatus = "ON"), false))
+        assertEquals(POLL_CHARGING_MS, pollInterval(asleep.copy(portOpen = true, chargeState = "NOT_CONNECTED"), false))
+        // an open port with a cable in just sits there, so it is read at the normal pace
+        assertEquals(POLL_ASLEEP_MS, pollInterval(asleep.copy(portOpen = true, chargeState = "CABLE_CONNECTED"), false))
         assertEquals(POLL_ASLEEP_MS, pollInterval(asleep.copy(preconStatus = "OFF", portOpen = false), false))
         assertEquals(POLL_ACTIVE_MS, pollInterval(asleep.copy(preconStatus = "ON"), true)) // the watch window is faster
     }

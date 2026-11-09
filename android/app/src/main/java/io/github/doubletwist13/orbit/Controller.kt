@@ -199,7 +199,7 @@ class Controller(context: Context) {
         "precon_on", "precon_off" -> {
             val on = cmd == "precon_on"
             command(if (on) "Starting precon" else "Stopping precon", { preconDone(it, on) }, progress) { s ->
-                if (on && s.preconStatus == "UNAVAILABLE") throw CommandFailed("unavail", "Preconditioning unavailable")
+                if (on) preconStartRefusal(s)?.let { throw CommandFailed(it, "Preconditioning unavailable") }
                 client.setBatteryPrecon(token(), s.vehicleId, on)
             }
         }
@@ -376,9 +376,6 @@ internal const val PUSH_MAX_MS = 60 * 60_000L
 internal const val POLL_ASLEEP_MS = 60_000L
 internal const val POLL_AWAKE_MS = 30_000L
 internal const val POLL_CHARGING_MS = 30_000L
-// A running battery preconditioning or an open charge port is changing, so it is read as often as a charge, even if
-// the car reports asleep.
-internal const val POLL_BUSY_MS = 30_000L
 // After the watch asks for anything, read faster and let a change reach it sooner for a while.
 internal const val POLL_ACTIVE_MS = 10_000L
 internal const val ACTIVE_WINDOW_MS = 2 * 60_000L
@@ -389,7 +386,9 @@ internal const val PUSH_ACTIVE_GAP_MS = 10_000L
 /** How long to wait before reading the car again, from what the last read showed. */
 internal fun pollInterval(s: VehicleStatus, watchActive: Boolean): Long {
     val byState = when {
-        s.preconStatus == "ON" || s.portOpen == true -> POLL_BUSY_MS
+        // changing, so read as often as a charge even if the car reports asleep: a running battery preconditioning, or
+        // an open port with no cable (to learn quickly that it closed or got plugged in; with a cable it just sits)
+        s.preconStatus == "ON" || (s.portOpen == true && s.chargeState == "NOT_CONNECTED") -> POLL_CHARGING_MS
         !s.awake -> POLL_ASLEEP_MS
         s.chargeState == "CHARGING" -> POLL_CHARGING_MS
         else -> POLL_AWAKE_MS
@@ -485,8 +484,11 @@ internal const val MAX_LIMIT = 100
 internal fun chargeLimitReq(req: Map<*, *>): Int? = (req["lim"] as? Number)?.toDouble()?.takeIf { it.isFinite() }
     ?.let { Math.round(it).toInt().coerceIn(MIN_LIMIT, MAX_LIMIT) }
 
-/** Whether the car reports preconditioning on or off; any state but ON counts as off. */
-internal fun preconDone(s: VehicleStatus, on: Boolean): Boolean = (s.preconStatus == "ON") == on
+/** Whether the car reports preconditioning as asked; an unknown or unavailable state confirms neither way. */
+internal fun preconDone(s: VehicleStatus, on: Boolean): Boolean = s.preconStatus == if (on) "ON" else "OFF"
+
+/** The error code for a preconditioning start the car says it cannot do, or null when it may be tried. */
+internal fun preconStartRefusal(s: VehicleStatus): String? = if (s.preconStatus == "UNAVAILABLE") "unavail" else null
 
 /** A request without a usable limit is one this phone cannot act on. */
 internal fun requireLimit(limit: Int?): Int = limit ?: throw CommandFailed("badcmd", "No charge limit in the request")

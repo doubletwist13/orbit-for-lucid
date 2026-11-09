@@ -66,8 +66,9 @@ readable, so check them for the Venu X1 and fenix):
   thermometer, filled while on, with the minutes left under it when the car reports a real countdown, which the one
   car tried has not) and the AC current limit (a dial with "AC" under it, and the amps under the circle). The bolt is
   in the middle, as the lock is on the Actions page, with the other four round it: the port on top, the AC limit on
-  the right, preconditioning at the bottom and the charge limit on the left. The two icons that always have text under them are at the sides, as text
-  under a top or bottom one would run into the middle icon or the bezel; a sixth icon needs another answer. Every one
+  the right, preconditioning at the bottom and the charge limit on the left. The two icons that always have text
+  under them are at the sides, as text under a top or bottom one would run into the middle icon or the bezel; a
+  sixth icon needs another answer. Every one
   asks for a confirm tap, and the page redraws from the car's state while it is open. The AC amps are what was set,
   not the charger's maximum: on the one car tried, 80 A set on a 40 A charger showed 80 A on the watch while the car
   showed 40 A, the lower of the two, so the label adds the cap in brackets, "80A(40A)", only when the charger is

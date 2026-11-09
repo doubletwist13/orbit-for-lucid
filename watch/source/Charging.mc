@@ -2,8 +2,9 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-// The last page of the strip: start or stop charging, the charge port and the charge limit. The bolt is one icon that
-// follows the car (filled while it charges, like pet mode), so the choice never depends on a stale page.
+// The last page of the strip: start or stop charging, the charge port, the charge limit and battery preconditioning.
+// The bolt and the battery heater are one icon each that follows the car (filled while on, like pet mode), so the
+// choice never depends on a stale page.
 function chargeItems() as Array<Dictionary> {
     var s = link().state;
     var charging = s != null && "CHARGING".equals(s["charge"]);
@@ -13,9 +14,14 @@ function chargeItems() as Array<Dictionary> {
     var out = s != null && Charge.discharging(s["charge"] as String?);
     var power = out ? {:icon => :discharge, :id => "discharging", :label => "Discharging"}
         : {:icon => :bolt, :id => charging ? "charge_stop" : "charge_start", :on => charging, :label => kw};
+    // the battery heater: filled while on, with the minutes left under it
+    var heating = s != null && s["bp"] == true;
+    var left = heating && s["bpm"] != null ? (s["bpm"] as Numeric).toNumber() + " min" : null;
     return [power,
         {:icon => s != null && s["port"] == true ? :portopen : :portclosed, :id => "port_menu"},
-        {:icon => :limit, :id => "limit_menu", :label => lim}] as Array<Dictionary>;
+        {:icon => :limit, :id => "limit_menu", :label => lim},
+        {:icon => :precon, :id => heating ? "precon_off" : "precon_on", :on => heating, :label => left}]
+        as Array<Dictionary>;
 }
 
 // Rebuilds its items on every draw, so the power, limit and port follow the car while the page is open.

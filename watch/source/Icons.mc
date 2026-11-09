@@ -35,6 +35,8 @@ module Icons {
             lid(dc, x, y, u, id == :afrunk || id == :afrunkopen, id == :afrunkopen || id == :atrunkopen, true);
         } else if (id == :limit) {
             limit(dc, x, y, u);
+        } else if (id == :precon) {
+            precon(dc, x, y, u);
         } else if (id == :portopen || id == :portclosed) {
             port(dc, x, y, u, id == :portopen);
         } else if (id == :horn) {
@@ -192,6 +194,15 @@ module Icons {
         battery(dc, x, y, u);
         dc.fillRectangle(px(x, 8.5, u), px(y, 10, u), (7 * u).toNumber(), (10 * u).toNumber());
         line(dc, x, y, u, 2, 10, 22, 10);
+    }
+
+    // battery preconditioning: a battery with a thermometer beside it
+    function precon(dc as Dc, x as Number, y as Number, u as Float) as Void {
+        dc.drawRoundedRectangle(px(x, 3, u), px(y, 5, u), (10 * u).toNumber(), (16 * u).toNumber(),
+            (2.5 * u).toNumber());
+        line(dc, x, y, u, 6, 3, 10, 3);
+        line(dc, x, y, u, 18.5, 4, 18.5, 15);
+        dc.drawCircle(px(x, 18.5, u), px(y, 17.5, u), (2.5 * u).toNumber());
     }
 
     // the charge port's flap: a closed rounded square with a slit, or an open one showing the socket

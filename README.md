@@ -14,7 +14,8 @@ Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and o
 state of charge, locked/unlocked, plugged/charging and the inside and outside temperature, then lock, unlock, start
 or stop climate at a temperature you pick (in the watch's own units), open and close the frunk and trunk, honk the
 horn, flash the lights, close all the windows, switch pet mode on or off, start or stop charging, set the charge
-limit, open and close the charge port, and refresh. The main screen also shows the charging power, an
+limit, open and close the charge port, start or stop battery preconditioning, and refresh. The main screen also
+shows the charging power, an
 unattended-occupant warning and open-door and tire warnings, and an info page lists battery and tire details. Unlock,
 climate, frunk, trunk, horn, close windows and the charging commands ask for a confirm tap; lock, lights and pet mode
 do not. Commands wake a sleeping car first. See [PLAN.md](PLAN.md) for the roadmap.
@@ -49,7 +50,8 @@ Connect IQ profile). If you switch touch off in the watch's settings you lose th
 - **Pages.** The app is a vertical strip of five pages, opening on the main screen. Swipe up or down, or use the up
   and down buttons, to move along it; it stops at both ends. Swipe right, or press back, to leave a screen opened
   from a page. Small dots down the left edge show where you are. From the top: the version and update page, the
-  car's details, the main screen, the actions, and charging (start or stop, the charge port and the charge limit).
+  car's details, the main screen, the actions, and charging (start or stop, the charge port, the charge limit and
+  battery preconditioning).
 - **Main screen** is information only, so a stray tap does nothing. It opens here, and shows:
   - **Charge.** A ring fills clockwise from the top to match the charge, with the number in percent in the middle.
     The ring and number take the accent colour (green by default) from 50%, then yellow from 25%, orange from 10%
@@ -153,6 +155,7 @@ Air; a Gravity has its own drawings.
 | <img src="docs/images/icons/port.png" alt="Closed flap"> | Close the charge port |
 | <img src="docs/images/icons/port-open.png" alt="Open flap, socket"> | Open the charge port |
 | <img src="docs/images/icons/limit.png" alt="Battery, limit line"> | Set the charge limit (shown with its percentage) |
+| <img src="docs/images/icons/precon.png" alt="Battery, thermometer"> | Precondition the battery (filled in while on) |
 
 **Timings are anecdotes.** On one car, an unlock from a sleeping car took about 13 seconds without car wifi and 9-10
 seconds with it (measured before confirmations were checked every 1.5 s), and a later one took about 8 seconds. A
@@ -214,10 +217,11 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
 - **Tested on one phone.** Android only, tested on a Pixel 10 Pro. Needs Garmin Connect Mobile installed and paired
   with the watch.
 - **Not in any app store.** You build both apps yourself and sideload them. See Building.
-- **Limited commands.** Charging has start and stop, the limit and the port only: no AC current limit, battery
-  preconditioning or schedule. Nor are other window actions (vent, open), seat or steering wheel heat, defrost or
+- **Limited commands.** Charging has start and stop, the limit, the port and battery preconditioning only: no AC
+  current limit or schedule. Nor are other window actions (vent, open), seat or steering wheel heat, defrost or
   location. Some of that is on the roadmap; some, like seat heat, is left to the car and Lucid's own app on purpose.
-  Start and stop, the limit and the charge port have been tried on one car. While the car gives power out (V2X)
+  Start and stop, the limit and the charge port have been tried on one car; preconditioning has not. While the
+  car gives power out (V2X)
   the watch shows an outlined bolt with a red arrow, and "Discharging" on the Charging page, which offers no start
   or stop; no power is shown: what the car reports then has not been seen yet.
 - **Temperature units follow the watch.** The Fahrenheit list is the one that has been tried; the Celsius one

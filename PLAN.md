@@ -129,9 +129,9 @@ background reads that push changes to the watch, faster command confirmation, bo
 Since 0.5.0 the watch app is a vertical page strip (docs/watch-design.md): a main screen that is information only
 (charge ring, charging power, temperatures, warnings), an info page, a version and refresh page, and one Access page
 (lock, frunk, trunk, close all windows, climate with pet mode, lights, horn). A Charging page (start and stop, the
-charge limit and the port, #35) is the first part of 0.6.0. The phone app shows status and settings
-and a read-only vehicle details screen with efficiency worked out from its own odometer log; it has no controls. See
-the releases.
+charge limit, the port and battery preconditioning, #35 and #13) is the first part of 0.6.0. The phone app shows
+status and settings and a read-only vehicle details screen with efficiency worked out from its own odometer log; it has
+no controls. See the releases.
 
 Planned in milestones, each an issue (the GitHub milestones have the lists):
 - **0.5.1, polish:** a per-car efficiency log (#67), the glance background (#68), more watch models (#82), and the

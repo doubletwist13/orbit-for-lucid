@@ -17,6 +17,7 @@ import mobilegateway.protos.LoginSessionOuterClass.Os
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
 import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowControlRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowPosition
+import mobilegateway.protos.VehicleStateServiceOuterClass.BatteryPreconStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
 import mobilegateway.protos.VehicleStateServiceOuterClass.ChargeAction
 import mobilegateway.protos.VehicleStateServiceOuterClass.ChargeControlRequest
@@ -36,6 +37,7 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.LockState
 import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
 import mobilegateway.protos.VehicleStateServiceOuterClass.RearCargoControlRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.SetBatteryPreconRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCabinTemperatureRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetChargeLimitRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCreatureComfortModeRequest
@@ -91,6 +93,9 @@ data class VehicleStatus(
     val chargeLimit: Int? = null,
     /** Charge port open (ajar counts as open); null when the car reports no state for it. */
     val portOpen: Boolean? = null,
+    /** Battery preconditioning: ON, OFF, UNAVAILABLE or UNKNOWN, and the minutes left while it is on. */
+    val preconStatus: String = "UNKNOWN",
+    val preconMinutes: Int? = null,
     /** Any of the four doors open (ajar counts as open). */
     val doorOpen: Boolean = false,
     /** The car's own tyre pressure warning (soft or hard) is on for any wheel. */
@@ -272,6 +277,13 @@ class LucidClient(
         ControlChargePortRequest.newBuilder().setVehicleId(vehicleId).setClosureState(doorState(open)).build(),
     )
 
+    suspend fun setBatteryPrecon(refreshToken: String, vehicleId: String, on: Boolean) = command(
+        refreshToken, "SetBatteryPrecon",
+        SetBatteryPreconRequest.newBuilder().setVehicleId(vehicleId)
+            .setStatus(if (on) BatteryPreconStatus.BATTERY_PRECON_ON else BatteryPreconStatus.BATTERY_PRECON_OFF)
+            .build(),
+    )
+
     private fun doorState(open: Boolean) = if (open) DoorState.DOOR_STATE_OPEN else DoorState.DOOR_STATE_CLOSED
 
     private suspend fun command(refreshToken: String, method: String, req: MessageLite) {
@@ -362,6 +374,8 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     chargeRateKw = state.charging.chargeRateKwhPrecise,
     chargeLimit = state.charging.chargeLimitPercent.takeIf { it > 0 }?.let { Math.round(it).toInt() },
     portOpen = state.body.chargePort.isOpen(),
+    preconStatus = state.battery.preconditioningStatus.name.removePrefix("BATTERY_PRECON_"),
+    preconMinutes = state.battery.preconditioningTimeRemaining.takeIf { state.hasBattery() && it > 0 },
     doorOpen = with(state.body) {
         listOf(frontLeftDoor, frontRightDoor, rearLeftDoor, rearRightDoor).any { it.isOpen() == true }
     },

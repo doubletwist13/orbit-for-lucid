@@ -6,14 +6,14 @@ import Toybox.WatchUi;
 // A screen of big round icon choices. Touch: tap one. Buttons: select picks the highlighted one; up/down moves the
 // highlight on a choice screen, but on a strip page (stripIndex set) they change page, so only a touch screen can
 // reach every icon there.
-// Two big items sit side by side, three form a triangle, four a grid, five make three over two, and seven a hexagon
-// round the first (the biggest, which should be the one used most). Items marked :small are small buttons in a row
-// under them. Any other count would need a new row in BIG or SMALL.
+// Two big items sit side by side, three form a triangle, four a grid, and five or seven are petals round the first
+// (the biggest, which should be the one used most): four petals (top, right, bottom, left) or six in a hexagon.
+// Items marked :small are small buttons in a row under them. Any other count would need a new row in BIG or SMALL.
 class IconMenu extends WatchUi.View {
     // centre of each item as a fraction of width and height, per count of big or small items
     private const BIG = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
         4 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.62], [0.70, 0.62]],
-        5 => [[0.27, 0.27], [0.50, 0.27], [0.73, 0.27], [0.36, 0.64], [0.64, 0.64]],
+        5 => [[0.50, 0.50], [0.50, 0.24], [0.80, 0.50], [0.50, 0.76], [0.20, 0.50]],
         7 => [[0.50, 0.50], [0.36, 0.25], [0.64, 0.25], [0.79, 0.50], [0.64, 0.75], [0.36, 0.75], [0.21, 0.50]]};
     private const SMALL = {1 => [[0.50, 0.89]], 2 => [[0.38, 0.89], [0.62, 0.89]]};
     var items as Array<Dictionary>;
@@ -51,8 +51,8 @@ class IconMenu extends WatchUi.View {
 
     private function radius(w as Number, i as Number) as Float {
         var n = count(false);
-        return w * (small(i) ? 0.065 : n == 2 ? 0.15 : n == 4 ? 0.12 : n == 5 ? 0.105
-            : n == 7 ? (i == 0 ? 0.115 : 0.10) : 0.14);
+        return w * (small(i) ? 0.065 : n == 2 ? 0.15 : n == 4 ? 0.12
+            : n == 5 || n == 7 ? (i == 0 ? 0.115 : 0.10) : 0.14);
     }
 
     function onUpdate(dc as Dc) as Void {

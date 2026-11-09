@@ -158,7 +158,7 @@ Air; a Gravity has its own drawings.
 | <img src="docs/images/icons/port-open.png" alt="Open flap, socket"> | Open the charge port |
 | <img src="docs/images/icons/limit.png" alt="Battery, limit line"> | Set the charge limit (shown with its percentage) |
 | <img src="docs/images/icons/precon.png" alt="Battery, thermometer"> | Precondition the battery (filled in while on) |
-| <img src="docs/images/icons/acamps.png" alt="Dial"> | Set the AC current limit (shown as "AC", with the amps) |
+| <img src="docs/images/icons/acamps.png" alt="Dial, AC"> | Set the AC current limit (the amps are shown under it) |
 
 **Timings are anecdotes.** On one car, an unlock from a sleeping car took about 13 seconds without car wifi and 9-10
 seconds with it (measured before confirmations were checked every 1.5 s), and a later one took about 8 seconds. A

@@ -154,6 +154,8 @@ class ControllerTest {
     @Test fun acCurrentIsSentOnlyInRangeAndRequestedInAmpsClamped() {
         assertFalse(watchReply(1, status, null).containsKey("ac"))
         assertEquals(32, watchReply(1, status.copy(acLimit = 32), null)["ac"])
+        assertEquals(24, watchReply(1, status.copy(acLimit = 80, acSession = 24), null)["ac"]) // the session's wins
+        assertEquals(24, watchReply(1, status.copy(acSession = 24), null)["ac"])
         assertFalse(watchReply(1, status.copy(acLimit = 9), null).containsKey("ac")) // under the car's lowest
         assertFalse(watchReply(1, status.copy(acLimit = 200), null).containsKey("ac"))
         assertEquals(32, acLimitReq(mapOf("amp" to 32)))

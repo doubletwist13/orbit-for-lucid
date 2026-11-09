@@ -64,14 +64,19 @@ readable, so check them for the Venu X1 and fenix):
 - **More on the Charging page.** Built so far: a bolt that starts or stops charging (filled while charging, with the
   power under it), the charge port (open or close), the charge limit (a stock menu in 5% steps) and battery
   preconditioning (a battery with a thermometer, filled while on, with the minutes left under it) and the AC current
-  limit (a dial, labelled "AC" with the amps). The five icons sit three over two. Every one asks for a confirm tap, and
-  the page redraws from the car's state while it is open. The AC limit is a menu of common values (10, 16, 24, 32, 40,
-  48 and 80 A) and "Other...", which opens a picker over the whole range of 10 to 80 A in 1 A steps; a plugged-in car
-  caps it at the charger's maximum. Still to come: the schedule (#92) and V2X discharge. The schedule is probably on
-  and off only (the times are set in Lucid's app). Discharge (V2X) is only named for now: an outlined bolt with a
-  small red arrow on Main, the glance and the Charging page, which says "Discharging" and offers no start or stop.
-  Which field carries the power then is unknown, so no kW is shown; it needs a capture from a car that is giving
-  power out.
+  limit (a dial with "AC" under it, and the amps under the circle). The bolt is in the middle, as the lock is on the
+  Access page, with the other four round it: the port on top, the AC limit on the right, preconditioning at the
+  bottom and the charge limit on the left. The two icons that always have text under them are at the sides, as text
+  under a top or bottom one would run into the middle icon or the bezel; a sixth icon needs another answer. Every one
+  asks for a confirm tap, and the page redraws from the car's state while it is open. The AC amps are the session's
+  limit when the car reports one, else its setting: on the one car tried, the setting stayed at 80 A while the
+  session's followed what was set. The AC limit is a menu of common values (10, 16, 24, 32, 40, 48 and 80 A) and
+  "Other...", which opens a picker over the whole range of 10 to 80 A in 1 A steps; a plugged-in car caps it at the
+  charger's maximum. Still to come: the schedule (#92) and V2X discharge. The schedule
+  is probably on and off only (the times are set in Lucid's app). Discharge (V2X) is only named for now: an outlined
+  bolt with a small red arrow on Main, the glance and the Charging page, which says "Discharging" and offers no start
+  or stop. Which field carries the power then is unknown, so no kW is shown; it needs a capture from a car that is
+  giving power out.
 - The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular), the fenix 7 (small round), the fenix 8
   (47 mm) and the Epix 2 Pro (47 mm); none has been tried on a real watch. The About page, redone in 0.5.1 for the
   Colour button, was checked on the Venu 3 and in the fenix 7 simulator.

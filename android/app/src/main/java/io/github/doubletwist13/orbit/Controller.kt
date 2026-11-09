@@ -332,7 +332,7 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         }
         it.chargeLimit?.takeIf { l -> l in MIN_LIMIT..MAX_LIMIT }?.let { l -> put("lim", l) }
         it.portOpen?.let { o -> put("port", o) }
-        it.acLimit?.takeIf { a -> a in MIN_AMPS..MAX_AMPS }?.let { a -> put("ac", a) }
+        acShown(it)?.takeIf { a -> a in MIN_AMPS..MAX_AMPS }?.let { a -> put("ac", a) }
         // on or off only: an unavailable or unknown state sends nothing, so the watch shows no state for it
         if (it.preconStatus == "ON" || it.preconStatus == "OFF") put("bp", it.preconStatus == "ON")
         // the car once reported 65565 minutes: a value outside a plausible span is a bad reading, not a time
@@ -500,6 +500,12 @@ internal fun chargeLimitReq(req: Map<*, *>): Int? = numberReq(req, "lim", MIN_LI
 
 /** The AC current limit a watch asks for, in amps. */
 internal fun acLimitReq(req: Map<*, *>): Int? = numberReq(req, "amp", MIN_AMPS..MAX_AMPS)
+
+/**
+ * The AC limit to show: the session's, which followed the limit set from here on the one car tried (the other number
+ * stayed at 80 A), or the car's setting when there is no session limit.
+ */
+internal fun acShown(s: VehicleStatus): Int? = s.acSession ?: s.acLimit
 
 /**
  * Whether the car reports the AC current limit as asked, in its setting or in the session's. A plugged-in car may cap

@@ -24,13 +24,15 @@ function chargeItems() as Array<Dictionary> {
     // the battery heater: filled while on, with the minutes left under it
     var heating = s != null && s["bp"] == true;
     var left = heating && s["bpm"] != null ? (s["bpm"] as Numeric).toNumber() + " min" : null;
-    // "AC" says it is the AC limit (the car's DC fast charging has none to set), even when the car reports no amps
-    var amps = s != null && s["ac"] != null ? "AC " + (s["ac"] as Numeric).toNumber() + " A" : "AC";
+    var amps = s != null && s["ac"] != null ? (s["ac"] as Numeric).toNumber() + " A" : null;
+    // The bolt in the middle, as the lock is on the Access page, then clockwise from the top. The text under an icon
+    // would run into the middle one above it, so the icons that always have text (the AC limit and the charge limit)
+    // are at the sides, and the port, which has none, is on top. Preconditioning has text only while it is on.
     return [power,
         {:icon => s != null && s["port"] == true ? :portopen : :portclosed, :id => "port_menu"},
-        {:icon => :limit, :id => "limit_menu", :label => lim},
+        {:icon => :acamps, :id => "ac_menu", :label => amps},
         {:icon => :precon, :id => heating ? "precon_off" : "precon_on", :on => heating, :label => left},
-        {:icon => :acamps, :id => "ac_menu", :label => amps}] as Array<Dictionary>;
+        {:icon => :limit, :id => "limit_menu", :label => lim}] as Array<Dictionary>;
 }
 
 // Rebuilds its items on every draw, so the power, limit and port follow the car while the page is open.

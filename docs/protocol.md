@@ -75,7 +75,7 @@ for an `id` has `pending` absent or empty.
 | `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
 | `lim` | int | The charge limit in percent; omitted when the car reports none or a value outside 50..100 |
 | `port` | bool | Charge port open (ajar counts as open); omitted when the car reports no state for it |
-| `ac` | int | The AC current limit in amps (the car's setting); omitted when none or outside 10..80 |
+| `ac` | int | The AC limit in amps: the session's, else the car's setting; omitted when none or outside 10..80 |
 | `bp` | bool | Battery preconditioning is on; omitted when the car says it is unavailable or reports nothing |
 | `bpm` | int | Minutes of preconditioning left; sent only while on and plausible (`MAX_PRECON_MIN`, `Controller.kt`) |
 | `door` | bool | Any of the four doors open (ajar counts); sent only when `true` |

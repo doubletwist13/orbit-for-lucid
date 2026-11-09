@@ -178,7 +178,8 @@ to vary wildly: expect results that are much faster or much slower, and don't re
   <img src="docs/images/watch-actions.png"
        alt="Actions: lock in the middle with frunk, trunk, climate, windows, horn and lights round it" width="200">
   <img src="docs/images/watch-charging.png"
-       alt="Charging: start or stop, the charge port and the charge limit, with the limit's percentage" width="200">
+       alt="Charging: the bolt (start or stop) in the middle, with the charge port above, preconditioning below, the
+       charge limit (80%) on the left and the AC current limit (32 A) on the right" width="200">
   <img src="docs/images/watch-lock.png" alt="Choose lock or unlock" width="200">
   <img src="docs/images/watch-climate.png" alt="Choose climate off, on with the car's set point, or pet mode"
        width="200">

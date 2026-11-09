@@ -61,7 +61,8 @@ readable, so check them for the Venu X1 and fenix):
 
 ## Charging page
 
-- **What it has.** A bolt that starts or stops charging (filled while charging, with the power under it), the charge
+- **What it has.** A bolt that starts or stops charging (filled while charging, with no text under it: the power is on
+  the main screen and the glance, and text under the middle icon ran into the one below), the charge
   port (open or close), the charge limit (a stock menu in 5% steps), battery preconditioning (a battery with a
   thermometer, filled while on, with the minutes left under it when the car reports a real countdown, which the one
   car tried has not) and the AC current limit (a dial with "AC" under it, and the amps under the circle). The bolt is
@@ -75,9 +76,9 @@ readable, so check them for the Venu X1 and fenix):
   below the setting. The AC limit is a menu of common values (10, 16, 24, 32, 40, 48 and 80 A) and "Other...", which
   opens a picker over the whole range of 10 to 80 A in 1 A steps. Still to come: the schedule (#92) and V2X discharge.
   The schedule is probably on and off only (the times are set in Lucid's app). Discharge (V2X) is only named for now:
-  an outlined bolt with a small red arrow on Main, the glance and the Charging page, which says "Discharging" and
-  offers no start or stop. Which field carries the power then is unknown, so no kW is shown; it needs a capture from
-  a car that is giving power out.
+  an outlined bolt with a small red arrow on Main, the glance and the Charging page, which then offers no start or
+  stop. Which field carries the power then is unknown, so no kW is shown; it needs a capture from a car that is
+  giving power out.
 - The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular), the fenix 7 (small round), the fenix 8
   (47 mm) and the Epix 2 Pro (47 mm); none has been tried on a real watch. The About page, redone in 0.5.1 for the
   Colour button, was checked on the Venu 3 and in the fenix 7 simulator.

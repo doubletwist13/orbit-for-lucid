@@ -108,11 +108,15 @@ same things.
 - **Charging page** (the last page) has the bolt in the middle, with four icons round it (the charge port above,
   preconditioning below, the charge limit on the left and the AC current limit on the right). Every one asks for a
   confirm tap before it sends, and the page follows the car's state while it is open.
-  - **Bolt.** Starts or stops charging; it is filled in while the car charges, with the power in kW under it. A start
-    is refused at once with "No cable" when nothing is plugged in, or "At limit" when the charge is already at the
-    limit. While the car gives power out (V2X) it is an outlined bolt with a small red arrow and "Discharging", and
-    tapping it does nothing.
-  - **Port.** A rounded flap, with the socket showing while the port is open. It opens a choice of open or close.
+  - **Bolt.** Starts or stops charging; it is filled in while the car charges (the power in kW is on the main screen
+    and the glance). A start is refused at once with "No cable" when nothing is plugged in, or "At limit" when the
+    charge is already at the limit. While the car gives power out (V2X) it is an outlined bolt with a small red
+    arrow, and tapping it does nothing.
+  - **Port.** A rounded flap, with the socket showing while the port is open. It opens a choice of open or close. A
+    close is refused at once with "Cable in" while a cable is plugged in, as the car did not close it then. Tried
+    only on an Air, whose port door is automatic. **Not tried on a Gravity**, whose door is believed to be manual: it
+    may not open or close it at all, and a car that reports no state for the port shows the flap closed, and the
+    result says "sent" rather than "done", as nothing can confirm it.
   - **Charge limit.** A battery with a line across it, with the current limit under it. It opens a list of 50 to
     100% in 5% steps.
   - **Preconditioning.** A battery with a thermometer, filled in while it is on. It gets the battery to temperature
@@ -123,8 +127,14 @@ same things.
     common values (10, 16, 24, 32, 40, 48 and 80 A) and "Other...", which opens a picker over 10 to 80 A. The
     charger's own maximum still applies: the car draws the lower of the two. When the charger is below what you
     set, its maximum follows in brackets, so `80A(40A)` is 80 A set on a 40 A charger, drawing 40 A.
-- **Toasts.** An action that sends without a confirm (lock, lights, pet mode) or after one shows a short toast
-  ("Locking...") so you know the tap was taken. The result comes later, from the car.
+- **Toasts and vibration.** Every command gets two toasts, and the second comes with a buzz:
+  - **On the tap.** An action that sends without a confirm (lock, lights, pet mode), or after one, shows a short toast
+    ("Locking...") so you know the tap was taken.
+  - **On the result.** When the car confirms, or the command fails, a second toast names the action and how it ended
+    ("Unlock: done", "Frunk close: not confirmed", "Charge start: no cable"). The refresh on the About page has none.
+  - **Buzz.** One for done, two for failed, unless the watch's own vibration setting is off.
+  - **"Sent".** Horn and lights say "sent" instead of "done", as nothing can confirm them, and so does a port, frunk
+    or trunk the car reports no state for.
 - **Stays current.** The phone reads the car every 30 s while it is awake or charging, or while the battery is
   preconditioning or the charge port is open with no cable (even if the car reports asleep), and every 60 s while it
   sleeps (every 10 s for 2 minutes after the watch asks for anything). It sends the watch a change at most once a
@@ -181,8 +191,10 @@ Air; a Gravity has its own drawings.
 
 **Timings are anecdotes.** On one car, an unlock from a sleeping car took about 13 seconds without car wifi and 9-10
 seconds with it (measured before confirmations were checked every 1.5 s), and a later one took about 8 seconds. A
-lock on an awake car takes a second or two. That is a few tests against a single vehicle, and Lucid's cloud is known
-to vary wildly: expect results that are much faster or much slower, and don't read the differences as meaningful.
+lock on an awake car takes a second or two. With the result toast (from the tap to "done" on the watch), an unlock
+took 6-8 seconds from a sleeping car and 2-3 seconds from an awake one. That is a few tests against a single
+vehicle, and Lucid's cloud is known to vary wildly: expect results that are much faster or much slower, and don't
+read the differences as meaningful.
 
 ## Screenshots
 
@@ -226,7 +238,7 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
 - **The car ignores some commands in gear or while moving.** Many actions, close all windows among them, are sent and
   accepted by Lucid, but the car does nothing if it is in drive or reverse, or moving. The watch's "sent" toast only
   means the request went out, not that the car did it. Park the car first; a close that is not confirmed shows
-  "Not confirmed" after about 105 seconds.
+  "Not confirmed" after about 105 seconds, in a toast and on the main screen.
 - **Lucid's terms.** Orbit has you type your Lucid credentials into software that isn't Lucid's. Section 3 of Lucid's
   Connectivity Services Terms and Conditions tells you not to do anything that might jeopardize the security of your
   password or account, and section 12.3 lets Lucid suspend or cancel accounts at its discretion. Lucid's other terms
@@ -247,8 +259,8 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
   Start and stop, the limit, the charge port, preconditioning and the AC current limit have been tried on one car.
   The AC amps shown are what was set: a pick above the charger's maximum is kept as set, and the car draws the lower
   of the two (80 A set on a 40 A charger showed 80 A on the watch, and the car showed 40 A). While the car gives
-  power out (V2X) the watch shows an outlined bolt with a red arrow, and "Discharging" on the Charging page, which
-  offers no start or stop; no power is shown: what the car reports then has not been seen yet.
+  power out (V2X) the watch shows an outlined bolt with a red arrow, and the Charging page offers no start or stop;
+  no power is shown: what the car reports then has not been seen yet.
 - **Temperature units follow the watch.** The Fahrenheit list is the one that has been tried; the Celsius one
   (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it
   shows can differ from your pick by a rounding step.

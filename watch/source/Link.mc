@@ -1,6 +1,8 @@
 import Toybox.Application;
+import Toybox.Attention;
 import Toybox.Communications;
 import Toybox.Lang;
+import Toybox.System;
 import Toybox.Time;
 import Toybox.Timer;
 import Toybox.WatchUi;
@@ -16,11 +18,22 @@ const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlock
     "charge_stop" => "Stopping charge", "limit" => "Setting limit", "port_open" => "Opening port",
     "port_close" => "Closing port", "precon_on" => "Starting precon", "precon_off" => "Stopping precon",
     "ac_limit" => "Setting AC amps"};
+// What a result toast calls each command, in front of its outcome ("Unlock: done", "Frunk close: not confirmed")
+const NAMES = {"lock" => "Lock", "unlock" => "Unlock", "climate_on" => "Climate on", "climate_off" => "Climate off",
+    "frunk_open" => "Frunk open", "frunk_close" => "Frunk close", "trunk_open" => "Trunk open",
+    "trunk_close" => "Trunk close", "horn" => "Horn", "flash" => "Lights", "windows_close" => "Windows close",
+    "pet_on" => "Pet mode on", "pet_off" => "Pet mode off", "charge_start" => "Charge start",
+    "charge_stop" => "Charge stop", "limit" => "Charge limit", "port_open" => "Port open", "port_close" => "Port close",
+    "precon_on" => "Precon on", "precon_off" => "Precon off", "ac_limit" => "AC limit"};
+// For the commands the phone confirms from a state the car may not report at all (a port or lid with no sensor), the
+// state key that proves "done". Without it in the reply the command was only sent, as the phone can wait for nothing.
+const PROOF = {"port_open" => "port", "port_close" => "port", "frunk_open" => "frunk", "frunk_close" => "frunk",
+    "trunk_open" => "trunk", "trunk_close" => "trunk"};
 // short on purpose: the main screen shows these inside a round bezel, where about 15 characters fit on every watch
 const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
     "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unsupported" => "Can't do that",
     "novehicle" => "No car found", "badcmd" => "Update phone", "nocable" => "No cable", "atlimit" => "At limit",
-    "unavail" => "Not available",
+    "unavail" => "Not available", "plugged" => "Cable in",
     "unknown" => "Try again later", "nolink" => "No phone link"};
 
 // Phone link per docs/protocol.md: caches the last reply, drops replies to superseded requests.
@@ -30,6 +43,8 @@ class Link {
     var err as String? = null;
     private var _id as Number = 0;
     private var _cmd as String = "";
+    // whether the last command's result has been told (toast and vibration), so a late second failure stays quiet
+    private var _told as Boolean = false;
     private var _timer as Timer.Timer = new Timer.Timer();
     private var _silence as Timer.Timer = new Timer.Timer();
 
@@ -50,6 +65,7 @@ class Link {
     function send(cmd as String, arg as Float?) as Void {
         _id += 1;
         _cmd = cmd;
+        _told = false;
         pending = LABELS[cmd];
         err = null;
         if (USE_STUB) {
@@ -66,7 +82,7 @@ class Link {
                     msg["temp"] = arg;
                 }
             }
-            Communications.transmit(msg, null, new LinkListener(self));
+            Communications.transmit(msg, null, new LinkListener(self, _id));
             // the phone's first reply (even "pending") arrives within seconds; silence means no service is listening
             _silence.stop();
             _silence.start(method(:onSilence), 8000, false);
@@ -104,17 +120,48 @@ class Link {
         pending = d["pending"] as String?;
         // flash writes wear it and cost power: save once a command settles, not on every progress reply
         if (st != null && pending == null) { Application.Storage.setValue("s", st); }
+        if (pending == null) { tell(true, null); }
         WatchUi.requestUpdate();
+    }
+
+    // Say how the command ended, so the user need not go to the main screen: a toast naming the action and the outcome,
+    // and a vibration (one short buzz for done, two for failed). The refresh is left out, as it also runs at launch.
+    // A command with no entry in NAMES still toasts, under its id, so a forgotten entry shows up at once.
+    private function tell(ok as Boolean, why as String?) as Void {
+        if (_told || _cmd.equals("status")) { return; }
+        _told = true;
+        // nothing reads horn or lights back, so the most they can say is that Lucid took them; the same goes for a
+        // port or lid whose state the car does not report (the phone's reply then carries no such key)
+        var proof = PROOF[_cmd];
+        var unproven = proof != null && (state == null || state[proof] == null);
+        var done = _cmd.equals("horn") || _cmd.equals("flash") || unproven ? "sent" : "done";
+        var name = NAMES.hasKey(_cmd) ? NAMES[_cmd] : _cmd;
+        WatchUi.showToast(name + ": " + (ok ? done : lower(why as String)), null);
+        // the watch's own vibration setting is respected, and not every watch can vibrate
+        if (!(Attention has :vibrate) || !System.getDeviceSettings().vibrateOn) { return; }
+        var buzz = new Attention.VibeProfile(ok ? 50 : 100, 200);
+        Attention.vibrate(ok ? [buzz] : [buzz, new Attention.VibeProfile(0, 120), buzz]);
+    }
+
+    // the error text starts a sentence on the main screen, but follows "Action: " in a toast
+    private function lower(text as String) as String {
+        return text.substring(0, 1).toLower() + text.substring(1, text.length());
     }
 
     function onSilence() as Void {
         fail("nolink");
     }
 
+    // a transmit failed: only the latest request is failed, an older one has been replaced
+    function sendFailed(id as Number) as Void {
+        if (id == _id) { fail("nolink"); }
+    }
+
     function fail(code as String) as Void {
         _silence.stop();
         err = ERRORS.hasKey(code) ? ERRORS[code] : ERRORS["unknown"];
         pending = null;
+        tell(false, err);
         WatchUi.requestUpdate();
     }
 
@@ -133,17 +180,21 @@ class Link {
     }
 }
 
+// The outcome of one transmit. It knows the request it belongs to, so a failure that arrives after a newer command was
+// sent does not mark that one failed.
 class LinkListener extends Communications.ConnectionListener {
     private var _link as Link;
+    private var _id as Number;
 
-    function initialize(link as Link) {
+    function initialize(link as Link, id as Number) {
         ConnectionListener.initialize();
         _link = link;
+        _id = id;
     }
 
     function onComplete() as Void {}
 
     function onError() as Void {
-        _link.fail("nolink");
+        _link.sendFailed(_id);
     }
 }

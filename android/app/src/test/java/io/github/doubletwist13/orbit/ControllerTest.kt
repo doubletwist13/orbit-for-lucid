@@ -137,6 +137,25 @@ class ControllerTest {
         }
     }
 
+    @Test fun closingThePortIsRefusedOnlyWithACableIn() {
+        val open = status.copy(portOpen = true)
+        assertEquals(null, portCloseRefusal(open.copy(chargeState = "NOT_CONNECTED")))
+        assertEquals(null, portCloseRefusal(open.copy(chargeState = "UNKNOWN"))) // no cable known: left to try
+        assertEquals("plugged", portCloseRefusal(open.copy(chargeState = "CABLE_CONNECTED")))
+        assertEquals("plugged", portCloseRefusal(open.copy(chargeState = "CHARGING")))
+        assertEquals("plugged", portCloseRefusal(open.copy(chargeState = "CHARGING_END_OK")))
+        assertEquals("plugged", portCloseRefusal(open.copy(chargeState = "CABLE_CONNECTED", portOpen = null)))
+        // a port that already reads closed needs no refusal
+        assertEquals(null, portCloseRefusal(open.copy(chargeState = "CABLE_CONNECTED", portOpen = false)))
+        assertEquals("plugged", errCode(CommandFailed("plugged", "x")))
+    }
+
+    @Test fun theCommandLogHasNameResultAndSecondsAndNothingElse() {
+        assertEquals("cmd=port_close result=timeout after 104.7s", commandLogLine("port_close", "timeout", 104_732))
+        assertEquals("cmd=unlock result=ok after 2.0s", commandLogLine("unlock", "ok", 2_000))
+        assertEquals("cmd=lock result=ok after 0.0s", commandLogLine("lock", "ok", 40))
+    }
+
     @Test fun preconIsDoneOnlyWhenTheCarReportsTheAskedState() {
         assertTrue(preconDone(status.copy(preconStatus = "ON"), true))
         assertFalse(preconDone(status.copy(preconStatus = "OFF"), true))

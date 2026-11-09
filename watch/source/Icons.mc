@@ -18,6 +18,8 @@ module Icons {
             line(dc, x, y, u, 3, 3, 21, 21);
         } else if (id == :bolt) {
             bolt(dc, x, y, u);
+        } else if (id == :discharge) {
+            discharge(dc, x, y, u);
         } else if (id == :hvac) {
             hvac(dc, x, y, u);
         } else if (id == :hvacoff) {
@@ -84,12 +86,30 @@ module Icons {
     }
 
     function bolt(dc as Dc, x as Number, y as Number, u as Float) as Void {
+        dc.fillPolygon(boltPoints(x, y, u));
+    }
+
+    // The bolt's outline with a small red arrow leaving it, for a car that is giving power out. The arrow sets its own
+    // colour, so the caller sets its colour again for whatever it draws next.
+    function discharge(dc as Dc, x as Number, y as Number, u as Float) as Void {
+        var pts = boltPoints(x, y, u);
+        for (var i = 0; i < pts.size(); i++) {
+            var next = pts[(i + 1) % pts.size()];
+            dc.drawLine(pts[i][0], pts[i][1], next[0], next[1]);
+        }
+        dc.setColor(0xFF3333, Graphics.COLOR_TRANSPARENT);
+        line(dc, x, y, u, 14, 18, 22, 18);
+        line(dc, x, y, u, 19, 15, 22, 18);
+        line(dc, x, y, u, 19, 21, 22, 18);
+    }
+
+    function boltPoints(x as Number, y as Number, u as Float) as Array<[Number, Number]> {
         var g = [[13, 2], [5, 14], [11, 14], [10, 22], [18, 10], [12, 10]];
         var pts = [] as Array<[Number, Number]>;
         for (var i = 0; i < g.size(); i++) {
             pts.add([px(x, g[i][0], u), px(y, g[i][1], u)]);
         }
-        dc.fillPolygon(pts);
+        return pts;
     }
 
     // three wavy lines, drawn as zigzags

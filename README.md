@@ -123,6 +123,7 @@ The status icons (glance and main screen):
 | <img src="docs/images/icons/plug.png" alt="Plug"> | Plugged in, not charging |
 | <img src="docs/images/icons/plug-off.png" alt="Slashed plug"> | Not plugged in |
 | <img src="docs/images/icons/bolt.png" alt="Bolt"> | Charging (the main screen adds the power in kW) |
+| <img src="docs/images/icons/discharge.png" alt="Bolt, red arrow"> | The car is giving power out (V2X); no kW shown |
 | <img src="docs/images/icons/battery.png" alt="Battery"> | State of charge (coloured like the ring) |
 | <img src="docs/images/icons/hvac.png" alt="Wavy lines"> | Climate is on |
 | <img src="docs/images/icons/occupant.png" alt="Person with !"> | Unattended occupant (red): someone may be inside |
@@ -216,7 +217,9 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
 - **Limited commands.** Charging has start and stop, the limit and the port only: no AC current limit, battery
   preconditioning or schedule. Nor are other window actions (vent, open), seat or steering wheel heat, defrost or
   location. Some of that is on the roadmap; some, like seat heat, is left to the car and Lucid's own app on purpose.
-  Start and stop and the limit have been tried on one car; opening and closing the charge port has not.
+  Start and stop, the limit and the charge port have been tried on one car. While the car gives power out (V2X)
+  the watch shows an outlined bolt with a red arrow, and "Discharging" on the Charging page, which offers no start
+  or stop; no power is shown: what the car reports then has not been seen yet.
 - **Temperature units follow the watch.** The Fahrenheit list is the one that has been tried; the Celsius one
   (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it
   shows can differ from your pick by a rounding step.

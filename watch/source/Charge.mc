@@ -10,9 +10,16 @@ module Charge {
         return soc >= 25 ? 0xFFDD00 : soc >= 10 ? 0xFF7700 : 0xFF3333;
     }
 
-    // the plug icon for a charge state: slashed when unplugged (or unknown), a bolt in place of the plug while charging
+    // The car is giving power out (V2X). The watch only names it: the field that carries the power then is not known.
+    function discharging(charge as String?) as Boolean {
+        return "DISCHARGING".equals(charge) || "PREPARING_DISCHARGE".equals(charge);
+    }
+
+    // the plug icon for a charge state: slashed when unplugged (or unknown), a bolt in place of the plug while
+    // charging, an outlined one while discharging
     function plug(charge as String?) as Symbol {
         if (charge == null || charge.equals("NOT_CONNECTED") || charge.equals("UNKNOWN")) { return :plugoff; }
+        if (discharging(charge)) { return :discharge; }
         return charge.equals("CHARGING") ? :bolt : :plug;
     }
 }

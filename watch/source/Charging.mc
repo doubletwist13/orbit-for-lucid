@@ -9,7 +9,11 @@ function chargeItems() as Array<Dictionary> {
     var charging = s != null && "CHARGING".equals(s["charge"]);
     var kw = charging && s["rate"] != null ? (s["rate"] as Numeric).toNumber() + " kW" : null;
     var lim = s != null && s["lim"] != null ? (s["lim"] as Numeric).toNumber() + "%" : null;
-    return [{:icon => :bolt, :id => charging ? "charge_stop" : "charge_start", :on => charging, :label => kw},
+    // giving power out (V2X): nothing to start or stop from here, so the icon only says so
+    var out = s != null && Charge.discharging(s["charge"] as String?);
+    var power = out ? {:icon => :discharge, :id => "discharging", :label => "Discharging"}
+        : {:icon => :bolt, :id => charging ? "charge_stop" : "charge_start", :on => charging, :label => kw};
+    return [power,
         {:icon => s != null && s["port"] == true ? :portopen : :portclosed, :id => "port_menu"},
         {:icon => :limit, :id => "limit_menu", :label => lim}] as Array<Dictionary>;
 }
@@ -33,7 +37,9 @@ class ChargeDelegate extends IconMenuDelegate {
     }
 
     function choose(id as String) as Void {
-        if (id.equals("port_menu")) {
+        if (id.equals("discharging")) {
+            return;
+        } else if (id.equals("port_menu")) {
             var menu = new IconMenu([{:icon => :portopen, :id => "port_open"},
                 {:icon => :portclosed, :id => "port_close"}]);
             WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);

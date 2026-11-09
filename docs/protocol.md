@@ -87,6 +87,10 @@ for an `id` has `pending` absent or empty.
 
 Status fields are omitted from an error reply that has no state to show.
 
+While the car gives power out, `charge` is `DISCHARGING` (or `PREPARING_DISCHARGE` just before) and there is no `rate`:
+which field carries that power is not known yet. The watch shows an outlined bolt with a red arrow and offers no
+start or stop.
+
 `rate` is left out above the model's peak, which is a bad reading: Air 350 kW, Gravity 450 kW, any other model 2000 kW.
 `tp` is left out unless all four pressures are plausible (0.5 to 6 bar), so a pressure is never shown for the wrong
 wheel. The car's `remaining_range` is in kilometres, as a rated range scaled by the charge, and is not sent.

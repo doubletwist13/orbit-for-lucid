@@ -15,12 +15,12 @@ const AC_MAX = 80;
 function chargeItems() as Array<Dictionary> {
     var s = link().state;
     var charging = s != null && "CHARGING".equals(s["charge"]);
-    var kw = charging && s["rate"] != null ? (s["rate"] as Numeric).toNumber() + " kW" : null;
     var lim = s != null && s["lim"] != null ? (s["lim"] as Numeric).toNumber() + "%" : null;
-    // giving power out (V2X): nothing to start or stop from here, so the icon only says so
+    // Giving power out (V2X): nothing to start or stop from here, so the icon only says so. The middle icon has no text
+    // under it: the power is on the main screen and the glance, and text there runs into the icon below.
     var out = s != null && Charge.discharging(s["charge"] as String?);
-    var power = out ? {:icon => :discharge, :id => "discharging", :label => "Discharging"}
-        : {:icon => :bolt, :id => charging ? "charge_stop" : "charge_start", :on => charging, :label => kw};
+    var power = out ? {:icon => :discharge, :id => "discharging"}
+        : {:icon => :bolt, :id => charging ? "charge_stop" : "charge_start", :on => charging};
     // the battery heater: filled while on, with the minutes left under it
     var heating = s != null && s["bp"] == true;
     var left = heating && s["bpm"] != null ? (s["bpm"] as Numeric).toNumber() + " min" : null;

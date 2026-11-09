@@ -1,6 +1,7 @@
 package io.github.doubletwist13.orbit
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -141,16 +142,22 @@ class Controller(context: Context) {
         // a newer request drops the older one's confirmation polling, not a command already on its way
         watchJob?.cancel()
         watchJob = scope.launch {
+            val started = System.currentTimeMillis()
             try {
                 val s = execute(cmd, climateTemp(req), chargeLimitReq(req), acLimitReq(req)) {
                     reply(watchReply(id, _state.value.status, it))
                 }
+                Log.d(CMD_TAG, commandLogLine(cmd, "ok", System.currentTimeMillis() - started))
                 reply(watchReply(id, s, null))
             } catch (e: CancellationException) {
+                // a newer request replaced this one: worth a line, as its result never reaches the watch
+                Log.d(CMD_TAG, commandLogLine(cmd, "replaced", System.currentTimeMillis() - started))
                 throw e
             } catch (e: Exception) {
                 if (e is LucidException && e.unauthenticated) logout()
-                reply(watchError(id, errCode(e)))
+                val code = errCode(e)
+                Log.d(CMD_TAG, commandLogLine(cmd, code, System.currentTimeMillis() - started))
+                reply(watchError(id, code))
             }
         }
     }
@@ -219,7 +226,11 @@ class Controller(context: Context) {
             val open = cmd == "port_open"
             command(
                 if (open) "Opening port" else "Closing port", { closureDone(it.portOpen, open) }, progress,
-            ) { s -> client.setChargePort(token(), s.vehicleId, open) }
+            ) { s ->
+                // refused here, not left to time out after about 105 s: the car did not close it with a cable in
+                if (!open) portCloseRefusal(s)?.let { throw CommandFailed(it, "Charge port has a cable in") }
+                client.setChargePort(token(), s.vehicleId, open)
+            }
         }
         else -> error("unhandled command $cmd")
     }
@@ -522,6 +533,20 @@ internal fun acCap(s: VehicleStatus): Int? {
  * above the charger's maximum is still taken as asked, and the car draws the lower of the two.
  */
 internal fun acLimitDone(s: VehicleStatus, amps: Int): Boolean = s.acSet == amps
+
+/**
+ * The error code for closing the charge port with a cable plugged in, or null when it may be tried. A car that reports
+ * no cable, or an unknown state, or a port already closed, is left to try.
+ */
+internal fun portCloseRefusal(s: VehicleStatus): String? =
+    if (s.chargeState != "NOT_CONNECTED" && s.chargeState != "UNKNOWN" && s.portOpen != false) "plugged" else null
+
+/** The tag of the command log: `adb logcat -s OrbitCmd` shows how each watch command ended and how long it took. */
+internal const val CMD_TAG = "OrbitCmd"
+
+/** One line per finished watch command: its name, how it ended and how long it took. No account or car data. */
+internal fun commandLogLine(cmd: String, result: String, ms: Long): String =
+    "cmd=$cmd result=$result after ${ms / 1000}.${(ms % 1000) / 100}s"
 
 /** Whether the car reports preconditioning as asked; an unknown or unavailable state confirms neither way. */
 internal fun preconDone(s: VehicleStatus, on: Boolean): Boolean = s.preconStatus == if (on) "ON" else "OFF"

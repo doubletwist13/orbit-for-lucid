@@ -142,7 +142,7 @@ class Controller(context: Context) {
         watchJob?.cancel()
         watchJob = scope.launch {
             try {
-                val s = execute(cmd, climateTemp(req), chargeLimitReq(req)) {
+                val s = execute(cmd, climateTemp(req), chargeLimitReq(req), acLimitReq(req)) {
                     reply(watchReply(id, _state.value.status, it))
                 }
                 reply(watchReply(id, s, null))
@@ -161,7 +161,7 @@ class Controller(context: Context) {
         client.status(token()).also(energy::record)
 
     private suspend fun execute(
-        cmd: String, tempC: Double, limit: Int?, progress: (String) -> Unit,
+        cmd: String, tempC: Double, limit: Int?, amps: Int?, progress: (String) -> Unit,
     ): VehicleStatus = when (cmd) {
         // answer at once so the watch's silence timer doesn't fire while a rate-limit retry runs
         "status" -> { progress("Updating"); fetch() }
@@ -204,9 +204,15 @@ class Controller(context: Context) {
             }
         }
         "limit" -> {
-            val pct = requireLimit(limit)
+            val pct = requireNumber(limit)
             command("Setting limit", { it.chargeLimit == pct }, progress) { s ->
                 client.setChargeLimit(token(), s.vehicleId, pct)
+            }
+        }
+        "ac_limit" -> {
+            val a = requireNumber(amps)
+            command("Setting AC amps", { acLimitDone(it, a) }, progress) { s ->
+                client.setAcLimit(token(), s.vehicleId, a)
             }
         }
         "port_open", "port_close" -> {
@@ -301,7 +307,7 @@ class Controller(context: Context) {
         val WATCH_COMMANDS = setOf(
             "status", "lock", "unlock", "climate_on", "climate_off", "frunk_open", "frunk_close", "trunk_open",
             "trunk_close", "horn", "flash", "windows_close", "pet_on", "pet_off", "charge_start", "charge_stop",
-            "limit", "port_open", "port_close", "precon_on", "precon_off",
+            "limit", "port_open", "port_close", "precon_on", "precon_off", "ac_limit",
         )
     }
 }
@@ -326,6 +332,7 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         }
         it.chargeLimit?.takeIf { l -> l in MIN_LIMIT..MAX_LIMIT }?.let { l -> put("lim", l) }
         it.portOpen?.let { o -> put("port", o) }
+        it.acLimit?.takeIf { a -> a in MIN_AMPS..MAX_AMPS }?.let { a -> put("ac", a) }
         // on or off only: an unavailable or unknown state sends nothing, so the watch shows no state for it
         if (it.preconStatus == "ON" || it.preconStatus == "OFF") put("bp", it.preconStatus == "ON")
         // the car once reported 65565 minutes: a value outside a plausible span is a bad reading, not a time
@@ -480,9 +487,25 @@ internal const val MAX_PRECON_MIN = 1440
 internal const val MIN_LIMIT = 50
 internal const val MAX_LIMIT = 100
 
-/** The charge limit a watch asks for, clamped to the car's range; null when missing or not a number. */
-internal fun chargeLimitReq(req: Map<*, *>): Int? = (req["lim"] as? Number)?.toDouble()?.takeIf { it.isFinite() }
-    ?.let { Math.round(it).toInt().coerceIn(MIN_LIMIT, MAX_LIMIT) }
+// The AC current limit the car's own app offers, in whole amps. A plugged-in car caps it at the charger's maximum.
+internal const val MIN_AMPS = 10
+internal const val MAX_AMPS = 80
+
+/** The whole number a watch sends under [key], clamped to [range]; null when missing or not a number. */
+internal fun numberReq(req: Map<*, *>, key: String, range: IntRange): Int? =
+    (req[key] as? Number)?.toDouble()?.takeIf { it.isFinite() }?.let { Math.round(it).toInt().coerceIn(range) }
+
+/** The charge limit a watch asks for, clamped to the car's range. */
+internal fun chargeLimitReq(req: Map<*, *>): Int? = numberReq(req, "lim", MIN_LIMIT..MAX_LIMIT)
+
+/** The AC current limit a watch asks for, in amps. */
+internal fun acLimitReq(req: Map<*, *>): Int? = numberReq(req, "amp", MIN_AMPS..MAX_AMPS)
+
+/**
+ * Whether the car reports the AC current limit as asked, in its setting or in the session's. A plugged-in car may cap
+ * a high request at the charger's maximum, which then never matches and ends as a timeout.
+ */
+internal fun acLimitDone(s: VehicleStatus, amps: Int): Boolean = s.acLimit == amps || s.acSession == amps
 
 /** Whether the car reports preconditioning as asked; an unknown or unavailable state confirms neither way. */
 internal fun preconDone(s: VehicleStatus, on: Boolean): Boolean = s.preconStatus == if (on) "ON" else "OFF"
@@ -490,8 +513,8 @@ internal fun preconDone(s: VehicleStatus, on: Boolean): Boolean = s.preconStatus
 /** The error code for a preconditioning start the car says it cannot do, or null when it may be tried. */
 internal fun preconStartRefusal(s: VehicleStatus): String? = if (s.preconStatus == "UNAVAILABLE") "unavail" else null
 
-/** A request without a usable limit is one this phone cannot act on. */
-internal fun requireLimit(limit: Int?): Int = limit ?: throw CommandFailed("badcmd", "No charge limit in the request")
+/** A request without the number its command needs is one this phone cannot act on. */
+internal fun requireNumber(n: Int?): Int = n ?: throw CommandFailed("badcmd", "No number in the request")
 
 /**
  * Whether the car reports the charge started or stopped. Starting is done only once it is charging; stopping when it

@@ -151,10 +151,30 @@ class ControllerTest {
         assertEquals("unavail", errCode(CommandFailed("unavail", "x")))
     }
 
-    @Test fun aLimitRequestWithNoNumberIsBadcmd() {
-        assertEquals(80, requireLimit(80))
+    @Test fun acCurrentIsSentOnlyInRangeAndRequestedInAmpsClamped() {
+        assertFalse(watchReply(1, status, null).containsKey("ac"))
+        assertEquals(32, watchReply(1, status.copy(acLimit = 32), null)["ac"])
+        assertFalse(watchReply(1, status.copy(acLimit = 9), null).containsKey("ac")) // under the car's lowest
+        assertFalse(watchReply(1, status.copy(acLimit = 200), null).containsKey("ac"))
+        assertEquals(32, acLimitReq(mapOf("amp" to 32)))
+        assertEquals(10, acLimitReq(mapOf("amp" to 3)))
+        assertEquals(80, acLimitReq(mapOf("amp" to 500)))
+        assertEquals(null, acLimitReq(mapOf<String, Any>()))
+        assertEquals(null, acLimitReq(mapOf("amp" to "max")))
+        assertEquals(null, acLimitReq(mapOf("lim" to 32))) // the charge limit's key is not the amps'
+    }
+
+    @Test fun acCurrentIsDoneWhenTheSettingOrTheSessionMatches() {
+        assertTrue(acLimitDone(status.copy(acLimit = 32), 32))
+        assertTrue(acLimitDone(status.copy(acLimit = 40, acSession = 32), 32))
+        assertFalse(acLimitDone(status.copy(acLimit = 40, acSession = 24), 32)) // capped by the charger: no match
+        assertFalse(acLimitDone(status, 32)) // a car that reports none confirms nothing
+    }
+
+    @Test fun aRequestWithNoNumberIsBadcmd() {
+        assertEquals(80, requireNumber(80))
         try {
-            requireLimit(null)
+            requireNumber(null)
             org.junit.Assert.fail("expected CommandFailed")
         } catch (e: CommandFailed) {
             assertEquals("badcmd", e.code)

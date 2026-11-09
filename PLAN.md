@@ -30,8 +30,8 @@ Lucid mobile gateway (unofficial, reverse-engineered)
 Decisions (the reasoning and test results are in `docs/research/phone-bridge-findings.md`):
 - **The phone makes every Lucid call; there is no server.** The watch cannot do gRPC against the gateway (and the
   Venu 3 is API 5.2), and would have to hold the refresh token. The watch holds no secrets and shows display data only.
-- **A device app with a glance, not a watch face.** The core need is actions, and a face has no input. A face is on
-  the roadmap for later.
+- **A device app with a glance, not a watch face.** The core need is actions, and a face has no input. A face is a
+  possible later addition (#34).
 - **A foreground service keeps the phone app reachable.** A killed app is not woken by a watch message.
 - **Lucid calls are on-demand, plus background reads** whose changes are pushed to the watch (a setting turns it off).
   The read rate follows the car's state and is kept off the throttled vehicle-list call; back off after a rate-limit
@@ -68,11 +68,11 @@ Decisions (the reasoning and test results are in `docs/research/phone-bridge-fin
 
 ## Target devices
 The Venu 3 is the tested target (real hardware). The manifest also lists `fenix7` and `venux1`; both build and the
-0.5.0 main, info and Access pages were looked over in the simulator only, so the README calls them untested.
+0.5.0 main, info and Actions pages were looked over in the simulator only, so the README calls them untested.
 Before any store release, trim the manifest to watches a real owner has tried (store distribution covers every
 listed product).
 
-- **A touchscreen is required** (decided for 0.5.0): the Access page's icons are reached by touch only, since up and
+- **A touchscreen is required** (decided for 0.5.0): the Actions page's icons are reached by touch only, since up and
   down change page, so button-only watches (Forerunner 255, fenix 6, Instinct, Edge) are out of scope. Buttons still
   do page, select and back, but they are not a full way in.
 - One codebase via resource qualifiers (e.g. `resources-round-454x454`) where layouts differ. Use fractions of the
@@ -108,9 +108,9 @@ Android:
 - Accept Connect IQ messages only for this watch app's UUID.
 
 Watch:
-- Stores nothing secret. Confirm tap before unlock, climate on/off, horn, frunk and trunk, and close windows; lock,
-  lights and pet mode have none by design. The watch's own
-  passcode / lock is the device-side protection.
+- Stores nothing secret. Confirm tap before unlock, climate on/off, horn, frunk and trunk, close windows and every
+  charging command (start and stop, limit, port, preconditioning, AC current); lock, lights and pet mode have none by
+  design. The watch's own passcode / lock is the device-side protection.
 
 ## Responsiveness
 - The watch draws instantly from cached state, shows its age on the main screen (the glance has none), and updates when
@@ -119,49 +119,29 @@ Watch:
 - Commands are accepted instantly but the car confirms 10-40 s later and a sleeping car needs 30 s+ to wake, so the UI
   shows pending states and the phone polls gently until the state changes.
 
-## Roadmap
+## Working rules
 Anything that adds a watch<->phone message touches `docs/protocol.md`, the phone and the watch, so bump the protocol
 version (or add optional fields that older watches ignore). The status data all comes from the same call, so reading
 more of it adds no Lucid calls.
 
-**Shipped:** Lucid API proof, repo and security setup, Android client with CI, Venu 3 app, phone bridge with adaptive
-background reads that push changes to the watch, faster command confirmation, both app versions shown on each side.
-Since 0.5.0 the watch app is a vertical page strip (docs/watch-design.md): a main screen that is information only
-(charge ring, charging power, temperatures, warnings), an info page, a version and refresh page, and one Access page
-(lock, frunk, trunk, close all windows, climate with pet mode, lights, horn). A Charging page (start and stop, the
-charge limit, the port and battery preconditioning, #35 and #13) is the first part of 0.6.0. The phone app shows
-status and settings and a read-only vehicle details screen with efficiency worked out from its own odometer log; it has
-no controls. See the releases.
+There is no roadmap in this file: the GitHub milestones and issues are the plan for what comes next, the releases say
+what shipped, and the README's Status says what works today.
 
-Planned in milestones, each an issue (the GitHub milestones have the lists):
-- **0.5.1, polish:** a per-car efficiency log (#67), the glance background (#68), more watch models (#82), and the
-  accent colour (#65).
-- **0.6.0, charging controls:** a Charging page on the watch: start and stop, charge limit, AC current limit,
-  preconditioning, port, schedule (#35, #14, #13), and a result vibration and toast when a command ends (#72). The AC
-  current values need finding out first.
-- **0.7.0, status and details:** open windows on the watch (#11), the last known state and its age on the choice
-  screens (#38), the charge finish time (#70), the charge limit on the ring (#71), the car's status in the phone's
-  notification (#73), software update availability (#78) and a needs-attention indicator on Main (#79).
-- **0.8.0, history and range:** efficiency history kept for the life of the app data (#66), a history of battery health,
-  charge, efficiency, cell temperatures and tire pressures with charts (#76), and the remaining range worked out from
-  the logged efficiency, on the phone and the watch (#69, #80).
-
-**Later**
-- Multi-vehicle support (#33). Needs a tester with a second car; the WearOS app already stores a selected vehicle id.
-- Watch face and complications (#34). A separate app type; decide after the above shows how the app gets used.
-- A demo mode with canned data, so a tester or store reviewer without a Lucid can try the app (#81).
-- A user setting for the background read interval (#43).
-- Phone notifications for charging and left-open events (#74), the cost of home charging (#75), and a home-screen
-  widget (#77).
+## Later
+Not issues yet:
 - Optional biometric gate before unlock.
 - A real owner for each new watch model, so they can move off "builds only".
-
-**Decided against** (see docs/watch-design.md): controls on the phone app (Lucid's own app has them); a Climate page
-with defrost, max A/C and seat and steering wheel heat, and a Signals page (they are done from the driver's seat);
-panic alarm, sentry, keys, and starting a software update (showing that one is available is #78).
 - **Store release (only if going to stores):** re-read Garmin's SDK agreement and Developer Guidelines, Lucid's terms,
   Google Play policy on third-party logins and vehicle control; write a privacy policy; do a trademark search; trim the
   manifest to tested watches.
+
+## Decided against
+See docs/watch-design.md for the reasons.
+- Controls on the phone app (Lucid's own app has them).
+- Climate controls (defrost, max A/C, seat and steering wheel heat) and showing their state on the watch, and a Signals
+  page: they are done from the driver's seat, and the car's auto-climate may already switch them on when it
+  preconditions (#89).
+- Panic alarm, sentry, keys, and starting a software update (showing that one is available is #78).
 
 ## Verification
 - Android unit tests (transport, token refresh, store, push loop) plus a manual run on a physical phone.

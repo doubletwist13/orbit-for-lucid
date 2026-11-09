@@ -6,13 +6,14 @@ import Toybox.WatchUi;
 // A screen of big round icon choices. Touch: tap one. Buttons: select picks the highlighted one; up/down moves the
 // highlight on a choice screen, but on a strip page (stripIndex set) they change page, so only a touch screen can
 // reach every icon there.
-// Two big items sit side by side, three form a triangle, four a grid, and seven a hexagon round the first (the biggest,
-// which should be the one used most). Items marked :small are small buttons in a row under them. Any other count would
-// need a new row in BIG or SMALL.
+// Two big items sit side by side, three form a triangle, four a grid, and five or seven are petals round the first
+// (the biggest, which should be the one used most): four petals (top, right, bottom, left) or six in a hexagon.
+// Items marked :small are small buttons in a row under them. Any other count would need a new row in BIG or SMALL.
 class IconMenu extends WatchUi.View {
     // centre of each item as a fraction of width and height, per count of big or small items
     private const BIG = {2 => [[0.30, 0.50], [0.70, 0.50]], 3 => [[0.31, 0.31], [0.69, 0.31], [0.50, 0.67]],
         4 => [[0.30, 0.30], [0.70, 0.30], [0.30, 0.62], [0.70, 0.62]],
+        5 => [[0.50, 0.50], [0.50, 0.24], [0.80, 0.50], [0.50, 0.76], [0.20, 0.50]],
         7 => [[0.50, 0.50], [0.36, 0.25], [0.64, 0.25], [0.79, 0.50], [0.64, 0.75], [0.36, 0.75], [0.21, 0.50]]};
     private const SMALL = {1 => [[0.50, 0.89]], 2 => [[0.38, 0.89], [0.62, 0.89]]};
     var items as Array<Dictionary>;
@@ -50,7 +51,8 @@ class IconMenu extends WatchUi.View {
 
     private function radius(w as Number, i as Number) as Float {
         var n = count(false);
-        return w * (small(i) ? 0.065 : n == 2 ? 0.15 : n == 4 ? 0.12 : n == 7 ? (i == 0 ? 0.115 : 0.10) : 0.14);
+        return w * (small(i) ? 0.065 : n == 2 ? 0.15 : n == 4 ? 0.12
+            : n == 5 || n == 7 ? (i == 0 ? 0.115 : 0.10) : 0.14);
     }
 
     function onUpdate(dc as Dc) as Void {
@@ -82,7 +84,13 @@ class IconMenu extends WatchUi.View {
             var label = items[i][:label] as String?;
             if (label != null) {
                 dc.setColor(accent, Graphics.COLOR_BLACK);
-                dc.drawText(c[0], c[1] + r.toNumber() + 4, Graphics.FONT_SMALL, label, Graphics.TEXT_JUSTIFY_CENTER);
+                // a smaller font when the text would run into the bezel: the room is twice the way to the nearer
+                // side edge, less a margin
+                var w = dc.getWidth();
+                var room = 2 * ((c[0] < w - c[0] ? c[0] : w - c[0]) - w * 0.04);
+                var font = dc.getTextWidthInPixels(label, Graphics.FONT_SMALL) <= room ? Graphics.FONT_SMALL
+                    : Graphics.FONT_TINY;
+                dc.drawText(c[0], c[1] + r.toNumber() + 4, font, label, Graphics.TEXT_JUSTIFY_CENTER);
             }
         }
     }
@@ -281,14 +289,15 @@ function lidIcon(lid as String, open as Boolean) as Symbol {
 }
 
 // Close `depth` menu screens, then send the command, asking first for the ones that change the car beyond locking it.
-// arg is the climate_on set point in Celsius or the limit in percent, otherwise null.
+// arg is the climate_on set point in Celsius, the limit in percent or the AC limit in amps, otherwise null.
 function perform(id as String, depth as Number, arg as Float?) as Void {
     for (var i = 0; i < depth; i++) {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
-    // climate_on and limit always come from their pickers, so they always have a value to ask about
+    // climate_on, limit and ac_limit always come from their pickers, so they always have a value to ask about
     var question = id.equals("climate_on") ? "Climate on " + Units.label(arg as Float, Units.fahrenheit()) + "?"
-        : id.equals("limit") ? "Limit " + (arg as Float).toNumber() + "%?" : CONFIRM[id];
+        : id.equals("limit") ? "Limit " + (arg as Float).toNumber() + "%?"
+        : id.equals("ac_limit") ? "AC limit " + (arg as Float).toNumber() + " A?" : CONFIRM[id];
     if (question != null) {
         WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id, arg), WatchUi.SLIDE_UP);
     } else {

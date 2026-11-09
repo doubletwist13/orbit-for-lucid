@@ -37,6 +37,8 @@ module Icons {
             limit(dc, x, y, u);
         } else if (id == :precon) {
             precon(dc, x, y, u);
+        } else if (id == :acamps) {
+            acamps(dc, x, y, u);
         } else if (id == :portopen || id == :portclosed) {
             port(dc, x, y, u, id == :portopen);
         } else if (id == :horn) {
@@ -194,6 +196,17 @@ module Icons {
         battery(dc, x, y, u);
         dc.fillRectangle(px(x, 8.5, u), px(y, 10, u), (7 * u).toNumber(), (10 * u).toNumber());
         line(dc, x, y, u, 2, 10, 22, 10);
+    }
+
+    // The AC current limit: a half dial with a needle, high in the cell, and "AC" under it, as the limit is for AC
+    // charging only. The text uses the caller's colour and a stock font, so it does not scale with the icon.
+    function acamps(dc as Dc, x as Number, y as Number, u as Float) as Void {
+        dc.drawArc(px(x, 12, u), px(y, 10, u), (8 * u).toNumber(), Graphics.ARC_COUNTER_CLOCKWISE, 0, 180);
+        line(dc, x, y, u, 4, 10, 20, 10);
+        line(dc, x, y, u, 12, 10, 16.5, 4.5);
+        dc.fillCircle(px(x, 12, u), px(y, 10, u), (1.3 * u).toNumber());
+        dc.drawText(px(x, 12, u), px(y, 18, u), Graphics.FONT_XTINY, "AC",
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     // battery preconditioning: a battery with a thermometer beside it

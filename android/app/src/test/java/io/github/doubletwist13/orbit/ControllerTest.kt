@@ -113,6 +113,11 @@ class ControllerTest {
         assertEquals(80, chargeLimitReq(mapOf("lim" to 80)))
         assertEquals(50, chargeLimitReq(mapOf("lim" to 10)))
         assertEquals(100, chargeLimitReq(mapOf("lim" to 255)))
+        // a huge value must clamp to the nearest end, not wrap: 1e30 rounded to an Int first came out as the minimum
+        assertEquals(100, chargeLimitReq(mapOf("lim" to 1e30)))
+        assertEquals(50, chargeLimitReq(mapOf("lim" to -1e30)))
+        assertEquals(100, chargeLimitReq(mapOf("lim" to Long.MAX_VALUE)))
+        assertEquals(null, chargeLimitReq(mapOf("lim" to Double.POSITIVE_INFINITY))) // not a finite number at all
         assertEquals(null, chargeLimitReq(mapOf<String, Any>()))
         assertEquals(null, chargeLimitReq(mapOf("lim" to "all")))
         assertEquals(null, chargeLimitReq(mapOf("lim" to Double.NaN)))
@@ -151,10 +156,46 @@ class ControllerTest {
         assertEquals("unavail", errCode(CommandFailed("unavail", "x")))
     }
 
-    @Test fun aLimitRequestWithNoNumberIsBadcmd() {
-        assertEquals(80, requireLimit(80))
+    @Test fun acCurrentIsSentOnlyInRangeAndRequestedInAmpsClamped() {
+        assertFalse(watchReply(1, status, null).containsKey("ac"))
+        assertEquals(32, watchReply(1, status.copy(acSet = 32), null)["ac"])
+        // the setting is sent, not the charger's maximum: 80 A set on a 40 A charger reads back 80 A
+        assertEquals(80, watchReply(1, status.copy(acSet = 80, acCharger = 40), null)["ac"])
+        assertFalse(watchReply(1, status.copy(acCharger = 40), null).containsKey("ac")) // no setting reported
+        assertFalse(watchReply(1, status.copy(acSet = 9), null).containsKey("ac")) // under the car's lowest
+        assertFalse(watchReply(1, status.copy(acSet = 200), null).containsKey("ac"))
+        assertEquals(32, acLimitReq(mapOf("amp" to 32)))
+        assertEquals(10, acLimitReq(mapOf("amp" to 3)))
+        assertEquals(80, acLimitReq(mapOf("amp" to 500)))
+        assertEquals(80, acLimitReq(mapOf("amp" to 1e30))) // clamped before rounding, so it cannot wrap to the minimum
+        assertEquals(10, acLimitReq(mapOf("amp" to -1e30)))
+        assertEquals(null, acLimitReq(mapOf<String, Any>()))
+        assertEquals(null, acLimitReq(mapOf("amp" to "max")))
+        assertEquals(null, acLimitReq(mapOf("lim" to 32))) // the charge limit's key is not the amps'
+    }
+
+    @Test fun theChargerCapIsSentOnlyWhenItIsBelowTheSetting() {
+        assertEquals(40, watchReply(1, status.copy(acSet = 80, acCharger = 40), null)["acm"])
+        assertFalse(watchReply(1, status.copy(acSet = 24, acCharger = 80), null).containsKey("acm")) // not capped
+        assertFalse(watchReply(1, status.copy(acSet = 40, acCharger = 40), null).containsKey("acm")) // equal: no cap
+        assertFalse(watchReply(1, status.copy(acSet = 80), null).containsKey("acm")) // no charger number
+        assertFalse(watchReply(1, status.copy(acCharger = 40), null).containsKey("acm")) // no setting
+        assertFalse(watchReply(1, status.copy(acSet = 80, acCharger = 5), null).containsKey("acm")) // not an amp value
+    }
+
+    @Test fun acCurrentIsDoneOnlyWhenTheSettingMatches() {
+        assertTrue(acLimitDone(status.copy(acSet = 32), 32))
+        assertTrue(acLimitDone(status.copy(acSet = 80, acCharger = 40), 80)) // above the charger's 40 A, taken as asked
+        // the charger's maximum is not the setting: asking for 40 A on a 40 A charger must wait for the setting
+        assertFalse(acLimitDone(status.copy(acSet = 80, acCharger = 40), 40))
+        assertFalse(acLimitDone(status.copy(acCharger = 32), 32)) // a car that reports no setting confirms nothing
+        assertFalse(acLimitDone(status, 32))
+    }
+
+    @Test fun aRequestWithNoNumberIsBadcmd() {
+        assertEquals(80, requireNumber(80))
         try {
-            requireLimit(null)
+            requireNumber(null)
             org.junit.Assert.fail("expected CommandFailed")
         } catch (e: CommandFailed) {
             assertEquals("badcmd", e.code)

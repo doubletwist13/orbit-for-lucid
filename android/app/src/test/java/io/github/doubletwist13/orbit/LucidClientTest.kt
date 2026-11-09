@@ -204,6 +204,21 @@ class LucidClientTest {
     }
 
     @Test
+    fun acCurrentLimitsAreReadFromTheChargingBlockAndNullWhenUnset() {
+        fun status(setting: Int, session: Int) = Vehicle.newBuilder().setVehicleId("v1")
+            .setState(
+                VehicleState.newBuilder().setCharging(
+                    ChargingState.newBuilder().setEnergyAcCurrentLimit(setting).setActiveSessionAcCurrentLimit(session),
+                ),
+            ).build().toStatus()
+        val s = status(40, 32)
+        assertEquals(40, s.acCharger) // energy_ac_current_limit: the charger's maximum
+        assertEquals(32, s.acSet) // active_session_ac_current_limit: what was set
+        assertEquals(null, status(0, 0).acCharger) // unset reads as zero
+        assertEquals(null, status(0, 0).acSet)
+    }
+
+    @Test
     fun chargePortIsNullWhenTheCarReportsNoState() {
         fun port(state: DoorState) = Vehicle.newBuilder().setVehicleId("v1")
             .setState(VehicleState.newBuilder().setBody(BodyState.newBuilder().setChargePort(state))).build()

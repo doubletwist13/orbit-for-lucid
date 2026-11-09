@@ -37,6 +37,7 @@ import mobilegateway.protos.VehicleStateServiceOuterClass.LockState
 import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.PowerState
 import mobilegateway.protos.VehicleStateServiceOuterClass.RearCargoControlRequest
+import mobilegateway.protos.VehicleStateServiceOuterClass.SetACCurrLimitRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetBatteryPreconRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetCabinTemperatureRequest
 import mobilegateway.protos.VehicleStateServiceOuterClass.SetChargeLimitRequest
@@ -93,6 +94,17 @@ data class VehicleStatus(
     val chargeLimit: Int? = null,
     /** Charge port open (ajar counts as open); null when the car reports no state for it. */
     val portOpen: Boolean? = null,
+    /**
+     * The AC current limit in amps that was set (the car's `active_session_ac_current_limit`), kept as asked even
+     * above what the charger can give; null when the car reports none. Seen on one car: set to 80 A on a 40 A charger,
+     * it read back 80.
+     */
+    val acSet: Int? = null,
+    /**
+     * The most the charger allows (the car's `energy_ac_current_limit`): 40 A on a 40 A charger, and 80 A when
+     * unplugged. What the car actually draws is the lower of the two. Null when the car reports none.
+     */
+    val acCharger: Int? = null,
     /** Battery preconditioning: ON, OFF, UNAVAILABLE or UNKNOWN, and the minutes left while it is on. */
     val preconStatus: String = "UNKNOWN",
     val preconMinutes: Int? = null,
@@ -277,6 +289,11 @@ class LucidClient(
         ControlChargePortRequest.newBuilder().setVehicleId(vehicleId).setClosureState(doorState(open)).build(),
     )
 
+    suspend fun setAcLimit(refreshToken: String, vehicleId: String, amps: Int) = command(
+        refreshToken, "SetACCurrLimit",
+        SetACCurrLimitRequest.newBuilder().setVehicleId(vehicleId).setAcCurrLim(amps).build(),
+    )
+
     suspend fun setBatteryPrecon(refreshToken: String, vehicleId: String, on: Boolean) = command(
         refreshToken, "SetBatteryPrecon",
         SetBatteryPreconRequest.newBuilder().setVehicleId(vehicleId)
@@ -374,6 +391,8 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     chargeRateKw = state.charging.chargeRateKwhPrecise,
     chargeLimit = state.charging.chargeLimitPercent.takeIf { it > 0 }?.let { Math.round(it).toInt() },
     portOpen = state.body.chargePort.isOpen(),
+    acSet = state.charging.activeSessionAcCurrentLimit.takeIf { it > 0 },
+    acCharger = state.charging.energyAcCurrentLimit.takeIf { it > 0 },
     preconStatus = state.battery.preconditioningStatus.name.removePrefix("BATTERY_PRECON_"),
     preconMinutes = state.battery.preconditioningTimeRemaining.takeIf { state.hasBattery() && it > 0 },
     doorOpen = with(state.body) {

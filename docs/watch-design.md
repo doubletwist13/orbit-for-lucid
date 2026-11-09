@@ -1,8 +1,8 @@
 # Watch layout design note (#55)
 
-Status: built, with a first Charging page added in 0.6.0 (start and stop, port and limit; the rest is under "Next").
-The main screen, the page strip, the info and version pages, the warning icons and the Access page below are in the
-app, and the questions under "Open" are undecided.
+Status: built. The main screen, the page strip, the info and About pages, the warning icons, the Actions page and the
+Charging page below are in the app. What is left, and what the Charging page does not do yet, is under "Charging page";
+the questions under "Open" are undecided. What comes next overall is in the GitHub milestones, not here.
 
 ## Principles
 
@@ -26,7 +26,7 @@ readable, so check them for the Venu X1 and fenix):
    About        <- versions and the ages of the car's and the phone's data; tap to refresh
    Info         <- the car's numbers as text (see "Data inventory")
    MAIN         <- glance-level state, no controls
-   Access       <- swipe up from Main: lock and the frequent actions
+   Actions      <- swipe up from Main: lock and the frequent actions
    Charging     <- start or stop, the charge port and the charge limit
    ```
    The Up and Down buttons do the same as the swipes. Five dots down the left edge show the place in the strip.
@@ -46,30 +46,38 @@ readable, so check them for the Venu X1 and fenix):
    too large, which is untested. The phone has a details screen with the rest of the car's data, and it works out
    efficiency from the odometer and battery energy, since the API has no trip or efficiency data.
 
-7. **One Access page of seven icons**, a "flower": the lock in the middle (the one used most) and six round it at about
+7. **One Actions page of seven icons**, a "flower": the lock in the middle (the one used most) and six round it at about
    0.17 x width each on the Venu 3: frunk and trunk on top, climate and close-all-windows at the sides, the lights and
    horn below. Lock, frunk, trunk and climate open a choice screen (so the choice never depends on cached state);
    the lights and windows act at once. Unlock, climate, horn, frunk, trunk and windows ask for a confirm tap; lock,
    lights and pet mode do not, and every send shows a toast so a tap is seen to count. Climate's choice screen is off,
    on (with a set point) and pet mode. Refresh moved to the About page (tap it).
-8. **Dropped, on purpose.** A separate Climate page (defrost, max A/C, seat and steering wheel heat) and a Signals page:
-   those are things you do from the driver's seat, where the car's own controls are, and the car's auto-climate may
-   already switch them on when it preconditions. The phone app stays information only (no controls: Lucid's own app
-   has them). Left out of the app altogether: panic alarm, sentry and security, software update, keys, and the
-   window actions other than close-all. Windows are close-all only; the car ignores many commands in gear or while
-   moving (see the README's Limitations).
+8. **Dropped, on purpose.** A separate Climate page (defrost, max A/C, seat and steering wheel heat), showing their
+   state, and a Signals page: those are things you do from the driver's seat, where the car's own controls are, and
+   the car's auto-climate may already switch them on when it preconditions (#89, closed). The phone app stays
+   information only (no controls: Lucid's own app has them). Left out of the app altogether: panic alarm, sentry and
+   security, software update, keys, and the window actions other than close-all. Windows are close-all only; the car
+   ignores many commands in gear or while moving (see the README's Limitations).
 
-## Next
+## Charging page
 
-- **More on the Charging page.** Built so far: a bolt that starts or stops charging (filled while charging, with the
-  power under it), the charge port (open or close), the charge limit (a stock menu in 5% steps) and battery
-  preconditioning (a battery with a thermometer, filled while on, with the minutes left under it). The four icons sit
-  in a grid. Every one asks for a confirm tap, and the page redraws from the car's state while it is open. Still to
-  come: the AC current limit (#14), the schedule and V2X discharge. The valid AC current values are 10 to 80 A in
-  1 A steps, but a plugged-in car caps them at the charger's maximum. The schedule is probably on and off only (the
-  times are set in Lucid's app). Discharge (V2X) is only named for now: an outlined bolt with a small red arrow on
-  Main, the glance and the Charging page, which says "Discharging" and offers no start or stop. Which field carries
-  the power then is unknown, so no kW is shown; it needs a capture from a car that is giving power out.
+- **What it has.** A bolt that starts or stops charging (filled while charging, with the power under it), the charge
+  port (open or close), the charge limit (a stock menu in 5% steps), battery preconditioning (a battery with a
+  thermometer, filled while on, with the minutes left under it when the car reports a real countdown, which the one
+  car tried has not) and the AC current limit (a dial with "AC" under it, and the amps under the circle). The bolt is
+  in the middle, as the lock is on the Actions page, with the other four round it: the port on top, the AC limit on
+  the right, preconditioning at the bottom and the charge limit on the left. The two icons that always have text
+  under them are at the sides, as text under a top or bottom one would run into the middle icon or the bezel; a
+  sixth icon needs another answer. Every one
+  asks for a confirm tap, and the page redraws from the car's state while it is open. The AC amps are what was set,
+  not the charger's maximum: on the one car tried, 80 A set on a 40 A charger showed 80 A on the watch while the car
+  showed 40 A, the lower of the two, so the label adds the cap in brackets, "80A(40A)", only when the charger is
+  below the setting. The AC limit is a menu of common values (10, 16, 24, 32, 40, 48 and 80 A) and "Other...", which
+  opens a picker over the whole range of 10 to 80 A in 1 A steps. Still to come: the schedule (#92) and V2X discharge.
+  The schedule is probably on and off only (the times are set in Lucid's app). Discharge (V2X) is only named for now:
+  an outlined bolt with a small red arrow on Main, the glance and the Charging page, which says "Discharging" and
+  offers no start or stop. Which field carries the power then is unknown, so no kW is shown; it needs a capture from
+  a car that is giving power out.
 - The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular), the fenix 7 (small round), the fenix 8
   (47 mm) and the Epix 2 Pro (47 mm); none has been tried on a real watch. The About page, redone in 0.5.1 for the
   Colour button, was checked on the Venu 3 and in the fenix 7 simulator.
@@ -80,7 +88,7 @@ readable, so check them for the Venu X1 and fenix):
   offering only the opposite action would remove it, and ties in with #38.
 - Which info goes on which info page, and what counts as "needs attention" on Main. Open windows are not shown on the
   watch yet (#11).
-- Back from the Access page: it exits the app, as the pages are not pushed screens. Returning to Main first is untried.
+- Back from the Actions page: it exits the app, as the pages are not pushed screens. Returning to Main first is untried.
 - Button-only watches cannot move the highlight on a strip page, since up/down page, so a touchscreen is a requirement
   (README, PLAN.md). Revisit if someone wants a button-only watch: the highlight could step with up and down and hand
   over to the next page at the ends.
@@ -159,11 +167,3 @@ out from it, so there is only one value to pick. Presets are readable on black a
   watches that have one. Venu 4, Venu X1 and Vivoactive 6 have none, so the About page is their only way in.
 - **Small palettes:** in the simulator the fenix 7's display shows Mint and Teal, and Violet and Purple, as nearly the
   same colour; the other presets stay distinct. Left as is. The other MIP watches have not been looked at.
-
-## Build order
-
-Done in 0.5.0: the strip and gestures, Main, the Info and About pages, the warning icons, the Access page.
-Done in 0.5.1: the accent colour theme (#65) and a glance that draws on the system's card background (#68).
-Done for 0.6.0 so far: the Charging page with start and stop, port and limit (#35), and battery preconditioning (#13).
-Still to do, each as its own issue: the AC current limit (#14), open windows on the watch (#11), the
-state line on the choice screens (#38), and a check of the layout on real hardware other than the Venu 3.

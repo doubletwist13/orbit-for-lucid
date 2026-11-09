@@ -15,15 +15,16 @@ message whose `v` it does not know.
 | `cmd` | string | One of the commands below |
 | `temp` | number | `climate_on` only, optional: cabin set point in Celsius (see below) |
 | `lim` | int | `limit` only: the charge limit in percent, clamped to 50..100; a request without a number is `badcmd` |
+| `amp` | int | `ac_limit` only: the AC limit in amps, clamped to 10..80; a request without a number is `badcmd` |
 | `wv` | string | Optional: the watch app's version, e.g. `0.3.0`, shown on the phone app's status screen |
 
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
   `trunk_close`, `horn`, `flash`, `windows_close`, `pet_on`, `pet_off`, `charge_start`, `charge_stop`, `limit`,
-  `port_open`, `port_close`, `precon_on`, `precon_off`.
+  `port_open`, `port_close`, `precon_on`, `precon_off`, `ac_limit`.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
 - The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn`, `windows_close`, any
   frunk or trunk command, or any charging command (`charge_start`, `charge_stop`, `limit`, `port_open`, `port_close`,
-  `precon_on`, `precon_off`).
+  `precon_on`, `precon_off`, `ac_limit`).
   The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without one; the watch shows a
   toast for those and for the confirmed ones once sent.
 - The charging commands wait for the car to report the change, like `lock`. `charge_start` is done when the charge state
@@ -34,7 +35,11 @@ message whose `v` it does not know.
   report open (ajar counts) or closed, and a car that reports no port state answers after the next status fetch.
   `precon_on` is done when the battery's preconditioning status is `ON` and `precon_off` when it is `OFF`; a car that
   reports neither (unknown or unavailable) ends as `timeout`. The phone refuses `precon_on` with `unavail` when the car
-  says it is `UNAVAILABLE`.
+  says it is `UNAVAILABLE`. `ac_limit` is done when the car reports the AC limit it was set to
+  (`active_session_ac_current_limit`) as asked. The car's other number, `energy_ac_current_limit`, is the charger's
+  maximum (40 A on a 40 A charger, 80 A when unplugged) and is not compared, since matching it would confirm a request
+  before the car took it. Seen on one car: 80 A set on a 40 A charger read back as 80 A, and the car drew 40 A, the
+  lower of the two.
 - `horn` and `flash` (flash the lights) have no state to read back: Lucid's answer to both is an empty message, and
   nothing in the car's state is known to report them. The phone wakes the car if needed, sends, and answers `ok` at
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
@@ -72,6 +77,8 @@ for an `id` has `pending` absent or empty.
 | `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
 | `lim` | int | The charge limit in percent; omitted when the car reports none or a value outside 50..100 |
 | `port` | bool | Charge port open (ajar counts as open); omitted when the car reports no state for it |
+| `ac` | int | The AC limit that was set, in amps (not the charger's maximum); omitted when none or outside 10..80 |
+| `acm` | int | The charger's maximum in amps, sent only when it is below `ac` (the car then draws this, not `ac`) |
 | `bp` | bool | Battery preconditioning is on; omitted when the car says it is unavailable or reports nothing |
 | `bpm` | int | Minutes of preconditioning left; sent only while on and plausible (`MAX_PRECON_MIN`, `Controller.kt`) |
 | `door` | bool | Any of the four doors open (ajar counts); sent only when `true` |
@@ -116,8 +123,9 @@ the app's background service (`Background.registerForPhoneAppMessageEvent`), whi
 - The read interval depends on the car's last state: 60 s asleep, 30 s awake, charging, preconditioning the battery or
   with the charge port open and no cable (the last two even if it reports asleep), and 10 s for 2 minutes after the
   watch last sent a request. A change is pushed at most once a minute (every 10 s in that window); with no change the
-  phone still pushes every 5 minutes. While preconditioning, `bpm` counts down by the minute, so a push goes out at that
-  gap for the whole run (intended: it is the countdown). Temperatures count as changed only per whole degree, and
+  phone still pushes every 5 minutes. If the car reports a real countdown while preconditioning, `bpm` changes by the
+  minute, so a push goes out at that gap for the whole run (intended; not yet seen, as the one car tried sent the
+  placeholder 65565). Temperatures count as changed only per whole degree, and
   `age` is ignored. After a rate-limit answer from Lucid the phone waits twice as long, up to an hour, and goes back
   to the normal interval after the next success. A setting in the phone app turns pushes off.
 - A push is skipped while logged out, and a failed fetch sends nothing. A push that fails to reach the watch is not

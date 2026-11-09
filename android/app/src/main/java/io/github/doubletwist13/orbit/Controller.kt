@@ -333,6 +333,7 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         it.chargeLimit?.takeIf { l -> l in MIN_LIMIT..MAX_LIMIT }?.let { l -> put("lim", l) }
         it.portOpen?.let { o -> put("port", o) }
         it.acSet?.takeIf { a -> a in MIN_AMPS..MAX_AMPS }?.let { a -> put("ac", a) }
+        acCap(it)?.let { c -> put("acm", c) }
         // on or off only: an unavailable or unknown state sends nothing, so the watch shows no state for it
         if (it.preconStatus == "ON" || it.preconStatus == "OFF") put("bp", it.preconStatus == "ON")
         // the car once reported 65565 minutes: a value outside a plausible span is a bad reading, not a time
@@ -500,6 +501,15 @@ internal fun chargeLimitReq(req: Map<*, *>): Int? = numberReq(req, "lim", MIN_LI
 
 /** The AC current limit a watch asks for, in amps. */
 internal fun acLimitReq(req: Map<*, *>): Int? = numberReq(req, "amp", MIN_AMPS..MAX_AMPS)
+
+/**
+ * The charger's maximum, only when it is below the AC limit that was set, so the watch can show what the car will
+ * really draw ("80 A (40)"). Null otherwise, or when either number is missing or not a plausible amp value.
+ */
+internal fun acCap(s: VehicleStatus): Int? {
+    val set = s.acSet?.takeIf { it in MIN_AMPS..MAX_AMPS } ?: return null
+    return s.acCharger?.takeIf { it in MIN_AMPS..MAX_AMPS && it < set }
+}
 
 /**
  * Whether the car reports the AC limit that was set as asked. Only the setting counts: the charger's maximum is a

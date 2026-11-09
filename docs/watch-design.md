@@ -70,13 +70,13 @@ readable, so check them for the Venu X1 and fenix):
   under a top or bottom one would run into the middle icon or the bezel; a sixth icon needs another answer. Every one
   asks for a confirm tap, and the page redraws from the car's state while it is open. The AC amps are what was set,
   not the charger's maximum: on the one car tried, 80 A set on a 40 A charger showed 80 A on the watch while the car
-  showed 40 A, the lower of the two (whether the page should show that cap too is open). The AC limit is a menu of
-  common values (10, 16, 24, 32, 40, 48 and 80 A) and "Other...", which opens a picker over the whole range of 10 to
-  80 A in 1 A steps. Still to come: the schedule (#92) and V2X discharge. The schedule
-  is probably on and off only (the times are set in Lucid's app). Discharge (V2X) is only named for now: an outlined
-  bolt with a small red arrow on Main, the glance and the Charging page, which says "Discharging" and offers no start
-  or stop. Which field carries the power then is unknown, so no kW is shown; it needs a capture from a car that is
-  giving power out.
+  showed 40 A, the lower of the two, so the label adds the cap in brackets, "80A(40A)", only when the charger is
+  below the setting. The AC limit is a menu of common values (10, 16, 24, 32, 40, 48 and 80 A) and "Other...", which
+  opens a picker over the whole range of 10 to 80 A in 1 A steps. Still to come: the schedule (#92) and V2X discharge.
+  The schedule is probably on and off only (the times are set in Lucid's app). Discharge (V2X) is only named for now:
+  an outlined bolt with a small red arrow on Main, the glance and the Charging page, which says "Discharging" and
+  offers no start or stop. Which field carries the power then is unknown, so no kW is shown; it needs a capture from
+  a car that is giving power out.
 - The 0.5.0 layout looked right in the simulator on the Venu X1 (rectangular), the fenix 7 (small round), the fenix 8
   (47 mm) and the Epix 2 Pro (47 mm); none has been tried on a real watch. The About page, redone in 0.5.1 for the
   Colour button, was checked on the Venu 3 and in the fenix 7 simulator.

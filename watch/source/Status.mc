@@ -7,10 +7,10 @@ import Toybox.Time;
 module Status {
     const KEYS = ["soc", "locked", "charge", "hvac", "tset", "tin", "tout", "awake", "frunk", "trunk", "fpower",
         "model", "rate", "door", "tire", "occ", "tp", "cmin", "cmax", "odo", "soh", "pet", "lim", "port", "bp", "bpm",
-        "ac"];
+        "ac", "acm"];
     // fields the phone leaves out when the car reports none, which must not linger from an earlier reply
     const OPTIONAL = ["locked", "tset", "tin", "tout", "frunk", "trunk", "model", "rate", "door", "tire", "occ", "tp",
-        "cmin", "cmax", "odo", "soh", "pet", "lim", "port", "bp", "bpm", "ac"];
+        "cmin", "cmax", "odo", "soh", "pet", "lim", "port", "bp", "bpm", "ac", "acm"];
 
     // The old state with the message's status fields on top, or null if the message carries none (a pending-only
     // reply). Merged, not replaced, because replies carry only what changed in the car's report.

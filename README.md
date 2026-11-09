@@ -119,8 +119,8 @@ same things.
     gets the battery to temperature before a fast charge. It says "Not available" if the car reports that it cannot.
   - **AC current limit.** A dial with "AC" under it, and the amps that were set under the icon. It opens a list of
     common values (10, 16, 24, 32, 40, 48 and 80 A) and "Other...", which opens a picker over 10 to 80 A. The
-    charger's own maximum still applies: the car draws the lower of the two, so the amps shown can be more than the
-    car draws.
+    charger's own maximum still applies: the car draws the lower of the two. When the charger is below what you
+    set, its maximum follows in brackets, so `80A(40A)` is 80 A set on a 40 A charger, drawing 40 A.
 - **Toasts.** An action that sends without a confirm (lock, lights, pet mode) or after one shows a short toast
   ("Locking...") so you know the tap was taken. The result comes later, from the car.
 - **Stays current.** The phone reads the car every 30 s while it is awake or charging, or while the battery is
@@ -196,7 +196,8 @@ to vary wildly: expect results that are much faster or much slower, and don't re
        alt="Actions: lock in the middle with frunk, trunk, climate, windows, horn and lights round it" width="200">
   <img src="docs/images/watch-charging.png"
        alt="Charging: the bolt (start or stop) in the middle, with the charge port above, preconditioning below, the
-       charge limit (80%) on the left and the AC current limit (32 A) on the right" width="200">
+       charge limit (80%) on the left and the AC current limit on the right: 80A set, capped by a 40A charger"
+       width="200">
   <img src="docs/images/watch-lock.png" alt="Choose lock or unlock" width="200">
   <img src="docs/images/watch-climate.png" alt="Choose climate off, on with the car's set point, or pet mode"
        width="200">

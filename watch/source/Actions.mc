@@ -84,7 +84,13 @@ class IconMenu extends WatchUi.View {
             var label = items[i][:label] as String?;
             if (label != null) {
                 dc.setColor(accent, Graphics.COLOR_BLACK);
-                dc.drawText(c[0], c[1] + r.toNumber() + 4, Graphics.FONT_SMALL, label, Graphics.TEXT_JUSTIFY_CENTER);
+                // a smaller font when the text would run into the bezel: the room is twice the way to the nearer
+                // side edge, less a margin
+                var w = dc.getWidth();
+                var room = 2 * ((c[0] < w - c[0] ? c[0] : w - c[0]) - w * 0.04);
+                var font = dc.getTextWidthInPixels(label, Graphics.FONT_SMALL) <= room ? Graphics.FONT_SMALL
+                    : Graphics.FONT_TINY;
+                dc.drawText(c[0], c[1] + r.toNumber() + 4, font, label, Graphics.TEXT_JUSTIFY_CENTER);
             }
         }
     }

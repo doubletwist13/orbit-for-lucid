@@ -24,7 +24,10 @@ function chargeItems() as Array<Dictionary> {
     // the battery heater: filled while on, with the minutes left under it
     var heating = s != null && s["bp"] == true;
     var left = heating && s["bpm"] != null ? (s["bpm"] as Numeric).toNumber() + " min" : null;
-    var amps = s != null && s["ac"] != null ? (s["ac"] as Numeric).toNumber() + " A" : null;
+    // the amps that were set, with the charger's lower maximum after them when it caps them: "80A(40A)". No spaces,
+    // to keep it short.
+    var amps = s != null && s["ac"] != null ? (s["ac"] as Numeric).toNumber() + "A" : null;
+    if (amps != null && s["acm"] != null) { amps += "(" + (s["acm"] as Numeric).toNumber() + "A)"; }
     // The bolt in the middle, as the lock is on the Actions page, then clockwise from the top. The text under an icon
     // would run into the middle one above it, so the icons that always have text (the AC limit and the charge limit)
     // are at the sides, and the port, which has none, is on top. Preconditioning has text only while it is on.

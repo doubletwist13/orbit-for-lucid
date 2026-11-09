@@ -167,6 +167,15 @@ class ControllerTest {
         assertEquals(null, acLimitReq(mapOf("lim" to 32))) // the charge limit's key is not the amps'
     }
 
+    @Test fun theChargerCapIsSentOnlyWhenItIsBelowTheSetting() {
+        assertEquals(40, watchReply(1, status.copy(acSet = 80, acCharger = 40), null)["acm"])
+        assertFalse(watchReply(1, status.copy(acSet = 24, acCharger = 80), null).containsKey("acm")) // not capped
+        assertFalse(watchReply(1, status.copy(acSet = 40, acCharger = 40), null).containsKey("acm")) // equal: no cap
+        assertFalse(watchReply(1, status.copy(acSet = 80), null).containsKey("acm")) // no charger number
+        assertFalse(watchReply(1, status.copy(acCharger = 40), null).containsKey("acm")) // no setting
+        assertFalse(watchReply(1, status.copy(acSet = 80, acCharger = 5), null).containsKey("acm")) // not an amp value
+    }
+
     @Test fun acCurrentIsDoneOnlyWhenTheSettingMatches() {
         assertTrue(acLimitDone(status.copy(acSet = 32), 32))
         assertTrue(acLimitDone(status.copy(acSet = 80, acCharger = 40), 80)) // above the charger's 40 A, taken as asked

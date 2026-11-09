@@ -9,7 +9,8 @@ const AMBER = 0xFFAA33;
 const STALE_SECS = 1800;
 const CONFIRM = {"unlock" => "Unlock?", "climate_off" => "Climate off?", "horn" => "Honk horn?",
     "frunk_open" => "Open frunk?", "frunk_close" => "Close frunk?", "trunk_open" => "Open trunk?",
-    "trunk_close" => "Close trunk?", "windows_close" => "Close windows?"};
+    "trunk_close" => "Close trunk?", "windows_close" => "Close windows?", "charge_start" => "Start charging?",
+    "charge_stop" => "Stop charging?", "port_open" => "Open charge port?", "port_close" => "Close charge port?"};
 
 class MainView extends WatchUi.View {
     function initialize() {

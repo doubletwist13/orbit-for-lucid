@@ -99,6 +99,35 @@ class ControllerTest {
         assertEquals(true, watchReply(1, status.copy(petMode = true), null)["pet"])
     }
 
+    @Test fun chargeLimitAndPortAreSentOnlyWhenTheCarReportsThem() {
+        val quiet = watchReply(1, status, null)
+        assertFalse(quiet.containsKey("lim") || quiet.containsKey("port"))
+        val r = watchReply(1, status.copy(chargeLimit = 80, portOpen = false), null)
+        assertEquals(80, r["lim"])
+        assertEquals(false, r["port"])
+        assertFalse(watchReply(1, status.copy(chargeLimit = 255), null).containsKey("lim")) // not a reading
+        assertFalse(watchReply(1, status.copy(chargeLimit = 10), null).containsKey("lim"))
+    }
+
+    @Test fun requestedChargeLimitIsClampedAndMissingWhenNotANumber() {
+        assertEquals(80, chargeLimitReq(mapOf("lim" to 80)))
+        assertEquals(50, chargeLimitReq(mapOf("lim" to 10)))
+        assertEquals(100, chargeLimitReq(mapOf("lim" to 255)))
+        assertEquals(null, chargeLimitReq(mapOf<String, Any>()))
+        assertEquals(null, chargeLimitReq(mapOf("lim" to "all")))
+        assertEquals(null, chargeLimitReq(mapOf("lim" to Double.NaN)))
+    }
+
+    @Test fun chargeStartIsDoneWhenChargingAndStopWhenNot() {
+        val charging = status.copy(chargeState = "CHARGING")
+        assertTrue(chargeDone(charging, true))
+        assertFalse(chargeDone(charging, false))
+        for (idle in listOf("CABLE_CONNECTED", "CHARGING_STOPPED", "CHARGING_PAUSED", "CHARGING_END_OK")) {
+            assertFalse(chargeDone(status.copy(chargeState = idle), true))
+            assertTrue(chargeDone(status.copy(chargeState = idle), false))
+        }
+    }
+
     @Test fun detailsAreSentOnlyWhenTheCarReportsThemAndAreRounded() {
         val bare = watchReply(1, status, null)
         assertFalse(bare.keys.any { it in setOf("tp", "cmin", "cmax", "odo", "soh") })

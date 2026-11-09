@@ -281,14 +281,14 @@ function lidIcon(lid as String, open as Boolean) as Symbol {
 }
 
 // Close `depth` menu screens, then send the command, asking first for the ones that change the car beyond locking it.
-// temp is the climate_on set point in Celsius, otherwise null.
+// temp is the climate_on set point in Celsius or the limit in percent, otherwise null.
 function perform(id as String, depth as Number, temp as Float?) as Void {
     for (var i = 0; i < depth; i++) {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
     }
-    // climate_on always comes from the set point menu, so it always has a set point to ask about
+    // climate_on and limit always come from their pickers, so they always have a value to ask about
     var question = id.equals("climate_on") ? "Climate on " + Units.label(temp as Float, Units.fahrenheit()) + "?"
-        : CONFIRM[id];
+        : id.equals("limit") ? "Limit " + (temp as Float).toNumber() + "%?" : CONFIRM[id];
     if (question != null) {
         WatchUi.pushView(new WatchUi.Confirmation(question), new CommandConfirm(id, temp), WatchUi.SLIDE_UP);
     } else {

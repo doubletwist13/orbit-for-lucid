@@ -14,14 +14,22 @@ message whose `v` it does not know.
 | `id` | int | Request id chosen by the watch; echoed in every reply so stale replies can be dropped |
 | `cmd` | string | One of the commands below |
 | `temp` | number | `climate_on` only, optional: cabin set point in Celsius (see below) |
+| `lim` | int | `limit` only: the charge limit in percent, clamped to 50..100; a request without a number is `badcmd` |
 | `wv` | string | Optional: the watch app's version, e.g. `0.3.0`, shown on the phone app's status screen |
 
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
-  `trunk_close`, `horn`, `flash`, `windows_close`, `pet_on`, `pet_off`.
+  `trunk_close`, `horn`, `flash`, `windows_close`, `pet_on`, `pet_off`, `charge_start`, `charge_stop`, `limit`,
+  `port_open`, `port_close`.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
-- The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn`, `windows_close` or any
-  frunk or trunk command. The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without
-  one; the watch shows a toast for those and for the confirmed ones once sent.
+- The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn`, `windows_close`, any
+  frunk or trunk command, or any charging command (`charge_start`, `charge_stop`, `limit`, `port_open`, `port_close`).
+  The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without one; the watch shows a
+  toast for those and for the confirmed ones once sent.
+- The charging commands wait for the car to report the change, like `lock`. `charge_start` is done when the charge state
+  is `CHARGING` and `charge_stop` when it is anything else; a car at its limit, or with no cable, never starts, so that
+  ends as the `timeout` error. `limit` is done when the reported limit equals `lim`. `port_open` and `port_close` wait
+  for the port to report open (ajar counts) or closed, and a car that reports no port state answers after the next
+  status fetch.
 - `horn` and `flash` (flash the lights) have no state to read back: Lucid's answer to both is an empty message, and
   nothing in the car's state is known to report them. The phone wakes the car if needed, sends, and answers `ok` at
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
@@ -57,10 +65,12 @@ for an `id` has `pending` absent or empty.
 | `frunk`, `trunk` | bool | Frunk or trunk open (ajar counts as open); omitted when the car reports no state for it |
 | `fpower` | bool | The frunk has a power strut, so the car can close it; `false` for a gas strut, which only opens |
 | `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
+| `lim` | int | The charge limit in percent; omitted when the car reports none or a value outside 50..100 |
+| `port` | bool | Charge port open (ajar counts as open); omitted when the car reports no state for it |
 | `door` | bool | Any of the four doors open (ajar counts); sent only when `true` |
 | `tire` | bool | The car's own tyre pressure warning (soft or hard) is on for a wheel; sent only when `true` |
 | `occ` | bool | Unattended-occupant detection is in any warning stage; sent only when `true` (watch: red icon) |
-| `pet` | bool | Pet mode is on; sent only when `true`. `pet_on` and `pet_off` wait for the car to report it (no confirm tap) |
+| `pet` | bool | Pet mode is on; sent only when `true`. `pet_on`, `pet_off` wait for the car's report (no confirm) |
 | `tp` | array of 4 | Tyre pressures in bar (front left and right, rear left and right), 2 decimals; see below |
 | `cmin`, `cmax` | int | Coolest and warmest battery cell, Celsius, rounded; omitted if unreported or outside -40..100 |
 | `odo` | int | Odometer in km, rounded; the watch converts to miles by its own distance setting |
@@ -112,7 +122,7 @@ the app's background service (`Background.registerForPhoneAppMessageEvent`), whi
 | `wake` | Car did not wake | Car didn't wake |
 | `unsupported` | `frunk_close` on a car whose frunk has a gas strut | Can't do that |
 | `novehicle` | The Lucid account lists no vehicle | No car found |
-| `badcmd` | The phone does not know the `cmd`: it is older than the watch app | Update phone |
+| `badcmd` | The phone does not know the `cmd` (older than the watch app), or `limit` has no number | Update phone |
 | `unknown` | Anything else | Try again later |
 
 The phone never puts raw exception text in `err`. The watch itself shows "No phone link" when the phone does not

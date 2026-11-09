@@ -31,6 +31,10 @@ module Icons {
             lid(dc, x, y, u, id == :frunk || id == :frunkopen, id == :frunkopen || id == :trunkopen, false);
         } else if (id == :afrunk || id == :afrunkopen || id == :atrunk || id == :atrunkopen) {
             lid(dc, x, y, u, id == :afrunk || id == :afrunkopen, id == :afrunkopen || id == :atrunkopen, true);
+        } else if (id == :limit) {
+            limit(dc, x, y, u);
+        } else if (id == :portopen || id == :portclosed) {
+            port(dc, x, y, u, id == :portopen);
         } else if (id == :horn) {
             horn(dc, x, y, u);
         } else if (id == :lights) {
@@ -160,6 +164,24 @@ module Icons {
     function poly(dc as Dc, x as Number, y as Number, u as Float, p as Array<Float>) as Void {
         for (var i = 0; i + 3 < p.size(); i += 2) {
             line(dc, x, y, u, p[i], p[i + 1], p[i + 2], p[i + 3]);
+        }
+    }
+
+    // the charge limit: a battery filled up to a line that reaches out past both sides of it
+    function limit(dc as Dc, x as Number, y as Number, u as Float) as Void {
+        battery(dc, x, y, u);
+        dc.fillRectangle(px(x, 8.5, u), px(y, 10, u), (7 * u).toNumber(), (10 * u).toNumber());
+        line(dc, x, y, u, 2, 10, 22, 10);
+    }
+
+    // the charge port's flap: a closed rounded square with a slit, or an open one showing the socket
+    function port(dc as Dc, x as Number, y as Number, u as Float, open as Boolean) as Void {
+        dc.drawRoundedRectangle(px(x, 4, u), px(y, 4, u), (16 * u).toNumber(), (16 * u).toNumber(), (4 * u).toNumber());
+        if (open) {
+            dc.drawCircle(px(x, 12, u), px(y, 12, u), (4 * u).toNumber());
+            dc.fillCircle(px(x, 12, u), px(y, 12, u), (1.2 * u).toNumber());
+        } else {
+            line(dc, x, y, u, 8, 12, 16, 12);
         }
     }
 

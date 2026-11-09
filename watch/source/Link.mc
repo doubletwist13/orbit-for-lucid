@@ -14,11 +14,12 @@ const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlock
     "horn" => "Sending horn", "flash" => "Sending lights", "windows_close" => "Closing windows",
     "pet_on" => "Pet mode on", "pet_off" => "Pet mode off", "charge_start" => "Starting charge",
     "charge_stop" => "Stopping charge", "limit" => "Setting limit", "port_open" => "Opening port",
-    "port_close" => "Closing port"};
+    "port_close" => "Closing port", "precon_on" => "Starting precon", "precon_off" => "Stopping precon"};
 // short on purpose: the main screen shows these inside a round bezel, where about 15 characters fit on every watch
 const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
     "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unsupported" => "Can't do that",
     "novehicle" => "No car found", "badcmd" => "Update phone", "nocable" => "No cable", "atlimit" => "At limit",
+    "unavail" => "Not available",
     "unknown" => "Try again later", "nolink" => "No phone link"};
 
 // Phone link per docs/protocol.md: caches the last reply, drops replies to superseded requests.

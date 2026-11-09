@@ -118,6 +118,39 @@ class ControllerTest {
         assertEquals(null, chargeLimitReq(mapOf("lim" to Double.NaN)))
     }
 
+    @Test fun batteryPreconditioningIsSentOnlyAsOnOrOff() {
+        assertFalse(watchReply(1, status, null).keys.any { it == "bp" || it == "bpm" })
+        assertFalse(watchReply(1, status.copy(preconStatus = "UNAVAILABLE"), null).containsKey("bp"))
+        assertEquals(false, watchReply(1, status.copy(preconStatus = "OFF", preconMinutes = 9), null)["bp"])
+        assertFalse(watchReply(1, status.copy(preconStatus = "OFF", preconMinutes = 9), null).containsKey("bpm"))
+        val on = watchReply(1, status.copy(preconStatus = "ON", preconMinutes = 12), null)
+        assertEquals(true, on["bp"])
+        assertEquals(12, on["bpm"])
+        assertFalse(watchReply(1, status.copy(preconStatus = "ON"), null).containsKey("bpm")) // no time reported
+        for (bad in listOf(65565, 1441, 0)) { // a placeholder or none is not a time
+            assertFalse(watchReply(1, status.copy(preconStatus = "ON", preconMinutes = bad), null).containsKey("bpm"))
+        }
+    }
+
+    @Test fun preconIsDoneOnlyWhenTheCarReportsTheAskedState() {
+        assertTrue(preconDone(status.copy(preconStatus = "ON"), true))
+        assertFalse(preconDone(status.copy(preconStatus = "OFF"), true))
+        assertTrue(preconDone(status.copy(preconStatus = "OFF"), false))
+        assertFalse(preconDone(status.copy(preconStatus = "ON"), false))
+        for (silent in listOf("UNKNOWN", "UNAVAILABLE")) { // a car that says nothing confirms neither
+            assertFalse(preconDone(status.copy(preconStatus = silent), true))
+            assertFalse(preconDone(status.copy(preconStatus = silent), false))
+        }
+    }
+
+    @Test fun preconStartIsRefusedOnlyWhenTheCarSaysUnavailable() {
+        assertEquals("unavail", preconStartRefusal(status.copy(preconStatus = "UNAVAILABLE")))
+        for (ok in listOf("ON", "OFF", "UNKNOWN")) {
+            assertEquals(null, preconStartRefusal(status.copy(preconStatus = ok)))
+        }
+        assertEquals("unavail", errCode(CommandFailed("unavail", "x")))
+    }
+
     @Test fun aLimitRequestWithNoNumberIsBadcmd() {
         assertEquals(80, requireLimit(80))
         try {
@@ -278,6 +311,16 @@ class ControllerTest {
         assertEquals(POLL_AWAKE_MS, pollInterval(status, false))
         assertEquals(POLL_CHARGING_MS, pollInterval(status.copy(chargeState = "CHARGING"), false))
         assertEquals(POLL_ACTIVE_MS, pollInterval(status.copy(awake = false), true))
+    }
+
+    @Test fun aRunningPreconditioningOrAnOpenUnpluggedPortIsReadAsOftenAsACharge() {
+        val asleep = status.copy(awake = false)
+        assertEquals(POLL_CHARGING_MS, pollInterval(asleep.copy(preconStatus = "ON"), false))
+        assertEquals(POLL_CHARGING_MS, pollInterval(asleep.copy(portOpen = true, chargeState = "NOT_CONNECTED"), false))
+        // an open port with a cable in just sits there, so it is read at the normal pace
+        assertEquals(POLL_ASLEEP_MS, pollInterval(asleep.copy(portOpen = true, chargeState = "CABLE_CONNECTED"), false))
+        assertEquals(POLL_ASLEEP_MS, pollInterval(asleep.copy(preconStatus = "OFF", portOpen = false), false))
+        assertEquals(POLL_ACTIVE_MS, pollInterval(asleep.copy(preconStatus = "ON"), true)) // the watch window is faster
     }
 
     @Test fun watchViewIgnoresReportAgeAndRoundsTemperatures() {

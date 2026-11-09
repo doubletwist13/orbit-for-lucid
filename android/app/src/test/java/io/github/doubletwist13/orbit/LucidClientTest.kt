@@ -6,6 +6,7 @@ import mobilegateway.protos.LoginSessionOuterClass.GetUserVehiclesResponse
 import mobilegateway.protos.LoginSessionOuterClass.LoginResponse
 import mobilegateway.protos.LoginSessionOuterClass.SessionInfo
 import mobilegateway.protos.VehicleStateServiceOuterClass.AllWindowPosition
+import mobilegateway.protos.VehicleStateServiceOuterClass.BatteryPreconStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.BatteryState
 import mobilegateway.protos.VehicleStateServiceOuterClass.BodyState
 import mobilegateway.protos.VehicleStateServiceOuterClass.ChargingState
@@ -184,6 +185,22 @@ class LucidClientTest {
         assertEquals(81, limit(80.6))
         assertEquals(null, limit(0.0)) // unset reads as zero
         assertEquals(null, Vehicle.newBuilder().setVehicleId("v1").build().toStatus().chargeLimit)
+    }
+
+    @Test
+    fun batteryPreconditioningIsReadFromTheBatteryBlock() {
+        fun status(p: BatteryPreconStatus, minutes: Int) = Vehicle.newBuilder().setVehicleId("v1")
+            .setState(
+                VehicleState.newBuilder().setBattery(
+                    BatteryState.newBuilder().setPreconditioningStatus(p).setPreconditioningTimeRemaining(minutes),
+                ),
+            ).build().toStatus()
+        val on = status(BatteryPreconStatus.BATTERY_PRECON_ON, 12)
+        assertEquals("ON", on.preconStatus)
+        assertEquals(12, on.preconMinutes)
+        assertEquals("OFF", status(BatteryPreconStatus.BATTERY_PRECON_OFF, 0).preconStatus)
+        assertEquals(null, status(BatteryPreconStatus.BATTERY_PRECON_OFF, 0).preconMinutes) // zero is no time
+        assertEquals("UNKNOWN", Vehicle.newBuilder().setVehicleId("v1").build().toStatus().preconStatus)
     }
 
     @Test

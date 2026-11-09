@@ -82,7 +82,7 @@ class Link {
                     msg["temp"] = arg;
                 }
             }
-            Communications.transmit(msg, null, new LinkListener(self));
+            Communications.transmit(msg, null, new LinkListener(self, _id));
             // the phone's first reply (even "pending") arrives within seconds; silence means no service is listening
             _silence.stop();
             _silence.start(method(:onSilence), 8000, false);
@@ -126,15 +126,17 @@ class Link {
 
     // Say how the command ended, so the user need not go to the main screen: a toast naming the action and the outcome,
     // and a vibration (one short buzz for done, two for failed). The refresh is left out, as it also runs at launch.
+    // A command with no entry in NAMES still toasts, under its id, so a forgotten entry shows up at once.
     private function tell(ok as Boolean, why as String?) as Void {
-        if (_told || !NAMES.hasKey(_cmd)) { return; }
+        if (_told || _cmd.equals("status")) { return; }
         _told = true;
         // nothing reads horn or lights back, so the most they can say is that Lucid took them; the same goes for a
         // port or lid whose state the car does not report (the phone's reply then carries no such key)
         var proof = PROOF[_cmd];
         var unproven = proof != null && (state == null || state[proof] == null);
         var done = _cmd.equals("horn") || _cmd.equals("flash") || unproven ? "sent" : "done";
-        WatchUi.showToast(NAMES[_cmd] + ": " + (ok ? done : lower(why as String)), null);
+        var name = NAMES.hasKey(_cmd) ? NAMES[_cmd] : _cmd;
+        WatchUi.showToast(name + ": " + (ok ? done : lower(why as String)), null);
         // the watch's own vibration setting is respected, and not every watch can vibrate
         if (!(Attention has :vibrate) || !System.getDeviceSettings().vibrateOn) { return; }
         var buzz = new Attention.VibeProfile(ok ? 50 : 100, 200);
@@ -148,6 +150,11 @@ class Link {
 
     function onSilence() as Void {
         fail("nolink");
+    }
+
+    // a transmit failed: only the latest request is failed, an older one has been replaced
+    function sendFailed(id as Number) as Void {
+        if (id == _id) { fail("nolink"); }
     }
 
     function fail(code as String) as Void {
@@ -173,17 +180,21 @@ class Link {
     }
 }
 
+// The outcome of one transmit. It knows the request it belongs to, so a failure that arrives after a newer command was
+// sent does not mark that one failed.
 class LinkListener extends Communications.ConnectionListener {
     private var _link as Link;
+    private var _id as Number;
 
-    function initialize(link as Link) {
+    function initialize(link as Link, id as Number) {
         ConnectionListener.initialize();
         _link = link;
+        _id = id;
     }
 
     function onComplete() as Void {}
 
     function onError() as Void {
-        _link.fail("nolink");
+        _link.sendFailed(_id);
     }
 }

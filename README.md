@@ -113,7 +113,10 @@ same things.
     charge is already at the limit. While the car gives power out (V2X) it is an outlined bolt with a small red
     arrow, and tapping it does nothing.
   - **Port.** A rounded flap, with the socket showing while the port is open. It opens a choice of open or close. A
-    close is refused at once with "Cable in" while a cable is plugged in, as the car did not close it then.
+    close is refused at once with "Cable in" while a cable is plugged in, as the car did not close it then. Tried
+    only on an Air, whose port door is automatic. **Not tried on a Gravity**, whose door is manual: it may not open or
+    close it at all, and a car that reports no state for the port shows the flap closed, and the result says "sent"
+    rather than "done", as nothing can confirm it.
   - **Charge limit.** A battery with a line across it, with the current limit under it. It opens a list of 50 to
     100% in 5% steps.
   - **Preconditioning.** A battery with a thermometer, filled in while it is on. It gets the battery to temperature
@@ -128,7 +131,8 @@ same things.
   toast ("Locking...") so you know the tap was taken. When the car confirms, or the command fails, a second toast
   names the action and how it ended ("Unlock: done", "Frunk close: not confirmed", "Charge start: no cable"), and the
   watch buzzes once for done and twice for failed, unless its own vibration setting is off. Horn and lights say
-  "sent", as nothing can confirm them. The refresh on the About page has no result toast.
+  "sent", as nothing can confirm them, and so does a port, frunk or trunk the car reports no state for. The refresh on
+  the About page has no result toast.
 - **Stays current.** The phone reads the car every 30 s while it is awake or charging, or while the battery is
   preconditioning or the charge port is open with no cable (even if the car reports asleep), and every 60 s while it
   sleeps (every 10 s for 2 minutes after the watch asks for anything). It sends the watch a change at most once a

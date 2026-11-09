@@ -25,6 +25,10 @@ const NAMES = {"lock" => "Lock", "unlock" => "Unlock", "climate_on" => "Climate 
     "pet_on" => "Pet mode on", "pet_off" => "Pet mode off", "charge_start" => "Charge start",
     "charge_stop" => "Charge stop", "limit" => "Charge limit", "port_open" => "Port open", "port_close" => "Port close",
     "precon_on" => "Precon on", "precon_off" => "Precon off", "ac_limit" => "AC limit"};
+// For the commands the phone confirms from a state the car may not report at all (a port or lid with no sensor), the
+// state key that proves "done". Without it in the reply the command was only sent, as the phone can wait for nothing.
+const PROOF = {"port_open" => "port", "port_close" => "port", "frunk_open" => "frunk", "frunk_close" => "frunk",
+    "trunk_open" => "trunk", "trunk_close" => "trunk"};
 // short on purpose: the main screen shows these inside a round bezel, where about 15 characters fit on every watch
 const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
     "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unsupported" => "Can't do that",
@@ -125,8 +129,11 @@ class Link {
     private function tell(ok as Boolean, why as String?) as Void {
         if (_told || !NAMES.hasKey(_cmd)) { return; }
         _told = true;
-        // nothing reads horn or lights back, so the most they can say is that Lucid took them
-        var done = _cmd.equals("horn") || _cmd.equals("flash") ? "sent" : "done";
+        // nothing reads horn or lights back, so the most they can say is that Lucid took them; the same goes for a
+        // port or lid whose state the car does not report (the phone's reply then carries no such key)
+        var proof = PROOF[_cmd];
+        var unproven = proof != null && (state == null || state[proof] == null);
+        var done = _cmd.equals("horn") || _cmd.equals("flash") || unproven ? "sent" : "done";
         WatchUi.showToast(NAMES[_cmd] + ": " + (ok ? done : lower(why as String)), null);
         // the watch's own vibration setting is respected, and not every watch can vibrate
         if (!(Attention has :vibrate) || !System.getDeviceSettings().vibrateOn) { return; }

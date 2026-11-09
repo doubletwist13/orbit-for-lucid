@@ -33,8 +33,10 @@ message whose `v` it does not know.
   the car reports no limit). Any other state that stops a start (a charger not ready, a fault) ends as the `timeout`
   error. `limit` is done when the reported limit equals `lim`. `port_open` and `port_close` wait for the port to
   report open (ajar counts) or closed, and a car that reports no port state answers after the next status fetch. The
-  phone refuses a `port_close` at once with `plugged` while the car reports a cable, as the one car tried did not close
-  the port then and it ended as `timeout` after about 105 s. `precon_on` is done when the battery's preconditioning
+  reply then has no `port` key, and the watch says "sent", not "done" (it does the same for a frunk or trunk with no
+  `frunk` or `trunk` key), as nothing could confirm it. The phone refuses a `port_close` at once with `plugged` while
+  the car reports a cable, as the one car tried did not close the port then and it ended as `timeout` after about
+  105 s. `precon_on` is done when the battery's preconditioning
   status is `ON` and `precon_off` when it is `OFF`; a car that reports neither (unknown or unavailable) ends as
   `timeout`. The phone refuses `precon_on` with `unavail` when the car
   says it is `UNAVAILABLE`. `ac_limit` is done when the car reports the AC limit it was set to

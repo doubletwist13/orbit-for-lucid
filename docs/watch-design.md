@@ -1,8 +1,8 @@
 # Watch layout design note (#55)
 
-Status: built, with a first Charging page added in 0.6.0 (start and stop, port and limit; the rest is under "Next").
-The main screen, the page strip, the info and About pages, the warning icons and the Actions page below are in the
-app, and the questions under "Open" are undecided.
+Status: built. The main screen, the page strip, the info and About pages, the warning icons, the Actions page and the
+Charging page below are in the app. What is left, and what the Charging page does not do yet, is under "Charging page";
+the questions under "Open" are undecided. What comes next overall is in the GitHub milestones, not here.
 
 ## Principles
 
@@ -59,15 +59,14 @@ readable, so check them for the Venu X1 and fenix):
    security, software update, keys, and the window actions other than close-all. Windows are close-all only; the car
    ignores many commands in gear or while moving (see the README's Limitations).
 
-## Next
+## Charging page
 
-- **More on the Charging page.** Built so far: a bolt that starts or stops charging (filled while charging, with the
-  power under it), the charge port (open or close), the charge limit (a stock menu in 5% steps) and battery
-  preconditioning (a battery with a thermometer, filled while on, with the minutes left under it when the car reports
-  a real countdown, which the one car tried has not) and the AC current
-  limit (a dial with "AC" under it, and the amps under the circle). The bolt is in the middle, as the lock is on the
-  Actions page, with the other four round it: the port on top, the AC limit on the right, preconditioning at the
-  bottom and the charge limit on the left. The two icons that always have text under them are at the sides, as text
+- **What it has.** A bolt that starts or stops charging (filled while charging, with the power under it), the charge
+  port (open or close), the charge limit (a stock menu in 5% steps), battery preconditioning (a battery with a
+  thermometer, filled while on, with the minutes left under it when the car reports a real countdown, which the one
+  car tried has not) and the AC current limit (a dial with "AC" under it, and the amps under the circle). The bolt is
+  in the middle, as the lock is on the Actions page, with the other four round it: the port on top, the AC limit on
+  the right, preconditioning at the bottom and the charge limit on the left. The two icons that always have text under them are at the sides, as text
   under a top or bottom one would run into the middle icon or the bezel; a sixth icon needs another answer. Every one
   asks for a confirm tap, and the page redraws from the car's state while it is open. The AC amps are what was set,
   not the charger's maximum: on the one car tried, 80 A set on a 40 A charger showed 80 A on the watch while the car
@@ -167,12 +166,3 @@ out from it, so there is only one value to pick. Presets are readable on black a
   watches that have one. Venu 4, Venu X1 and Vivoactive 6 have none, so the About page is their only way in.
 - **Small palettes:** in the simulator the fenix 7's display shows Mint and Teal, and Violet and Purple, as nearly the
   same colour; the other presets stay distinct. Left as is. The other MIP watches have not been looked at.
-
-## Build order
-
-Done in 0.5.0: the strip and gestures, Main, the Info and About pages, the warning icons, the Actions page.
-Done in 0.5.1: the accent colour theme (#65) and a glance that draws on the system's card background (#68).
-Done for 0.6.0 so far: the Charging page with start and stop, port and limit (#35), battery preconditioning (#13) and
-the AC current limit (#14).
-Still to do, each as its own issue: the charging schedule (#92), open windows on the watch (#11), the
-state line on the choice screens (#38), and a check of the layout on real hardware other than the Venu 3.

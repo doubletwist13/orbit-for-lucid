@@ -176,6 +176,28 @@ class LucidClientTest {
     }
 
     @Test
+    fun chargeLimitIsRoundedAndNullWhenTheCarReportsNone() {
+        fun limit(percent: Double) = Vehicle.newBuilder().setVehicleId("v1")
+            .setState(VehicleState.newBuilder().setCharging(ChargingState.newBuilder().setChargeLimitPercent(percent)))
+            .build().toStatus().chargeLimit
+        assertEquals(80, limit(80.0))
+        assertEquals(81, limit(80.6))
+        assertEquals(null, limit(0.0)) // unset reads as zero
+        assertEquals(null, Vehicle.newBuilder().setVehicleId("v1").build().toStatus().chargeLimit)
+    }
+
+    @Test
+    fun chargePortIsNullWhenTheCarReportsNoState() {
+        fun port(state: DoorState) = Vehicle.newBuilder().setVehicleId("v1")
+            .setState(VehicleState.newBuilder().setBody(BodyState.newBuilder().setChargePort(state))).build()
+            .toStatus().portOpen
+        assertEquals(true, port(DoorState.DOOR_STATE_OPEN))
+        assertEquals(true, port(DoorState.DOOR_STATE_AJAR))
+        assertEquals(false, port(DoorState.DOOR_STATE_CLOSED))
+        assertEquals(null, port(DoorState.DOOR_STATE_UNKNOWN))
+    }
+
+    @Test
     fun onlySleepAndSleepUpdateCountAsAsleep() {
         fun awake(p: Int) = Vehicle.newBuilder().setVehicleId("v1")
             .setState(VehicleState.newBuilder().setPowerValue(p)).build().toStatus().awake

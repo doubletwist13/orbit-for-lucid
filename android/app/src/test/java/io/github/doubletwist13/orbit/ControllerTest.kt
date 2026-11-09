@@ -118,6 +118,39 @@ class ControllerTest {
         assertEquals(null, chargeLimitReq(mapOf("lim" to Double.NaN)))
     }
 
+    @Test fun aLimitRequestWithNoNumberIsBadcmd() {
+        assertEquals(80, requireLimit(80))
+        try {
+            requireLimit(null)
+            org.junit.Assert.fail("expected CommandFailed")
+        } catch (e: CommandFailed) {
+            assertEquals("badcmd", e.code)
+        }
+    }
+
+    @Test fun portIsDoneWhenReportedOrWhenNothingIsReported() {
+        assertTrue(closureDone(true, true))
+        assertFalse(closureDone(false, true))
+        assertTrue(closureDone(null, true)) // a car with no port state answers after the next read
+        assertTrue(closureDone(null, false))
+    }
+
+    @Test fun chargeStartIsRefusedWithoutACableOrAtTheLimit() {
+        val plugged = status.copy(chargeState = "CABLE_CONNECTED", socPercent = 60, chargeLimit = 80)
+        assertEquals(null, chargeStartRefusal(plugged))
+        assertEquals("nocable", chargeStartRefusal(plugged.copy(chargeState = "NOT_CONNECTED")))
+        assertEquals("atlimit", chargeStartRefusal(plugged.copy(socPercent = 80)))
+        assertEquals("atlimit", chargeStartRefusal(plugged.copy(socPercent = 95)))
+        assertEquals(null, chargeStartRefusal(plugged.copy(socPercent = 79)))
+        assertEquals(null, chargeStartRefusal(plugged.copy(socPercent = 95, chargeLimit = null))) // no limit known
+        assertEquals(null, chargeStartRefusal(plugged.copy(chargeState = "UNKNOWN")))
+    }
+
+    @Test fun errorCodesForARefusedStartReachTheWatch() {
+        assertEquals("nocable", errCode(CommandFailed("nocable", "x")))
+        assertEquals("atlimit", errCode(CommandFailed("atlimit", "x")))
+    }
+
     @Test fun chargeStartIsDoneWhenChargingAndStopWhenNot() {
         val charging = status.copy(chargeState = "CHARGING")
         assertTrue(chargeDone(charging, true))

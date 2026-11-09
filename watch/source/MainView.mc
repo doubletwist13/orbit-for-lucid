@@ -235,16 +235,16 @@ class MainDelegate extends PageDelegate {
 
 class CommandConfirm extends WatchUi.ConfirmationDelegate {
     private var _cmd as String;
-    private var _temp as Float?;
+    private var _arg as Float?;
 
-    function initialize(cmd as String, temp as Float?) {
+    function initialize(cmd as String, arg as Float?) {
         ConfirmationDelegate.initialize();
         _cmd = cmd;
-        _temp = temp;
+        _arg = arg;
     }
 
     function onResponse(response as WatchUi.Confirm) as Boolean {
-        if (response == WatchUi.CONFIRM_YES) { sendNow(_cmd, _temp); }
+        if (response == WatchUi.CONFIRM_YES) { sendNow(_cmd, _arg); }
         return true;
     }
 }

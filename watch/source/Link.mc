@@ -18,7 +18,7 @@ const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlock
 // short on purpose: the main screen shows these inside a round bezel, where about 15 characters fit on every watch
 const ERRORS = {"auth" => "Open phone app", "offline" => "No connection", "rate" => "Try again soon",
     "timeout" => "Not confirmed", "wake" => "Car didn't wake", "unsupported" => "Can't do that",
-    "novehicle" => "No car found", "badcmd" => "Update phone",
+    "novehicle" => "No car found", "badcmd" => "Update phone", "nocable" => "No cable", "atlimit" => "At limit",
     "unknown" => "Try again later", "nolink" => "No phone link"};
 
 // Phone link per docs/protocol.md: caches the last reply, drops replies to superseded requests.

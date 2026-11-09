@@ -190,12 +190,13 @@ class Controller(context: Context) {
         "charge_start", "charge_stop" -> {
             val start = cmd == "charge_start"
             command(if (start) "Starting charge" else "Stopping charge", { chargeDone(it, start) }, progress) { s ->
+                // refused here, not left to time out: the car would accept the command and never start
+                if (start) chargeStartRefusal(s)?.let { throw CommandFailed(it, "Charging cannot start") }
                 client.setCharging(token(), s.vehicleId, start)
             }
         }
         "limit" -> {
-            // a request without a usable limit is one this phone cannot act on
-            val pct = limit ?: throw CommandFailed("badcmd", "No charge limit in the request")
+            val pct = requireLimit(limit)
             command("Setting limit", { it.chargeLimit == pct }, progress) { s ->
                 client.setChargeLimit(token(), s.vehicleId, pct)
             }
@@ -463,11 +464,24 @@ internal const val MAX_LIMIT = 100
 internal fun chargeLimitReq(req: Map<*, *>): Int? = (req["lim"] as? Number)?.toDouble()?.takeIf { it.isFinite() }
     ?.let { Math.round(it).toInt().coerceIn(MIN_LIMIT, MAX_LIMIT) }
 
+/** A request without a usable limit is one this phone cannot act on. */
+internal fun requireLimit(limit: Int?): Int = limit ?: throw CommandFailed("badcmd", "No charge limit in the request")
+
 /**
  * Whether the car reports the charge started or stopped. Starting is done only once it is charging; stopping when it
  * no longer is (stopped, paused or finished all count).
  */
 internal fun chargeDone(s: VehicleStatus, start: Boolean): Boolean = (s.chargeState == "CHARGING") == start
+
+/**
+ * The error code for a charge that cannot start, or null when it may: no cable, or the charge already at the limit.
+ * Other states (an error, a charger not ready) are left to the car and end as a timeout.
+ */
+internal fun chargeStartRefusal(s: VehicleStatus): String? = when {
+    s.chargeState == "NOT_CONNECTED" -> "nocable"
+    s.chargeLimit != null && s.socPercent >= s.chargeLimit -> "atlimit"
+    else -> null
+}
 
 internal const val DEFAULT_TEMP_C = 21.0
 internal const val MIN_TEMP_C = 15.0 // the API's enforced range

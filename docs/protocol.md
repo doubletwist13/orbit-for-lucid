@@ -26,10 +26,11 @@ message whose `v` it does not know.
   The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without one; the watch shows a
   toast for those and for the confirmed ones once sent.
 - The charging commands wait for the car to report the change, like `lock`. `charge_start` is done when the charge state
-  is `CHARGING` and `charge_stop` when it is anything else; a car at its limit, or with no cable, never starts, so that
-  ends as the `timeout` error. `limit` is done when the reported limit equals `lim`. `port_open` and `port_close` wait
-  for the port to report open (ajar counts) or closed, and a car that reports no port state answers after the next
-  status fetch.
+  is `CHARGING` and `charge_stop` when it is anything else. The phone refuses a `charge_start` it knows cannot work,
+  from the status it reads just before sending: `nocable` with no cable, `atlimit` at or above the limit (skipped when
+  the car reports no limit). Any other state that stops a start (a charger not ready, a fault) ends as the `timeout`
+  error. `limit` is done when the reported limit equals `lim`. `port_open` and `port_close` wait for the port to
+  report open (ajar counts) or closed, and a car that reports no port state answers after the next status fetch.
 - `horn` and `flash` (flash the lights) have no state to read back: Lucid's answer to both is an empty message, and
   nothing in the car's state is known to report them. The phone wakes the car if needed, sends, and answers `ok` at
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
@@ -123,6 +124,8 @@ the app's background service (`Background.registerForPhoneAppMessageEvent`), whi
 | `unsupported` | `frunk_close` on a car whose frunk has a gas strut | Can't do that |
 | `novehicle` | The Lucid account lists no vehicle | No car found |
 | `badcmd` | The phone does not know the `cmd` (older than the watch app), or `limit` has no number | Update phone |
+| `nocable` | `charge_start` while the car reports no cable (`NOT_CONNECTED`); nothing is sent | No cable |
+| `atlimit` | `charge_start` while the charge is at or above the limit; nothing is sent | At limit |
 | `unknown` | Anything else | Try again later |
 
 The phone never puts raw exception text in `err`. The watch itself shows "No phone link" when the phone does not

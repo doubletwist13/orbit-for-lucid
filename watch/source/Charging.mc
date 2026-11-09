@@ -42,6 +42,7 @@ class ChargeDelegate extends IconMenuDelegate {
             var s = link().state;
             var now = s != null && s["lim"] != null ? (s["lim"] as Numeric).toNumber() : 80;
             var menu = new WatchUi.Menu2({:title => "Limit"});
+            // the range is the phone's MIN_LIMIT and MAX_LIMIT (Controller.kt), which clamps what is sent
             for (var p = 50; p <= 100; p += 5) {
                 menu.addItem(new WatchUi.MenuItem(p + "%", null, p, {}));
             }

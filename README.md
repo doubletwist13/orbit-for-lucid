@@ -163,7 +163,7 @@ The status icons (glance and main screen):
 | <img src="docs/images/icons/frunk-warn.png" alt="Open frunk"> | Frunk open (amber) |
 | <img src="docs/images/icons/trunk-warn.png" alt="Open trunk"> | Trunk open (amber) |
 | <img src="docs/images/icons/door.png" alt="Car with D"> | A door is open (amber) |
-| <img src="docs/images/icons/windows.png" alt="Window"> | A window is open (amber) |
+| <img src="docs/images/icons/windows-warn.png" alt="Window"> | A window is open (amber) |
 | <img src="docs/images/icons/tire.png" alt="Tire with !"> | The car's tire pressure warning is on (amber) |
 
 The action icons (Actions and Charging pages and their second screens). The frunk and trunk are drawn here as the
@@ -205,7 +205,10 @@ read the differences as meaningful.
   <img src="docs/images/watch-main.png" width="200"
        alt="Main screen: a ring and 78% charge, 7 kW charging power, 84 degree cabin and outside temperatures, quick
        lock padlocks, and the lock and charging icons">
-  <img src="docs/images/watch-info.png" alt="Info page: climate, temperatures, battery cells, health, odometer and
+  <img src="docs/images/watch-main-all-icons.png" width="200"
+       alt="Main screen with every status icon on at once: occupant alert, lock, charging, climate, and the amber
+       frunk, trunk, door, window and tire warnings">
+  <img src="docs/images/watch-info.png" alt="Info page: climate, temperatures, battery cells, health, odometer, windows and
        tire pressures" width="200">
   <img src="docs/images/watch-actions.png"
        alt="Actions: lock in the middle with frunk, trunk, climate, windows, horn and lights round it" width="200">

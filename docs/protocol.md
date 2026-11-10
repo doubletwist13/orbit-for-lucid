@@ -79,6 +79,7 @@ for an `id` has `pending` absent or empty.
 | `frunk`, `trunk` | bool | Frunk or trunk open (ajar counts as open); omitted when the car reports no state for it |
 | `fpower` | bool | The frunk has a power strut, so the car can close it; `false` for a gas strut, which only opens |
 | `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
+| `fin` | int | Epoch second the charge should finish, rounded to 5 minutes: the car's report time plus its own minutes-left estimate; only while charging and 1 minute to 250 hours (`MAX_CHARGE_MIN`, `Controller.kt`) |
 | `lim` | int | The charge limit in percent; omitted when the car reports none or a value outside 50..100 |
 | `port` | bool | Charge port open (ajar counts as open); omitted when the car reports no state for it |
 | `ac` | int | The AC limit that was set, in amps (not the charger's maximum); omitted when none or outside 10..80 |

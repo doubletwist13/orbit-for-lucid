@@ -2,6 +2,8 @@ import Toybox.Lang;
 import Toybox.Math;
 import Toybox.System;
 import Toybox.Test;
+import Toybox.Time;
+import Toybox.Time.Gregorian;
 
 // The phone talks Celsius only (docs/protocol.md); the watch shows and steps in whatever the watch is set to.
 module Units {
@@ -23,6 +25,24 @@ module Units {
         var s = n.toString();
         return (n >= 1000 ? s.substring(0, s.length() - 3) + "," + s.substring(s.length() - 3, s.length()) : s) +
             (imperial ? " mi" : " km");
+    }
+
+    // local time of an epoch second, in the watch's 12 or 24 hour style
+    function clock(epoch as Number) as String {
+        var t = Gregorian.info(new Time.Moment(epoch), Time.FORMAT_SHORT);
+        var min = t.min.format("%02d");
+        if (System.getDeviceSettings().is24Hour) { return t.hour.format("%02d") + ":" + min; }
+        return (t.hour % 12 == 0 ? 12 : t.hour % 12) + ":" + min + (t.hour < 12 ? "a" : "p");
+    }
+
+    // a finish time as the clock time, with the weekday when it is not today (a slow charge can run for days)
+    function finish(epoch as Number) as String {
+        var at = new Time.Moment(epoch);
+        var day = Gregorian.info(at, Time.FORMAT_SHORT);
+        var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        // numbers, not the MEDIUM format's month name: Monkey C compares strings by reference
+        if (day.day == today.day && day.month == today.month) { return clock(epoch); }
+        return Gregorian.info(at, Time.FORMAT_MEDIUM).day_of_week + " " + clock(epoch);
     }
 
     // a tyre pressure from the phone's bar, as whole psi or to 2 decimals in bar

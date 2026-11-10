@@ -35,9 +35,9 @@ readable, so check them for the Venu X1 and fenix):
    anything (Main's delegate does not call the base class, which would turn a tap into the button's select).
 4. **Slices to reach the neighbours.** A small filled slice at the top ("i") and bottom (three dots) of Main is a tap
    target for the page above and below, with a zone larger than what is drawn.
-5. **Main's layout.** The charge is a ring round the number (top left). Temperatures (interior and exterior) sit under
-   the lock button's mark, and the charge power with a bolt in the space between the ring and the mark, only while
-   charging. The state row has the lock, plug and climate in the accent colour (green unless changed, see Theme
+5. **Main's layout.** The charge is a ring round the number (top left). Temperatures (interior and exterior, as "70°/82°",
+   unlabelled for lack of room) sit right of the ring, and while charging the charge power with a bolt and the finish
+   time follow below them. A small tick on the ring marks the charge limit until the charge reaches it. The state row has the lock, plug and climate in the accent colour (green unless changed, see Theme
    below), and in amber an open frunk, trunk or door and a tyre warning, only while they apply; an
    unattended-occupant alert is a red icon first in the row and takes over the glance title. The status line shows
    only a pending command or an error. The age of the data is on About, and a stale screen is dimmed.

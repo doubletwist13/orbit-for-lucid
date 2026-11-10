@@ -94,6 +94,18 @@ class ControllerTest {
         assertEquals(true, watchReply(1, status.copy(occupantAlert = true), null)["occ"])
     }
 
+    @Test fun finishTimeIsSentOnlyWhileChargingAndPlausible() {
+        val charging = status.copy(chargeState = "CHARGING", chargeRateKw = 48.0, updatedMs = 1_000_000_000_000L)
+        // report time plus the minutes, rounded to the nearest 5 minutes
+        assertEquals(1_000_004_100L, watchReply(1, charging.copy(chargeMinutes = 70), null)["fin"])
+        assertEquals(1_000_004_400L, watchReply(1, charging.copy(chargeMinutes = 71), null)["fin"])
+        assertFalse(watchReply(1, charging, null).containsKey("fin")) // no estimate
+        assertFalse(watchReply(1, status.copy(chargeMinutes = 70), null).containsKey("fin")) // not charging
+        for (bad in listOf(0, -1, 65_565)) {
+            assertFalse(watchReply(1, charging.copy(chargeMinutes = bad), null).containsKey("fin"))
+        }
+    }
+
     @Test fun petModeIsSentOnlyWhileItApplies() {
         assertFalse(watchReply(1, status, null).containsKey("pet"))
         assertEquals(true, watchReply(1, status.copy(petMode = true), null)["pet"])

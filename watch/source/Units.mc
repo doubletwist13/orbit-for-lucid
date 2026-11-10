@@ -84,6 +84,17 @@ module Units {
     }
 
     (:test)
+    function finishShowsTheWeekdayOnlyOffToday(logger as Test.Logger) as Boolean {
+        var now = Time.now().value();
+        var later = now + 2 * 86400;
+        var ok = finish(now).equals(clock(now));
+        // two days on: the clock time with a weekday in front
+        ok = ok && !finish(later).equals(clock(later)) && finish(later).find(" " + clock(later)) != null;
+        if (!ok) { logger.error("finish time off: " + finish(now) + ", " + finish(later)); }
+        return ok;
+    }
+
+    (:test)
     function listCoversTheCarsRangeAndRoundTrips(logger as Test.Logger) as Boolean {
         var ok = true;
         // the ends of both lists are the car's 15..30 C (59..86 F)

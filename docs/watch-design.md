@@ -35,12 +35,13 @@ readable, so check them for the Venu X1 and fenix):
    anything (Main's delegate does not call the base class, which would turn a tap into the button's select).
 4. **Slices to reach the neighbours.** A small filled slice at the top ("i") and bottom (three dots) of Main is a tap
    target for the page above and below, with a zone larger than what is drawn.
-5. **Main's layout.** The charge is a ring round the number (top left). Temperatures (interior and exterior, as "70°/82°",
-   unlabelled for lack of room) sit right of the ring, and while charging the charge power with a bolt and the finish
-   time follow below them. A small tick on the ring marks the charge limit until the charge reaches it. The state row has the lock, plug and climate in the accent colour (green unless changed, see Theme
-   below), and in amber an open frunk, trunk or door and a tyre warning, only while they apply; an
-   unattended-occupant alert is a red icon first in the row and takes over the glance title. The status line shows
-   only a pending command or an error. The age of the data is on About, and a stale screen is dimmed.
+5. **Main's layout.** The charge is a ring round the number (top left). Temperatures (interior and exterior, as
+   "70°/82°", unlabelled for lack of room) sit right of the ring, and while charging the charge power with a bolt and
+   the finish time follow below them. A small tick on the ring marks the charge limit until the charge reaches it. The
+   state row has the lock, plug and climate in the accent colour (green unless changed, see Theme below), and in amber
+   an open frunk, trunk or door and a tyre warning, only while they apply; an unattended-occupant alert is a red icon
+   first in the row and takes over the glance title. The status line shows only a pending command or an error. The age
+   of the data is on About, and a stale screen is dimmed.
 6. **Memory is not the limit.** Measured on the Venu 3: the app uses 37 of 763 KB, the glance 19 of 59 KB and the
    background handler 14 of 59 KB, with about 40 fields saved. More fields are fine until a single phone message gets
    too large, which is untested. The phone has a details screen with the rest of the car's data, and it works out

@@ -24,18 +24,19 @@ class MainView extends WatchUi.View {
         var w = dc.getWidth();
         var h = dc.getHeight();
         var cx = w / 2;
-        // old data is dimmed; the car only reports while awake, so this is normal, not an error
-        var stale = s != null && Time.now().value() - (s["ts"] as Number) >= STALE_SECS;
-        var base = stale ? Theme.dim() : Theme.accent();
+        // old data is flagged in the status line, not dimmed (a dim screen is hard to read); the car only reports
+        // while awake, so this is normal, not an error
+        var age = s != null ? Time.now().value() - (s["ts"] as Number) : 0;
+        var base = Theme.accent();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
         var soc = s != null ? s["soc"] as Number? : null;
         // the charge (ring and number) is the accent until it runs low, then yellow, orange or red (see Charge)
-        var fg = stale ? Theme.dim() : Charge.color(soc);
+        var fg = Charge.color(soc);
         var rx = (w * 0.33).toNumber();
         var ry = (h * 0.34).toNumber();
         var rr = (w * 0.19).toNumber();
-        ring(dc, soc, fg, stale, s != null ? s["lim"] as Number? : null, rx, ry, rr);
+        ring(dc, soc, fg, s != null ? s["lim"] as Number? : null, rx, ry, rr);
         // a transparent background, or the number's box cuts a corner out of the ring
         dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
         socText(dc, soc, rx, ry, rr, h);
@@ -45,11 +46,15 @@ class MainView extends WatchUi.View {
         icons(dc, s, w, h, base);
         hints(dc, s, w, h, base);
         tabs(dc, w, h, base);
-        // what the app is doing: the age of the data is on the info page, and a stale screen is dimmed
-        var note = link.pending != null ? link.pending + "..." : link.err != null ? link.err : "";
+        // what the app is doing, else in amber how old the data is once it is stale (an error or a pending command
+        // comes first); the exact times are on the info page
+        var stale = age >= STALE_SECS;
+        var note = link.pending != null ? link.pending + "..." : link.err != null ? link.err
+            : stale ? Units.age(age) + " old" : "";
         if (note.length() == 0) { return; }
         // a transparent background, or the text's box cuts a notch out of the ring behind it
-        dc.setColor(link.err != null ? Graphics.COLOR_RED : Theme.dim(), Graphics.COLOR_TRANSPARENT);
+        dc.setColor(link.err != null ? Graphics.COLOR_RED : link.pending == null && stale ? AMBER : Theme.dim(),
+            Graphics.COLOR_TRANSPARENT);
         // a long message must stay inside the round bezel: the usable chord at this height, less the ring
         var y = h * 0.87;
         var dy = y - h / 2;
@@ -60,11 +65,11 @@ class MainView extends WatchUi.View {
 
     // charge as an arc round the number, clockwise from the top, with a tick where the charge limit is until the charge
     // reaches it
-    private function ring(dc as Dc, soc as Number?, fg as Number, stale as Boolean, lim as Number?, x as Number,
-            y as Number, r as Number) as Void {
+    private function ring(dc as Dc, soc as Number?, fg as Number, lim as Number?, x as Number, y as Number,
+            r as Number) as Void {
         var pen = dc.getWidth() * 0.026;
         dc.setPenWidth(pen);
-        dc.setColor(stale ? Theme.trackDim() : Theme.track(), Graphics.COLOR_BLACK);
+        dc.setColor(Theme.track(), Graphics.COLOR_BLACK);
         dc.drawCircle(x, y, r);
         if (soc != null && soc > 0) {
             dc.setColor(fg, Graphics.COLOR_BLACK);
@@ -76,7 +81,7 @@ class MainView extends WatchUi.View {
         }
         if (lim == null || lim >= 100 || (soc != null && soc >= lim)) { return; }
         var a = Math.toRadians(90 - 360 * lim / 100.0);
-        dc.setColor(stale ? Theme.trackDim() : Theme.dim(), Graphics.COLOR_BLACK);
+        dc.setColor(Theme.dim(), Graphics.COLOR_BLACK);
         dc.setPenWidth(3);
         dc.drawLine(x + (r - pen) * Math.cos(a), y - (r - pen) * Math.sin(a), x + (r + pen) * Math.cos(a),
             y - (r + pen) * Math.sin(a));

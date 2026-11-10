@@ -35,6 +35,11 @@ module Units {
         return (t.hour % 12 == 0 ? 12 : t.hour % 12) + ":" + min + (t.hour < 12 ? "a" : "p");
     }
 
+    // how old a report is, as "now", "5m" or "3h"
+    function age(secs as Number) as String {
+        return secs < 60 ? "now" : secs < 3600 ? secs / 60 + "m" : secs / 3600 + "h";
+    }
+
     // a finish time as the clock time, with the weekday when it is not today (a slow charge can run for days)
     function finish(epoch as Number) as String {
         var at = new Time.Moment(epoch);
@@ -81,6 +86,14 @@ module Units {
 
     function clamp(c as Float) as Float {
         return c < MIN_C ? MIN_C : c > MAX_C ? MAX_C : c;
+    }
+
+    (:test)
+    function ageReadsNowMinutesThenHours(logger as Test.Logger) as Boolean {
+        var ok = age(0).equals("now") && age(59).equals("now") && age(60).equals("1m");
+        ok = ok && age(3599).equals("59m") && age(3600).equals("1h") && age(7 * 3600 + 5).equals("7h");
+        if (!ok) { logger.error("age wording off"); }
+        return ok;
     }
 
     (:test)

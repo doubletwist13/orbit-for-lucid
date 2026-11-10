@@ -40,8 +40,9 @@ readable, so check them for the Venu X1 and fenix):
    the finish time follow below them. A small tick on the ring marks the charge limit until the charge reaches it. The
    state row has the lock, plug and climate in the accent colour (green unless changed, see Theme below), and in amber
    an open frunk, trunk or door and a tyre warning, only while they apply; an unattended-occupant alert is a red icon
-   first in the row and takes over the glance title. The status line shows only a pending command or an error. The age
-   of the data is on About, and a stale screen is dimmed.
+   first in the row and takes over the glance title. The status line shows only a pending command or an error. Data
+   older than 30 minutes is flagged in amber in the status line ("45m old"), not dimmed, since a dim screen is hard to
+   read; the exact times are on About.
 6. **Memory is not the limit.** Measured on the Venu 3: the app uses 37 of 763 KB, the glance 19 of 59 KB and the
    background handler 14 of 59 KB, with about 40 fields saved. More fields are fine until a single phone message gets
    too large, which is untested. The phone has a details screen with the rest of the car's data, and it works out

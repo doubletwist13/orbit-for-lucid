@@ -1,6 +1,7 @@
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
+import Toybox.Time;
 import Toybox.WatchUi;
 
 // A screen of big round icon choices. Touch: tap one. Buttons: select picks the highlighted one; up/down moves the
@@ -25,10 +26,24 @@ class IconMenu extends WatchUi.View {
     var picked as Boolean = false;
     // this screen's place in the main strip, for the page dots; -1 for a choice screen pushed over it
     var stripIndex as Number = -1;
+    // what the watch last knew about the item being chosen, and when the car reported it (see withNote)
+    private var _note as String? = null;
+    private var _noteTs as Number? = null;
 
     function initialize(items as Array<Dictionary>) {
         View.initialize();
         self.items = items;
+    }
+
+    // A line at the top saying what the car last reported, with how old that is, so the choice is made knowing what it
+    // changes. Only a hint: the choices never depend on it. No line when the watch has no state or text.
+    function withNote(text as String?) as IconMenu {
+        var s = link().state;
+        if (text != null && s != null) {
+            _note = text;
+            _noteTs = s["ts"] as Number;
+        }
+        return self;
     }
 
     // back from a sub-screen makes the menu usable again
@@ -92,6 +107,13 @@ class IconMenu extends WatchUi.View {
                     : Graphics.FONT_TINY;
                 dc.drawText(c[0], c[1] + r.toNumber() + 4, font, label, Graphics.TEXT_JUSTIFY_CENTER);
             }
+        }
+        if (_note != null) {
+            var age = Time.now().value() - (_noteTs as Number);
+            // amber past the main screen's stale limit, like its "old" flag
+            dc.setColor(age >= STALE_SECS ? AMBER : accent, Graphics.COLOR_BLACK);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() * 0.11, Graphics.FONT_XTINY, _note + " · " + Units.age(age),
+                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
     }
 
@@ -202,8 +224,11 @@ class ActionsDelegate extends IconMenuDelegate {
                 perform("frunk_open", 0, null);
                 return;
             }
+            // a car that reports no state for the lid gets no line
+            var open = link().state != null ? link().state[lid] : null;
             var menu = new IconMenu([{:icon => lidIcon(lid, true), :id => lid + "_open"},
-                {:icon => lidIcon(lid, false), :id => lid + "_close"}]);
+                {:icon => lidIcon(lid, false), :id => lid + "_close"}]).withNote(open == null ? null
+                : open ? "Open" : "Closed");
             WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
         } else if (id.equals("climate_menu")) {
             // the on icon shows the car's current set point, which it keeps even while climate is off
@@ -212,9 +237,11 @@ class ActionsDelegate extends IconMenuDelegate {
             var label = tset != null ? Units.label(tset.toFloat(), f) : null;
             // pet mode toggles, so its icon is filled while the car has it on
             var pet = link().state != null && link().state["pet"] == true;
+            var on = link().state != null && link().state["hvac"] == true;
             var menu = new IconMenu([{:icon => :hvacoff, :id => "climate_off"},
                 {:icon => :hvac, :id => "climate_on", :label => label},
-                {:icon => :pet, :id => pet ? "pet_off" : "pet_on", :on => pet}]);
+                {:icon => :pet, :id => pet ? "pet_off" : "pet_on", :on => pet}])
+                .withNote(on ? (label != null ? "On, " + label : "On") : "Off");
             WatchUi.pushView(menu, new ClimateDelegate(menu), WatchUi.SLIDE_LEFT);
         } else {
             perform(id, 0, null);
@@ -224,7 +251,9 @@ class ActionsDelegate extends IconMenuDelegate {
 
 // Lock or unlock, from the main screen's button or the actions page.
 function lockChoice() as Void {
-    var menu = new IconMenu([{:icon => :lock, :id => "lock"}, {:icon => :unlock, :id => "unlock"}]);
+    var locked = link().state != null ? link().state["locked"] : null;
+    var menu = new IconMenu([{:icon => :lock, :id => "lock"}, {:icon => :unlock, :id => "unlock"}])
+        .withNote(locked == null ? "Unknown" : locked ? "Locked" : "Unlocked");
     WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
 }
 

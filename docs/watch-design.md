@@ -89,8 +89,8 @@ readable, so check them for the Venu X1 and fenix):
 
 - Whether lock, unlock, frunk and trunk keep their second choice screen. It adds a level; showing the current state and
   offering only the opposite action would remove it, and ties in with #38.
-- Which info goes on which info page, and what counts as "needs attention" on Main. Open windows are not shown on the
-  watch yet (#11).
+- Which info goes on which info page, and what counts as "needs attention" on Main. Open windows are a row on the info
+  page (open or closed, not which window); the phone's details screen lists each one.
 - Back from the Actions page: it exits the app, as the pages are not pushed screens. Returning to Main first is untried.
 - Button-only watches cannot move the highlight on a strip page, since up/down page, so a touchscreen is a requirement
   (README, PLAN.md). Revisit if someone wants a button-only watch: the highlight could step with up and down and hand

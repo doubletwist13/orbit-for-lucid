@@ -66,9 +66,9 @@ same things.
     accent while it is 50% or more, then turns yellow, orange or red as before; amber warnings and red alerts never
     change.
 - **Info page** (above the main screen) lists climate state, cabin and outside temperature, the coolest and warmest
-  battery cell, battery health, odometer and the four tire pressures (front and rear pairs, in the watch's units).
-  The phone app's "Vehicle details" screen lists everything the car reports, plus efficiency figures worked out from
-  the odometer and battery energy the phone has logged.
+  battery cell, battery health, odometer, whether any window is open and the four tire pressures (front and rear
+  pairs, in the watch's units). The phone app's "Vehicle details" screen lists everything the car reports, plus
+  efficiency figures worked out from the odometer and battery energy the phone has logged.
 - **Main screen** is information only, so a stray tap does nothing. It opens here, and shows:
   - **Charge.** A ring fills clockwise from the top to match the charge, with the number in percent in the middle.
     The ring and number take the accent colour (green by default) from 50%, then yellow from 25%, orange from 10%

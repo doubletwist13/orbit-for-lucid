@@ -82,6 +82,7 @@ for an `id` has `pending` absent or empty.
 | `fin` | int | Epoch second the charge should finish, rounded to 5 minutes: the car's report time plus its own minutes-left estimate; only while charging and 1 minute to 250 hours (`MAX_CHARGE_MIN`, `Controller.kt`) |
 | `lim` | int | The charge limit in percent; omitted when the car reports none or a value outside 50..100 |
 | `port` | bool | Charge port open (ajar counts as open); omitted when the car reports no state for it |
+| `win` | bool | Any window not shut (`true`) or all shut (`false`); omitted when the car reports no window state |
 | `ac` | int | The AC limit that was set, in amps (not the charger's maximum); omitted when none or outside 10..80 |
 | `acm` | int | The charger's maximum in amps, sent only when it is below `ac` (the car then draws this, not `ac`) |
 | `bp` | bool | Battery preconditioning is on; omitted when the car says it is unavailable or reports nothing |

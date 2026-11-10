@@ -29,9 +29,10 @@ class InfoView extends WatchUi.View {
                 ? Units.whole((s["cmin"] as Numeric).toFloat(), f) + "-" + temp(s, "cmax", f) : "--"],
             ["SoH", s != null && s["soh"] != null ? (s["soh"] as Numeric).toFloat().format("%.1f") + "%" : "--"],
             ["Odo", s != null && s["odo"] != null ? Units.distance(s["odo"] as Numeric, imperial) : "--"],
+            ["Windows", s == null || s["win"] == null ? "--" : s["win"] ? "Open" : "Closed"],
             [unit + " F", tires(s, 0, imperial)],
             [unit + " R", tires(s, 2, imperial)]] as Array<Array<String> >;
-        var pitch = h * 0.095;
+        var pitch = h * 0.088;
         var top = h * 0.5 - pitch * (rows.size() - 1) / 2;
         for (var i = 0; i < rows.size(); i++) {
             var y = top + i * pitch;

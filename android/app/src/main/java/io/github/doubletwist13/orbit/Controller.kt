@@ -348,6 +348,8 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         }
         it.chargeLimit?.takeIf { l -> l in MIN_LIMIT..MAX_LIMIT }?.let { l -> put("lim", l) }
         it.portOpen?.let { o -> put("port", o) }
+        // true when any window is not shut; omitted when the car reports no window state
+        it.windowsClosed?.let { c -> put("win", !c) }
         it.acSet?.takeIf { a -> a in MIN_AMPS..MAX_AMPS }?.let { a -> put("ac", a) }
         acCap(it)?.let { c -> put("acm", c) }
         // on or off only: an unavailable or unknown state sends nothing, so the watch shows no state for it

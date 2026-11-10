@@ -154,7 +154,7 @@ class MainView extends WatchUi.View {
     }
 
     // state icons: lock and plug always (like the glance), climate only while it is on, and in amber an open frunk,
-    // trunk or door and a tyre warning, only while they apply
+    // trunk, door or window and a tyre warning, only while they apply
     private function icons(dc as Dc, s as Dictionary?, w as Number, h as Number, base as Number) as Void {
         if (s == null) { return; }
         var lockId = s["locked"] == null ? :lockunknown : s["locked"] ? :lock : :unlock;
@@ -168,6 +168,7 @@ class MainView extends WatchUi.View {
         if (s["frunk"] == true) { ids.add(lidIcon("frunk", true)); }
         if (s["trunk"] == true) { ids.add(lidIcon("trunk", true)); }
         if (s["door"] == true) { ids.add(:door); }
+        if (s["win"] == true) { ids.add(:windows); }
         if (s["tire"] == true) { ids.add(:tire); }
         // smaller icons if they would not all fit the width of the screen at this height
         var size = (w * 0.105).toNumber();
@@ -186,6 +187,8 @@ class MainView extends WatchUi.View {
                 Warn.occupant(dc, ix, iy, size);
             } else if (id == :door) {
                 Warn.door(dc, ix, iy, size);
+            } else if (id == :windows) {
+                Warn.windows(dc, ix, iy, size);
             } else if (id == :tire) {
                 Warn.tire(dc, ix, iy, size);
             } else {

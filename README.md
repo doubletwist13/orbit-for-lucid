@@ -83,7 +83,7 @@ same things.
   - **Icon row.** Red first, then the accent colour, then amber, only for what applies: a person with a red `!`
     (someone may be left in the car), the padlock (closed, open, or amber with `?` if unknown), the plug (slashed
     when unplugged, a bolt while charging), wavy lines while climate is on, then amber icons for an open frunk,
-    trunk or door and for a tire pressure warning. They shrink to fit.
+    trunk, door or window and for a tire pressure warning. They shrink to fit.
   - **Slices.** An accent-coloured slice at the top (`i`) and one at the bottom (`...`) go to the page above or
     below when tapped. The bottom line of the screen shows only what is in progress ("Unlocking...") or an error.
     The car only reports while awake, so after 30 minutes the whole screen dims; that is normal, not an error.
@@ -163,6 +163,7 @@ The status icons (glance and main screen):
 | <img src="docs/images/icons/frunk-warn.png" alt="Open frunk"> | Frunk open (amber) |
 | <img src="docs/images/icons/trunk-warn.png" alt="Open trunk"> | Trunk open (amber) |
 | <img src="docs/images/icons/door.png" alt="Car with D"> | A door is open (amber) |
+| <img src="docs/images/icons/windows.png" alt="Window"> | A window is open (amber) |
 | <img src="docs/images/icons/tire.png" alt="Tire with !"> | The car's tire pressure warning is on (amber) |
 
 The action icons (Actions and Charging pages and their second screens). The frunk and trunk are drawn here as the

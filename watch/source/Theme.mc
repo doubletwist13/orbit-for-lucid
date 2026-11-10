@@ -37,13 +37,9 @@ module Theme {
         return shade(accent(), 5, 11);
     }
 
-    // the unfilled part of the charge ring, and the same for old data
+    // the unfilled part of the charge ring
     function track() as Number {
         return shade(accent(), 8, 18);
-    }
-
-    function trackDim() as Number {
-        return shade(accent(), 13, 18);
     }
 
     function shade(c as Number, div as Number, base as Number) as Number {

@@ -208,8 +208,8 @@ read the differences as meaningful.
   <img src="docs/images/watch-main-all-icons.png" width="200"
        alt="Main screen with every status icon on at once: occupant alert, lock, charging, climate, and the amber
        frunk, trunk, door, window and tire warnings">
-  <img src="docs/images/watch-info.png" alt="Info page: climate, temperatures, battery cells, health, odometer, windows and
-       tire pressures" width="200">
+  <img src="docs/images/watch-info.png" alt="Info page: climate, temperatures, battery cells, health, odometer,
+       windows and tire pressures" width="200">
   <img src="docs/images/watch-actions.png"
        alt="Actions: lock in the middle with frunk, trunk, climate, windows, horn and lights round it" width="200">
   <img src="docs/images/watch-charging.png"

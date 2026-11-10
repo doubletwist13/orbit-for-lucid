@@ -2,7 +2,6 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Time;
-import Toybox.Time.Gregorian;
 import Toybox.WatchUi;
 
 // When the car last reported and when the phone last sent status, so you can tell whether the 5 minute pushes arrive,
@@ -45,15 +44,8 @@ class AboutView extends WatchUi.View {
         dc.drawText(x, y, Graphics.FONT_XTINY, title, Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Theme.accent(), Graphics.COLOR_BLACK);
         dc.drawText(x, y + dc.getFontHeight(Graphics.FONT_XTINY), Graphics.FONT_SMALL,
-            at != null ? clock(at) + " (" + ago(Time.now().value() - at) + ")" : "--", Graphics.TEXT_JUSTIFY_CENTER);
-    }
-
-    // local time of an epoch second, in the watch's 12 or 24 hour style
-    private function clock(epoch as Number) as String {
-        var t = Gregorian.info(new Time.Moment(epoch), Time.FORMAT_SHORT);
-        var min = t.min.format("%02d");
-        if (System.getDeviceSettings().is24Hour) { return t.hour.format("%02d") + ":" + min; }
-        return (t.hour % 12 == 0 ? 12 : t.hour % 12) + ":" + min + (t.hour < 12 ? "a" : "p");
+            at != null ? Units.clock(at) + " (" + ago(Time.now().value() - at) + ")" : "--",
+            Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     private function ago(secs as Number) as String {

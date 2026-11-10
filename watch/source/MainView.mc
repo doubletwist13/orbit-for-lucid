@@ -35,7 +35,7 @@ class MainView extends WatchUi.View {
         var rx = (w * 0.33).toNumber();
         var ry = (h * 0.34).toNumber();
         var rr = (w * 0.19).toNumber();
-        ring(dc, soc, fg, stale, rx, ry, rr);
+        ring(dc, soc, fg, stale, s != null ? s["lim"] as Number? : null, rx, ry, rr);
         // a transparent background, or the number's box cuts a corner out of the ring
         dc.setColor(fg, Graphics.COLOR_TRANSPARENT);
         socText(dc, soc, rx, ry, rr, h);
@@ -58,19 +58,28 @@ class MainView extends WatchUi.View {
         dc.drawText(cx, y, font, note, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // charge as an arc round the number, clockwise from the top
-    private function ring(dc as Dc, soc as Number?, fg as Number, stale as Boolean, x as Number, y as Number,
-            r as Number) as Void {
-        dc.setPenWidth(dc.getWidth() * 0.026);
+    // charge as an arc round the number, clockwise from the top, with a tick where the charge limit is until the charge
+    // reaches it
+    private function ring(dc as Dc, soc as Number?, fg as Number, stale as Boolean, lim as Number?, x as Number,
+            y as Number, r as Number) as Void {
+        var pen = dc.getWidth() * 0.026;
+        dc.setPenWidth(pen);
         dc.setColor(stale ? Theme.trackDim() : Theme.track(), Graphics.COLOR_BLACK);
         dc.drawCircle(x, y, r);
-        if (soc == null || soc <= 0) { return; }
-        dc.setColor(fg, Graphics.COLOR_BLACK);
-        if (soc >= 100) {
-            dc.drawCircle(x, y, r);
-        } else {
-            dc.drawArc(x, y, r, Graphics.ARC_CLOCKWISE, 90, 90 - 360 * soc / 100);
+        if (soc != null && soc > 0) {
+            dc.setColor(fg, Graphics.COLOR_BLACK);
+            if (soc >= 100) {
+                dc.drawCircle(x, y, r);
+            } else {
+                dc.drawArc(x, y, r, Graphics.ARC_CLOCKWISE, 90, 90 - 360 * soc / 100);
+            }
         }
+        if (lim == null || lim >= 100 || (soc != null && soc >= lim)) { return; }
+        var a = Math.toRadians(90 - 360 * lim / 100.0);
+        dc.setColor(stale ? Theme.trackDim() : Theme.dim(), Graphics.COLOR_BLACK);
+        dc.setPenWidth(3);
+        dc.drawLine(x + (r - pen) * Math.cos(a), y - (r - pen) * Math.sin(a), x + (r + pen) * Math.cos(a),
+            y - (r + pen) * Math.sin(a));
     }
 
     // the number centred in the ring with a small % under it; the smaller font if three digits would crowd the ring
@@ -84,40 +93,41 @@ class MainView extends WatchUi.View {
         if (soc != null) { dc.drawText(x, ny + dc.getFontHeight(font) / 2 + h * 0.025, Graphics.FONT_XTINY, "%", mid); }
     }
 
-    // interior and exterior air temperature, one above the other, below the lock button's mark
+    // interior and exterior air temperature on one line (no labels: there is no room beside the ring), right of the
+    // ring and clear of the lock button's mark; a missing one reads "--"
     private function air(dc as Dc, s as Dictionary?, w as Number, h as Number, base as Number) as Void {
-        if (s == null) { return; }
+        if (s == null || (s["tin"] == null && s["tout"] == null)) { return; }
         var f = Units.fahrenheit();
         var keys = ["tin", "tout"];
-        var labels = ["int", "ext"];
-        var left = Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER;
+        var t = "";
         for (var i = 0; i < 2; i++) {
-            if (s[keys[i]] == null) { continue; }
-            var t = Units.whole((s[keys[i]] as Numeric).toFloat(), f) + "°";
-            var y = h * (0.42 + 0.08 * i);
-            dc.setColor(base, Graphics.COLOR_BLACK);
-            dc.drawText(w * 0.58, y, Graphics.FONT_SMALL, t, left);
-            dc.setColor(Theme.dim(), Graphics.COLOR_BLACK);
-            dc.drawText(w * 0.58 + dc.getTextWidthInPixels(t, Graphics.FONT_SMALL) + w * 0.012, y + h * 0.01,
-                Graphics.FONT_XTINY, labels[i], left);
+            var v = s[keys[i]];
+            t += (i > 0 ? "/" : "") + (v == null ? "--" : Units.whole((v as Numeric).toFloat(), f) + "°");
         }
+        var left = Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER;
+        dc.setColor(base, Graphics.COLOR_BLACK);
+        dc.drawText(w * 0.50, h * 0.175, Graphics.FONT_SMALL, t, left);
     }
 
-    // charge power in kW with a bolt, between the ring and the lock button's mark; the phone sends it only while
+    // charge power in kW with a bolt, and under it when the car expects to be done; the phone sends them only while
     // charging
     private function rate(dc as Dc, s as Dictionary?, w as Number, h as Number, base as Number) as Void {
         if (s == null || s["rate"] == null) { return; }
         dc.setColor(base, Graphics.COLOR_BLACK);
         var left = Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER;
         var bolt = (w * 0.08).toNumber();
-        var y = h * 0.175;
-        var x = w * 0.46;
+        var y = h * 0.42;
+        var x = w * 0.58;
         Icons.draw(dc, :bolt, x.toNumber(), (y - bolt / 2).toNumber(), bolt);
         x += bolt + w * 0.01;
         var n = (s["rate"] as Numeric).toNumber().toString();
         dc.drawText(x, y, Graphics.FONT_SMALL, n, left);
         dc.drawText(x + dc.getTextWidthInPixels(n, Graphics.FONT_SMALL) + w * 0.008, y + h * 0.012, Graphics.FONT_XTINY,
             "kW", left);
+        if (s["fin"] == null) { return; }
+        dc.setColor(Theme.dim(), Graphics.COLOR_BLACK);
+        dc.drawText(w * 0.58, h * 0.50, Graphics.FONT_XTINY, "by " + Units.finish(s["fin"] as Number),
+            left);
     }
 
     // small filled slices at the top and bottom edge: tap for info or actions, like a swipe down or up. The bottom one

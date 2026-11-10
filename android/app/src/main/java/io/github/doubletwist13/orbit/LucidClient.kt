@@ -90,6 +90,8 @@ data class VehicleStatus(
     val frunkPowered: Boolean = true,
     /** Charging power in kW; 0 when not reported. Only meaningful while the charge state is CHARGING. */
     val chargeRateKw: Double = 0.0,
+    /** The car's own estimate of minutes left in the charge session; null when not reported. */
+    val chargeMinutes: Int? = null,
     /** The charge limit in percent; null when the car reports none. */
     val chargeLimit: Int? = null,
     /** Charge port open (ajar counts as open); null when the car reports no state for it. */
@@ -389,6 +391,7 @@ internal fun Vehicle.toStatus() = VehicleStatus(
     trunkOpen = state.body.rearCargo.isOpen(),
     frunkPowered = config.frunkStrut != StrutType.STRUT_TYPE_GAS,
     chargeRateKw = state.charging.chargeRateKwhPrecise,
+    chargeMinutes = state.charging.sessionMinutesRemaining.takeIf { it > 0 },
     chargeLimit = state.charging.chargeLimitPercent.takeIf { it > 0 }?.let { Math.round(it).toInt() },
     portOpen = state.body.chargePort.isOpen(),
     acSet = state.charging.activeSessionAcCurrentLimit.takeIf { it > 0 },

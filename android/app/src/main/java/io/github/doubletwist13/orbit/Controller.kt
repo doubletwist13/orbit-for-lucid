@@ -340,6 +340,11 @@ internal fun watchReply(id: Number, s: VehicleStatus?, pending: String?): Map<St
         // power only while charging, in whole kW; the car reports a little above zero at times when it is not
         if (it.chargeState == "CHARGING" && it.chargeRateKw in MIN_RATE_KW..maxRateKw(it.model)) {
             put("rate", Math.round(it.chargeRateKw).toInt())
+            // the finish time, not the minutes: minutes go stale on the watch, and a time rounded to 5 minutes does not
+            // change with every report, so it does not trigger a push each time
+            it.chargeMinutes?.takeIf { m -> m in 1..MAX_CHARGE_MIN }?.let { m ->
+                put("fin", Math.round((it.updatedMs / 1000 + m * 60) / 300.0) * 300)
+            }
         }
         it.chargeLimit?.takeIf { l -> l in MIN_LIMIT..MAX_LIMIT }?.let { l -> put("lim", l) }
         it.portOpen?.let { o -> put("port", o) }
@@ -494,6 +499,10 @@ internal fun maxRateKw(model: String): Double = when (model) {
 
 // A day: far longer than any preconditioning run, so only a placeholder (seen: 65565) falls outside it.
 internal const val MAX_PRECON_MIN = 1440
+
+// 250 hours: a 120 V, 12 A charger can take 100+ hours for a full charge and more when it gives less, so only a
+// placeholder (65565 minutes seen for preconditioning) falls outside.
+internal const val MAX_CHARGE_MIN = 15_000
 
 // the lowest limit the car's own app offers, shown on the watch only inside this range
 internal const val MIN_LIMIT = 50

@@ -1,9 +1,11 @@
 package io.github.doubletwist13.orbit
 
+import mobilegateway.protos.VehicleStateServiceOuterClass.BatteryPreconStatus
 import mobilegateway.protos.VehicleStateServiceOuterClass.BatteryState
 import mobilegateway.protos.VehicleStateServiceOuterClass.ChassisState
 import mobilegateway.protos.VehicleStateServiceOuterClass.Gps
 import mobilegateway.protos.VehicleStateServiceOuterClass.Location
+import mobilegateway.protos.VehicleStateServiceOuterClass.Model
 import mobilegateway.protos.VehicleStateServiceOuterClass.Vehicle
 import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleConfig
 import mobilegateway.protos.VehicleStateServiceOuterClass.VehicleState
@@ -42,7 +44,19 @@ class DetailsTest {
     }
 
     @Test fun anUnsetEnumReadsAsUnknownNotAsAnError() {
-        assertEquals("charge state unknown", rows("Charging")["State"])
+        assertEquals("unknown", rows("Charging")["State"])
+    }
+
+    @Test fun niceDropsTheTypeNameFromTheValue() {
+        assertEquals("air", Model.MODEL_AIR.nice())
+        assertEquals("off", BatteryPreconStatus.BATTERY_PRECON_OFF.nice())
+        assertEquals("?", Model.UNRECOGNIZED.nice())
+    }
+
+    @Test fun noValueRepeatsItsLabel() {
+        val repeats = vehicleDetails(vehicle).flatMap { g -> g.rows.map { g.title to it } }
+            .filter { (_, r) -> r.second.startsWith(r.first, ignoreCase = true) }
+        assertTrue("rows repeating their label: $repeats", repeats.isEmpty())
     }
 
     @Test fun nothingIdentifyingTheCarOrItsPlaceIsShown() {

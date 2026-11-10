@@ -137,9 +137,19 @@ internal fun vehicleDetails(v: Vehicle): List<DetailGroup> {
     }
 }
 
-/** An enum value as lower-case words. The generated names repeat their type's prefix; nothing here can strip it. */
-private fun Enum<*>.nice(): String =
-    name.lowercase(Locale.ROOT).replace('_', ' ').let { if (it == "unrecognized") "?" else it }
+/**
+ * An enum value as lower-case words. The generated names start with their type's name (`MODEL_AIR` in `Model`,
+ * `BATTERY_PRECON_ON` in `BatteryPreconStatus`), which the row's label already says, so leading words that match the
+ * type's words in order are dropped (always keeping the last word).
+ */
+internal fun Enum<*>.nice(): String {
+    if (name == "UNRECOGNIZED") return "?"
+    val type = javaClass.simpleName.split(Regex("(?<=[a-z0-9])(?=[A-Z])")).map { it.uppercase(Locale.ROOT) }
+    val words = name.split('_')
+    var skip = 0
+    while (skip < type.size && skip < words.size - 1 && words[skip] == type[skip]) skip++
+    return words.drop(skip).joinToString(" ").lowercase(Locale.ROOT)
+}
 
 /**
  * The car's scheduled charge time as a local clock time. It is minutes after midnight UTC (an 11 PM schedule in US

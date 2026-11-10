@@ -106,6 +106,12 @@ class ControllerTest {
         }
     }
 
+    @Test fun windowsAreSentAsOpenOrShutAndOmittedWhenUnknown() {
+        assertFalse(watchReply(1, status, null).containsKey("win"))
+        assertEquals(true, watchReply(1, status.copy(windowsClosed = false), null)["win"])
+        assertEquals(false, watchReply(1, status.copy(windowsClosed = true), null)["win"])
+    }
+
     @Test fun petModeIsSentOnlyWhileItApplies() {
         assertFalse(watchReply(1, status, null).containsKey("pet"))
         assertEquals(true, watchReply(1, status.copy(petMode = true), null)["pet"])

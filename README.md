@@ -66,9 +66,9 @@ same things.
     accent while it is 50% or more, then turns yellow, orange or red as before; amber warnings and red alerts never
     change.
 - **Info page** (above the main screen) lists climate state, cabin and outside temperature, the coolest and warmest
-  battery cell, battery health, odometer and the four tire pressures (front and rear pairs, in the watch's units).
-  The phone app's "Vehicle details" screen lists everything the car reports, plus efficiency figures worked out from
-  the odometer and battery energy the phone has logged.
+  battery cell, battery health, odometer, whether any window is open and the four tire pressures (front and rear
+  pairs, in the watch's units). The phone app's "Vehicle details" screen lists everything the car reports, plus
+  efficiency figures worked out from the odometer and battery energy the phone has logged.
 - **Main screen** is information only, so a stray tap does nothing. It opens here, and shows:
   - **Charge.** A ring fills clockwise from the top to match the charge, with the number in percent in the middle.
     The ring and number take the accent colour (green by default) from 50%, then yellow from 25%, orange from 10%
@@ -83,7 +83,7 @@ same things.
   - **Icon row.** Red first, then the accent colour, then amber, only for what applies: a person with a red `!`
     (someone may be left in the car), the padlock (closed, open, or amber with `?` if unknown), the plug (slashed
     when unplugged, a bolt while charging), wavy lines while climate is on, then amber icons for an open frunk,
-    trunk or door and for a tire pressure warning. They shrink to fit.
+    trunk, door or window and for a tire pressure warning. They shrink to fit.
   - **Slices.** An accent-coloured slice at the top (`i`) and one at the bottom (`...`) go to the page above or
     below when tapped. The bottom line of the screen shows only what is in progress ("Unlocking...") or an error.
     The car only reports while awake, so after 30 minutes the whole screen dims; that is normal, not an error.
@@ -163,6 +163,7 @@ The status icons (glance and main screen):
 | <img src="docs/images/icons/frunk-warn.png" alt="Open frunk"> | Frunk open (amber) |
 | <img src="docs/images/icons/trunk-warn.png" alt="Open trunk"> | Trunk open (amber) |
 | <img src="docs/images/icons/door.png" alt="Car with D"> | A door is open (amber) |
+| <img src="docs/images/icons/windows-warn.png" alt="Window"> | A window is open (amber) |
 | <img src="docs/images/icons/tire.png" alt="Tire with !"> | The car's tire pressure warning is on (amber) |
 
 The action icons (Actions and Charging pages and their second screens). The frunk and trunk are drawn here as the
@@ -204,8 +205,11 @@ read the differences as meaningful.
   <img src="docs/images/watch-main.png" width="200"
        alt="Main screen: a ring and 78% charge, 7 kW charging power, 84 degree cabin and outside temperatures, quick
        lock padlocks, and the lock and charging icons">
-  <img src="docs/images/watch-info.png" alt="Info page: climate, temperatures, battery cells, health, odometer and
-       tire pressures" width="200">
+  <img src="docs/images/watch-main-all-icons.png" width="200"
+       alt="Main screen with every status icon on at once: occupant alert, lock, charging, climate, and the amber
+       frunk, trunk, door, window and tire warnings">
+  <img src="docs/images/watch-info.png" alt="Info page: climate, temperatures, battery cells, health, odometer,
+       windows and tire pressures" width="200">
   <img src="docs/images/watch-actions.png"
        alt="Actions: lock in the middle with frunk, trunk, climate, windows, horn and lights round it" width="200">
   <img src="docs/images/watch-charging.png"

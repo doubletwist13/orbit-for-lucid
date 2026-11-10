@@ -39,10 +39,10 @@ readable, so check them for the Venu X1 and fenix):
    "70°/82°", unlabelled for lack of room) sit right of the ring, and while charging the charge power with a bolt and
    the finish time follow below them. A small tick on the ring marks the charge limit until the charge reaches it. The
    state row has the lock, plug and climate in the accent colour (green unless changed, see Theme below), and in amber
-   an open frunk, trunk or door and a tyre warning, only while they apply; an unattended-occupant alert is a red icon
-   first in the row and takes over the glance title. The status line shows only a pending command or an error. Data
-   older than 30 minutes is flagged in amber in the status line ("45m old"), not dimmed, since a dim screen is hard to
-   read; the exact times are on About.
+   an open frunk, trunk, door or window and a tyre warning, only while they apply; an unattended-occupant alert is a
+   red icon first in the row and takes over the glance title. The status line shows only a pending command or an
+   error. Data older than 30 minutes is flagged in amber in the status line ("45m old"), not dimmed, since a dim
+   screen is hard to read; the exact times are on About.
 6. **Memory is not the limit.** Measured on the Venu 3: the app uses 37 of 763 KB, the glance 19 of 59 KB and the
    background handler 14 of 59 KB, with about 40 fields saved. More fields are fine until a single phone message gets
    too large, which is untested. The phone has a details screen with the rest of the car's data, and it works out
@@ -89,8 +89,8 @@ readable, so check them for the Venu X1 and fenix):
 
 - Whether lock, unlock, frunk and trunk keep their second choice screen. It adds a level; showing the current state and
   offering only the opposite action would remove it, and ties in with #38.
-- Which info goes on which info page, and what counts as "needs attention" on Main. Open windows are not shown on the
-  watch yet (#11).
+- Which info goes on which info page, and what counts as "needs attention" on Main. Open windows are a row on the info
+  page (open or closed, not which window); the phone's details screen lists each one.
 - Back from the Actions page: it exits the app, as the pages are not pushed screens. Returning to Main first is untried.
 - Button-only watches cannot move the highlight on a strip page, since up/down page, so a touchscreen is a requirement
   (README, PLAN.md). Revisit if someone wants a button-only watch: the highlight could step with up and down and hand

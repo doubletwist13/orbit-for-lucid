@@ -19,20 +19,21 @@ import kotlinx.coroutines.launch
 internal const val BRIDGE_IDLE_TEXT = "Watch link active"
 
 /**
- * The notification's one line: charge, lock and charging power, like "79% · Locked · Charging 7 kW". The plain
- * [BRIDGE_IDLE_TEXT] while logged out or before the first read, or when the car reported none of them.
+ * The notification's one line: charge, lock and charging power, like "79% 🔒 ⚡7 kW". Symbols, not words, so it fits
+ * the collapsed notification even at two digits of kW. The plain [BRIDGE_IDLE_TEXT] while logged out or before the
+ * first read, or when the car reported none of them.
  */
 internal fun notificationText(loggedIn: Boolean, s: VehicleStatus?): String {
     if (!loggedIn || s == null) return BRIDGE_IDLE_TEXT
     val parts = listOfNotNull(
         // the same plausibility rules as the watch's status (a value outside 0..100 is not a reading)
         s.socPercent.takeIf { it in 0..100 }?.let { "$it%" },
-        s.locked?.let { if (it) "Locked" else "Unlocked" },
+        s.locked?.let { if (it) "🔒" else "🔓" },
         if (s.chargeState != "CHARGING") null
-        else if (s.chargeRateKw in MIN_RATE_KW..maxRateKw(s.model)) "Charging ${Math.round(s.chargeRateKw)} kW"
-        else "Charging",
+        else if (s.chargeRateKw in MIN_RATE_KW..maxRateKw(s.model)) "⚡${Math.round(s.chargeRateKw)} kW"
+        else "⚡",
     )
-    return parts.joinToString(" · ").ifEmpty { BRIDGE_IDLE_TEXT }
+    return parts.joinToString(" ").ifEmpty { BRIDGE_IDLE_TEXT }
 }
 
 /**

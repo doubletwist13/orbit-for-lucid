@@ -10,14 +10,14 @@ class NotificationTextTest {
     )
 
     @Test fun showsChargeLockAndChargingPower() {
-        assertEquals("79% · Locked", notificationText(true, status))
+        assertEquals("79% 🔒", notificationText(true, status))
         val charging = status.copy(chargeState = "CHARGING", chargeRateKw = 7.2, locked = false)
-        assertEquals("79% · Unlocked · Charging 7 kW", notificationText(true, charging))
+        assertEquals("79% 🔓 ⚡7 kW", notificationText(true, charging))
     }
 
     @Test fun leavesOutWhatTheCarDoesNotReport() {
         val unknown = status.copy(locked = null, socPercent = 255)
-        assertEquals("Charging", notificationText(true, unknown.copy(chargeState = "CHARGING")))
+        assertEquals("⚡", notificationText(true, unknown.copy(chargeState = "CHARGING")))
         assertEquals("79%", notificationText(true, status.copy(locked = null)))
     }
 

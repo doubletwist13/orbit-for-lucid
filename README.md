@@ -269,7 +269,10 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
   (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it
   shows can differ from your pick by a rounding step.
 - **A notification stays on the phone.** Android only lets the app answer the watch while the phone app is kept
-  alive, so it runs a small foreground service with a permanent low-priority notification ("Watch link active").
+  alive, so it runs a small foreground service with a permanent low-priority notification. It shows the car's last
+  read, for example "79% · Locked · Charging 7 kW", and reads "Watch link active" until there is one or when you
+  are logged out; tapping it opens the app. On a secure lock screen Android shows only "Watch link active", so the
+  car's state is not visible to anyone looking at a locked phone.
   On Android 13 and later the app asks for notification permission on first launch, only for this notification.
   If you decline, the notification is hidden but the watch link still works; it just gives you no sign that the
   service is running, and Android may be quicker to stop it. There is no on/off switch: log out in the app to stop

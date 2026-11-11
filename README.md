@@ -228,10 +228,15 @@ read the differences as meaningful.
   <img src="docs/images/phone-details.jpg" width="260"
        alt="The phone app's vehicle details: battery and charging rows, including the charging schedule time">
 </p>
+<p>
+  <img src="docs/images/phone-notification.png" width="420"
+       alt="The phone's notification: 75%, a closed padlock and a bolt with 7 kW">
+</p>
 
-Top: the watch app on a Venu 3 (glance, main screen, info, actions, lock or unlock, climate). Bottom: the
+Top: the watch app on a Venu 3 (glance, main screen, info, actions, lock or unlock, climate). Middle: the
 phone app, which shows status, settings and the car's details (part of that screen is shown); the car is controlled
-from the watch. The car's nickname is blurred out in the phone screenshot.
+from the watch. The car's nickname is blurred out in the phone screenshot. Bottom: the phone's notification, as
+shown collapsed while charging.
 
 ## Limitations
 
@@ -269,7 +274,11 @@ from the watch. The car's nickname is blurred out in the phone screenshot.
   (half-degree steps) has not. The car reads a set point back within about 0.4 F of what was sent, so the number it
   shows can differ from your pick by a rounding step.
 - **A notification stays on the phone.** Android only lets the app answer the watch while the phone app is kept
-  alive, so it runs a small foreground service with a permanent low-priority notification ("Watch link active").
+  alive, so it runs a small foreground service with a permanent low-priority notification. It shows the car's last
+  read as charge, a padlock (🔒 or 🔓) and, while charging, ⚡ with the power, for example "79% 🔒 ⚡7 kW". It reads
+  "Watch link active" until there is a read or when you are logged out; tapping it opens the app. On a secure lock
+  screen Android shows only "Watch link active", so the car's state is not visible to anyone looking at a locked
+  phone.
   On Android 13 and later the app asks for notification permission on first launch, only for this notification.
   If you decline, the notification is hidden but the watch link still works; it just gives you no sign that the
   service is running, and Android may be quicker to stop it. There is no on/off switch: log out in the app to stop

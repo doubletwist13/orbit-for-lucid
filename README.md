@@ -228,10 +228,15 @@ read the differences as meaningful.
   <img src="docs/images/phone-details.jpg" width="260"
        alt="The phone app's vehicle details: battery and charging rows, including the charging schedule time">
 </p>
+<p>
+  <img src="docs/images/phone-notification.png" width="420"
+       alt="The phone's notification: 75%, a closed padlock and a bolt with 7 kW">
+</p>
 
-Top: the watch app on a Venu 3 (glance, main screen, info, actions, lock or unlock, climate). Bottom: the
+Top: the watch app on a Venu 3 (glance, main screen, info, actions, lock or unlock, climate). Middle: the
 phone app, which shows status, settings and the car's details (part of that screen is shown); the car is controlled
-from the watch. The car's nickname is blurred out in the phone screenshot.
+from the watch. The car's nickname is blurred out in the phone screenshot. Bottom: the phone's notification, as
+shown collapsed while charging.
 
 ## Limitations
 

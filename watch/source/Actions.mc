@@ -232,11 +232,15 @@ class ActionsDelegate extends IconMenuDelegate {
                 : open ? "Open" : "Closed");
             WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
         } else if (id.equals("windows_menu")) {
-            // all windows at once: the car has no call for one. Lowering or venting is never sent without a confirm tap
+            // all windows at once: the car has no call for one. Lowering or venting is never sent without a confirm
+            // tap. Lucid refuses "lower all the way" on an Air (a repeated vent opens them further), so only another or
+            // unknown model gets it.
             var open = link().state != null ? link().state["win"] : null;
-            var menu = new IconMenu([{:icon => :windowsup, :id => "windows_close"},
-                {:icon => :windowsdown, :id => "windows_down"}, {:icon => :windowsvent, :id => "windows_vent"}])
-                .withNote(open == null ? null : open ? "Open" : "Closed");
+            var items = [{:icon => :windowsup, :id => "windows_close"}, {:icon => :windowsvent, :id => "windows_vent"}];
+            if (link().state == null || !"AIR".equals(link().state["model"])) {
+                items.add({:icon => :windowsdown, :id => "windows_down"});
+            }
+            var menu = new IconMenu(items).withNote(open == null ? null : open ? "Open" : "Closed");
             WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
         } else if (id.equals("climate_menu")) {
             // the on icon shows the car's current set point, which it keeps even while climate is off

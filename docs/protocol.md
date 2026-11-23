@@ -50,9 +50,10 @@ message whose `v` it does not know.
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
   "Sending", never "Honking". `windows_close` closes all four windows and waits for the car to report them closed (each
   one fully closed or at its upper stop, or the "all windows" value); a car that reports no window state answers after
-  the next status fetch. `windows_vent` (all windows a little down; a repeat goes further) and `windows_down` (all the
-  way) have no state to read back, so like `horn` they answer `ok` once Lucid accepts them. The API moves all four
-  windows at once, never one. The frunk and trunk commands
+  the next status fetch. `windows_vent` (all windows 2 to 3 inches down; a repeat goes further) and `windows_down` (all the
+  way) have no state to read back, so like `horn` they answer `ok` once Lucid accepts them. Seen on an Air: Lucid
+  refuses `windows_down` with gRPC status 3 (INVALID_ARGUMENT), which the phone answers as `unsupported`; the watch
+  hides it for an Air. The API moves all four windows at once, never one. The frunk and trunk commands
   wait for the car to report the lid open or closed, like
   `lock`; a car that reports no state for a lid answers after the next status fetch.
 - Lucid accepts a command without saying whether the car will act on it: many are ignored while the car is in gear (D

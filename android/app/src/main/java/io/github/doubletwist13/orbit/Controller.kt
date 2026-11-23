@@ -157,7 +157,9 @@ class Controller(context: Context) {
             } catch (e: Exception) {
                 if (e is LucidException && e.unauthenticated) logout()
                 val code = errCode(e)
-                Log.d(CMD_TAG, commandLogLine(cmd, code, System.currentTimeMillis() - started))
+                // Lucid's status number tells a refused request from a failed one; it holds nothing about the car
+                val status = if (e is LucidException) "$code(grpc ${e.grpcStatus})" else code
+                Log.d(CMD_TAG, commandLogLine(cmd, status, System.currentTimeMillis() - started))
                 reply(watchError(id, code))
             }
         }
@@ -192,8 +194,14 @@ class Controller(context: Context) {
         "windows_vent" -> command("Venting windows", null, progress) { s ->
             client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_VENT_ALL)
         }
+        // Lucid refused this with INVALID_ARGUMENT on an Air (the watch hides the icon there); a Gravity is untested
         "windows_down" -> command("Lowering windows", null, progress) { s ->
-            client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL)
+            try {
+                client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL)
+            } catch (e: LucidException) {
+                if (e.grpcStatus == 3) throw CommandFailed("unsupported", "Lucid refused lowering the windows")
+                throw e
+            }
         }
         // read back from the car's HVAC block like the lock is
         "pet_on", "pet_off" -> {

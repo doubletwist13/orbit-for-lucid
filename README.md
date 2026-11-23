@@ -96,10 +96,11 @@ same things.
     a T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to confirm. A
     frunk with a gas strut can only be unlatched, so it goes straight to the confirm. Tested on a car with a powered
     frunk; the gas-strut case is untested.
-  - **Windows** opens a choice of close (arrow up), lower (arrow down) and vent (a short arrow over a bar), all four
+  - **Windows** opens a choice of close (arrow up), vent (a short arrow over a bar) and lower (arrow down), all four
     windows at once: the car has no call for a single window. Each asks you to confirm. Close waits for the car to
-    report the windows shut; vent and lower only say "sent". A repeated vent opens the windows further. Lower and vent
-    are untested on a car.
+    report the windows shut; vent and lower only say "sent". Each vent opens the windows another 2 to 3 inches, so
+    tap it again to open them further. Lower (all the way) is refused by Lucid on an Air, so the watch shows it for
+    other models only; it is untested on a Gravity, and a refusal reads "Can't do that".
   - **Lights** (flash) act at once. **Horn** (one short honk) asks for a confirm tap. Lucid's API gives no way to
     confirm either, so the watch shows "Sending..." and then clears: it means Lucid took the request, not that the
     car acted on it. Watch or listen for the car, and try again if nothing happened. The car ignores these, like the
@@ -218,7 +219,8 @@ read the differences as meaningful.
        windows and tire pressures" width="200">
   <img src="docs/images/watch-actions.png"
        alt="Actions: lock in the middle with frunk, trunk, climate, windows, horn and lights round it" width="200">
-  <img src="docs/images/watch-windows.png" alt="Choose close all windows, lower them or vent them" width="200">
+  <img src="docs/images/watch-windows.png" width="200"
+       alt="Choose close all windows, vent them or (not on an Air) lower them">
   <img src="docs/images/watch-charging.png"
        alt="Charging: the bolt (start or stop) in the middle, with the charge port above, preconditioning below, the
        charge limit (80%) on the left and the AC current limit on the right: 80A set, capped by a 40A charger"

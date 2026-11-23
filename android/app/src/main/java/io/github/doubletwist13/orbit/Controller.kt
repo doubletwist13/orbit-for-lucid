@@ -34,7 +34,7 @@ data class UiState(
 )
 
 /** A command failed in a way the watch protocol names (see docs/protocol.md error codes). */
-class CommandFailed(val code: String, message: String) : Exception(message)
+class CommandFailed(val code: String, message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /** App-scoped so commands outlive the activity: both the UI and the watch bridge drive the car through this. */
 class Controller(context: Context) {
@@ -158,7 +158,8 @@ class Controller(context: Context) {
                 if (e is LucidException && e.unauthenticated) logout()
                 val code = errCode(e)
                 // Lucid's status number tells a refused request from a failed one; it holds nothing about the car
-                val status = if (e is LucidException) "$code(grpc ${e.grpcStatus})" else code
+                val lucid = e as? LucidException ?: e.cause as? LucidException
+                val status = if (lucid != null) "$code(grpc ${lucid.grpcStatus})" else code
                 Log.d(CMD_TAG, commandLogLine(cmd, status, System.currentTimeMillis() - started))
                 reply(watchError(id, code))
             }
@@ -199,7 +200,8 @@ class Controller(context: Context) {
             try {
                 client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL)
             } catch (e: LucidException) {
-                if (e.grpcStatus == 3) throw CommandFailed("unsupported", "Lucid refused lowering the windows")
+                // the cause keeps Lucid's status number for the command log
+                if (e.grpcStatus == 3) throw CommandFailed("unsupported", "Lucid refused lowering the windows", e)
                 throw e
             }
         }

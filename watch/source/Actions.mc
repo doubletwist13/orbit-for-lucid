@@ -90,8 +90,7 @@ class IconMenu extends WatchUi.View {
             dc.setPenWidth(3);
             var icon = items[i][:icon] as Symbol;
             if (icon == :windows || icon == :windowsup || icon == :windowsdown || icon == :windowsvent) {
-                Warn.windows(dc, c[0] - size / 2, c[1] - size / 2, size,
-                    icon == :windowsup ? 1 : icon == :windowsdown ? -1 : icon == :windowsvent ? 2 : 0);
+                Warn.windows(dc, c[0] - size / 2, c[1] - size / 2, size, icon);
             } else if (icon == :pet) {
                 Warn.pet(dc, c[0] - size / 2, c[1] - size / 2, size);
             } else {

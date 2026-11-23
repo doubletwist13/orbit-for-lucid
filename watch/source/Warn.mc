@@ -20,19 +20,20 @@ module Warn {
     }
 
     // a car door with its window above the belt line, and in the door below it what the windows do: nothing for the
-    // warning (move 0), an arrow up (1) to close, an arrow down (-1) to lower, or a short arrow over a bar (2) to vent
-    function windows(dc as Dc, x as Number, y as Number, size as Number, move as Number) as Void {
+    // warning (:windows), an arrow up (:windowsup) to close, an arrow down (:windowsdown) to lower, or a short arrow
+    // over a bar (:windowsvent) to vent
+    function windows(dc as Dc, x as Number, y as Number, size as Number, icon as Symbol) as Void {
         var u = size / 24.0;
         dc.setPenWidth(size / 16 < 2 ? 2 : size / 16);
         Icons.poly(dc, x, y, u, [3.0, 20.0, 3.0, 11.0, 9.0, 4.0, 21.0, 4.0, 21.0, 20.0, 3.0, 20.0] as Array<Float>);
         Icons.line(dc, x, y, u, 3.0, 11.0, 21.0, 11.0);
-        if (move == 1) {
+        if (icon == :windowsup) {
             Icons.poly(dc, x, y, u, [8.5, 16.0, 13.0, 12.5, 17.5, 16.0] as Array<Float>);
             Icons.line(dc, x, y, u, 13.0, 13.0, 13.0, 19.0);
-        } else if (move == -1) {
+        } else if (icon == :windowsdown) {
             Icons.poly(dc, x, y, u, [8.5, 15.5, 13.0, 19.0, 17.5, 15.5] as Array<Float>);
             Icons.line(dc, x, y, u, 13.0, 12.5, 13.0, 18.0);
-        } else if (move == 2) {
+        } else if (icon == :windowsvent) {
             Icons.poly(dc, x, y, u, [8.5, 13.0, 13.0, 16.5, 17.5, 13.0] as Array<Float>);
             Icons.line(dc, x, y, u, 9.0, 19.0, 17.0, 19.0);
         }

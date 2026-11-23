@@ -189,7 +189,7 @@ class MainView extends WatchUi.View {
             } else if (id == :door) {
                 Warn.door(dc, ix, iy, size);
             } else if (id == :windows) {
-                Warn.windows(dc, ix, iy, size, 0);
+                Warn.windows(dc, ix, iy, size, :windows);
             } else if (id == :tire) {
                 Warn.tire(dc, ix, iy, size);
             } else {

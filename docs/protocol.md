@@ -82,7 +82,7 @@ for an `id` has `pending` absent or empty.
 | `frunk`, `trunk` | bool | Frunk or trunk open (ajar counts as open); omitted when the car reports no state for it |
 | `fpower` | bool | The frunk has a power strut, so the car can close it; `false` for a gas strut, which only opens |
 | `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
-| `fin` | int | Epoch second the charge should finish, rounded to 5 minutes: the car's report time plus its own minutes-left estimate; only while charging and 1 minute to 250 hours (`MAX_CHARGE_MIN`, `Controller.kt`) |
+| `fin` | int | Epoch second the charge should finish, to 5 minutes; only while charging (see below) |
 | `lim` | int | The charge limit in percent; omitted when the car reports none or a value outside 50..100 |
 | `port` | bool | Charge port open (ajar counts as open); omitted when the car reports no state for it |
 | `win` | bool | Any window not shut (`true`) or all shut (`false`); omitted when the car reports no window state |
@@ -108,6 +108,10 @@ for an `id` has `pending` absent or empty.
 | `err` | string | Error code, see below |
 
 Status fields are omitted from an error reply that has no state to show.
+
+`fin` is the car's report time plus its own minutes-left estimate, rounded to 5 minutes so that it does not change with
+every report. It is sent only while charging and for 1 minute to 250 hours (`MAX_CHARGE_MIN` in `Controller.kt`); the
+car's placeholder values fall outside that.
 
 While the car gives power out, `charge` is `DISCHARGING` (or `PREPARING_DISCHARGE` just before) and there is no `rate`:
 which field carries that power is not known yet. The watch shows an outlined bolt with a red arrow and offers no

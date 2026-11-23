@@ -10,6 +10,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowSwitchState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ControllerTest {
@@ -353,6 +354,24 @@ class ControllerTest {
 
     @Test fun pendingReplyWithoutStatusHasNoStateFields() {
         assertEquals(setOf("v", "id", "ok", "pending"), watchReply(1, null, "Waking car").keys)
+    }
+
+    @Test fun eachWindowCommandAsksTheCarForItsOwnState() {
+        assertEquals(WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL, windowsState("windows_close"))
+        assertEquals(WindowSwitchState.WINDOW_SWITCH_STATE_VENT_ALL, windowsState("windows_vent"))
+        assertEquals(WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL, windowsState("windows_down"))
+    }
+
+    @Test fun lucidRefusingToLowerTheWindowsReadsAsUnsupportedAndKeepsItsStatusForTheLog() {
+        val refused = LucidException(3, "invalid argument")
+        val failure = windowsDownFailure(refused)
+        assertEquals("unsupported", errCode(failure))
+        assertEquals("unsupported(grpc 3)", logResult(errCode(failure), failure))
+        // any other Lucid error is left as it was, so it still reads as a plain failure
+        val other = LucidException(14, "unavailable")
+        assertTrue(windowsDownFailure(other) === other)
+        assertEquals("unknown(grpc 14)", logResult(errCode(other), other))
+        assertEquals("timeout", logResult("timeout", CommandFailed("timeout", "x")))
     }
 
     @Test fun errorsMapToProtocolCodes() {

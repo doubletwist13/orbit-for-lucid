@@ -157,10 +157,7 @@ class Controller(context: Context) {
             } catch (e: Exception) {
                 if (e is LucidException && e.unauthenticated) logout()
                 val code = errCode(e)
-                // Lucid's status number tells a refused request from a failed one; it holds nothing about the car
-                val lucid = e as? LucidException ?: e.cause as? LucidException
-                val status = if (lucid != null) "$code(grpc ${lucid.grpcStatus})" else code
-                Log.d(CMD_TAG, commandLogLine(cmd, status, System.currentTimeMillis() - started))
+                Log.d(CMD_TAG, commandLogLine(cmd, logResult(code, e), System.currentTimeMillis() - started))
                 reply(watchError(id, code))
             }
         }
@@ -188,21 +185,18 @@ class Controller(context: Context) {
         "flash" -> command("Sending lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
         // confirmed by the car's window positions; a car that reports none answers after the next status read
         "windows_close" -> command("Closing windows", { it.windowsClosed != false }, progress) { s ->
-            client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL)
+            client.controlWindows(token(), s.vehicleId, windowsState("windows_close"))
         }
         // shortcut: no read-back, so "sent" is all we know. A vent stops at no position the car names, and a repeat
         // vents further; upgrade once a real car shows what the window positions read after each.
         "windows_vent" -> command("Venting windows", null, progress) { s ->
-            client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_VENT_ALL)
+            client.controlWindows(token(), s.vehicleId, windowsState("windows_vent"))
         }
-        // Lucid refused this with INVALID_ARGUMENT on an Air (the watch hides the icon there); a Gravity is untested
         "windows_down" -> command("Lowering windows", null, progress) { s ->
             try {
-                client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL)
+                client.controlWindows(token(), s.vehicleId, windowsState("windows_down"))
             } catch (e: LucidException) {
-                // the cause keeps Lucid's status number for the command log
-                if (e.grpcStatus == 3) throw CommandFailed("unsupported", "Lucid refused lowering the windows", e)
-                throw e
+                throw windowsDownFailure(e)
             }
         }
         // read back from the car's HVAC block like the lock is
@@ -626,6 +620,27 @@ private const val TEMP_TOLERANCE_C = 0.5
 internal fun withHint(e: LucidException): String = when (e.grpcStatus) {
     8 -> "${e.message}. Lucid is limiting requests: wait a minute and try again."
     else -> "${e.message}. Try again later; if it keeps failing, Lucid may have changed its service."
+}
+
+/** What the car is asked to do with all four windows for a watch command: shut them, vent them, or lower them. */
+internal fun windowsState(cmd: String): WindowSwitchState = when (cmd) {
+    "windows_close" -> WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL
+    "windows_vent" -> WindowSwitchState.WINDOW_SWITCH_STATE_VENT_ALL
+    else -> WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL
+}
+
+/**
+ * What a failed "lower all the windows" becomes. Lucid answered INVALID_ARGUMENT (gRPC 3) on an Air, so that status
+ * reads as a car that cannot do it (the watch hides the icon there; a Gravity is untested). The original error stays as
+ * the cause, for the command log.
+ */
+internal fun windowsDownFailure(e: LucidException): Exception =
+    if (e.grpcStatus == 3) CommandFailed("unsupported", "Lucid refused lowering the windows", e) else e
+
+/** The result word in the command log: the code, plus Lucid's status number when the failure came from Lucid. */
+internal fun logResult(code: String, e: Exception): String {
+    val lucid = e as? LucidException ?: e.cause as? LucidException
+    return if (lucid != null) "$code(grpc ${lucid.grpcStatus})" else code
 }
 
 internal fun errCode(e: Exception): String = when {

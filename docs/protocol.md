@@ -19,9 +19,8 @@ message whose `v` it does not know.
 | `wv` | string | Optional: the watch app's version, e.g. `0.3.0`, shown on the phone app's status screen |
 
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
-  `trunk_close`, `horn`, `flash`, `windows_close`, `windows_vent`,
-  `windows_down`, `pet_on`, `pet_off`, `charge_start`, `charge_stop`, `limit`,
-  `port_open`, `port_close`, `precon_on`, `precon_off`, `ac_limit`.
+  `trunk_close`, `horn`, `flash`, `windows_close`, `windows_vent`, `windows_down`, `pet_on`, `pet_off`, `charge_start`,
+  `charge_stop`, `limit`, `port_open`, `port_close`, `precon_on`, `precon_off`, `ac_limit`.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
 - The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn`, `windows_close`,
   `windows_vent`, `windows_down`, any frunk or trunk command, or any charging command (`charge_start`, `charge_stop`,
@@ -50,12 +49,12 @@ message whose `v` it does not know.
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
   "Sending", never "Honking". `windows_close` closes all four windows and waits for the car to report them closed (each
   one fully closed or at its upper stop, or the "all windows" value); a car that reports no window state answers after
-  the next status fetch. `windows_vent` (all windows 2 to 3 inches down; a repeat goes further) and `windows_down` (all the
-  way) have no state to read back, so like `horn` they answer `ok` once Lucid accepts them. Seen on an Air: Lucid
-  refuses `windows_down` with gRPC status 3 (INVALID_ARGUMENT), which the phone answers as `unsupported`; the watch
-  hides it for an Air. The API moves all four windows at once, never one. The frunk and trunk commands
-  wait for the car to report the lid open or closed, like
-  `lock`; a car that reports no state for a lid answers after the next status fetch.
+  the next status fetch. `windows_vent` (all windows 2 to 3 inches down; a repeat goes further) and `windows_down`
+  (all the way) have no state to read back, so like `horn` they answer `ok` once Lucid accepts them. Seen on an Air:
+  Lucid refuses `windows_down` with gRPC status 3 (INVALID_ARGUMENT), which the phone answers as `unsupported`; the
+  watch hides it for an Air. The API moves all four windows at once, never one. The frunk and trunk commands wait for
+  the car to report the lid open or closed, like `lock`; a car that reports no state for a lid answers after the next
+  status fetch.
 - Lucid accepts a command without saying whether the car will act on it: many are ignored while the car is in gear (D
   or R) or moving. For the commands that wait for the car to report a change, that ends as the `timeout` error after
   about 105 s; for the ones that cannot be read back (`horn`, `flash`) nothing says it was ignored. The car's gear

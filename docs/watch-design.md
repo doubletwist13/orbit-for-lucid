@@ -53,8 +53,8 @@ readable, so check them for the Venu X1 and fenix):
    horn below. Lock, frunk, trunk, windows and climate open a choice screen (so the choice never depends on cached
    state); the lights act at once. The windows' choice is close and vent, and lower unless the car is an Air (which
    Lucid refuses), all four at once (the car has no call for one). Unlock, climate, horn, frunk, trunk and every
-   window command ask for a confirm tap; lock, lights and pet mode do not, and every send shows a toast so a tap is seen to count. Climate's choice screen is off,
-   on (with a set point) and pet mode. Refresh moved to the About page (tap it).
+   window command ask for a confirm tap; lock, lights and pet mode do not, and every send shows a toast so a tap is
+   seen to count. Climate's choice screen is off, on (with a set point) and pet mode. Refresh moved to the About page (tap it).
 8. **Dropped, on purpose.** A separate Climate page (defrost, max A/C, seat and steering wheel heat), showing their
    state, and a Signals page: those are things you do from the driver's seat, where the car's own controls are, and
    the car's auto-climate may already switch them on when it preconditions (#89, closed). The phone app stays

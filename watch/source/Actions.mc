@@ -89,8 +89,8 @@ class IconMenu extends WatchUi.View {
             dc.drawCircle(c[0], c[1], r);
             dc.setPenWidth(3);
             var icon = items[i][:icon] as Symbol;
-            if (icon == :windows) {
-                Warn.windows(dc, c[0] - size / 2, c[1] - size / 2, size);
+            if (icon == :windows || icon == :windowsup || icon == :windowsdown || icon == :windowsvent) {
+                Warn.windows(dc, c[0] - size / 2, c[1] - size / 2, size, icon);
             } else if (icon == :pet) {
                 Warn.pet(dc, c[0] - size / 2, c[1] - size / 2, size);
             } else {
@@ -207,8 +207,8 @@ class IconMenuDelegate extends PageDelegate {
     }
 }
 
-// The actions pages. Lock, climate, frunk and trunk open a second screen so the choice never depends on the cached
-// state; the rest act at once. The pages stay under it, so perform closes only the screens pushed above them.
+// The actions pages. Lock, climate, frunk, trunk and windows open a second screen so the choice never depends on the
+// cached state; the rest act at once. The pages stay under it, so perform closes only the screens pushed above them.
 class ActionsDelegate extends IconMenuDelegate {
     function initialize(menu as IconMenu) {
         IconMenuDelegate.initialize(menu);
@@ -229,6 +229,17 @@ class ActionsDelegate extends IconMenuDelegate {
             var menu = new IconMenu([{:icon => lidIcon(lid, true), :id => lid + "_open"},
                 {:icon => lidIcon(lid, false), :id => lid + "_close"}]).withNote(open == null ? null
                 : open ? "Open" : "Closed");
+            WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
+        } else if (id.equals("windows_menu")) {
+            // all windows at once: the car has no call for one. Lowering or venting is never sent without a confirm
+            // tap. Lucid refuses "lower all the way" on an Air (a repeated vent opens them further), so only another or
+            // unknown model gets it.
+            var open = link().state != null ? link().state["win"] : null;
+            var items = [{:icon => :windowsup, :id => "windows_close"}, {:icon => :windowsvent, :id => "windows_vent"}];
+            if (link().state == null || !"AIR".equals(link().state["model"])) {
+                items.add({:icon => :windowsdown, :id => "windows_down"});
+            }
+            var menu = new IconMenu(items).withNote(open == null ? null : open ? "Open" : "Closed");
             WatchUi.pushView(menu, new ChoiceDelegate(menu), WatchUi.SLIDE_LEFT);
         } else if (id.equals("climate_menu")) {
             // the on icon shows the car's current set point, which it keeps even while climate is off

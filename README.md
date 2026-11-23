@@ -13,12 +13,12 @@ touchscreen.**
 Working end to end on the author's setup: a Pixel 10 Pro, a Garmin Venu 3, and one Lucid. From the watch you can see
 state of charge, locked/unlocked, plugged/charging and the inside and outside temperature, then lock, unlock, start
 or stop climate at a temperature you pick (in the watch's own units), open and close the frunk and trunk, honk the
-horn, flash the lights, close all the windows, switch pet mode on or off, start or stop charging, set the charge
-limit, open and close the charge port, start or stop battery preconditioning, set the AC current limit, and refresh.
-The main screen also shows the charging power, an unattended-occupant warning and open-door and tire warnings, and an
-info page lists battery and tire details. Unlock,
-climate, frunk, trunk, horn, close windows and the charging commands ask for a confirm tap; lock, lights and pet mode
-do not. Commands wake a sleeping car first. What comes next is in the
+horn, flash the lights, close, vent or lower all the windows, switch pet mode on or off, start or stop charging, set
+the charge limit, open and close the charge port, start or stop battery preconditioning, set the AC current limit, and
+refresh. The main screen also shows the charging power, an unattended-occupant warning and open-door and tire
+warnings, and an info page lists battery and tire details. Unlock,
+climate, frunk, trunk, horn, every window command and the charging commands ask for a confirm tap; lock, lights and
+pet mode do not. Commands wake a sleeping car first. What comes next is in the
 [milestones](https://github.com/doubletwist13/orbit-for-lucid/milestones) and
 [issues](https://github.com/doubletwist13/orbit-for-lucid/issues); [PLAN.md](PLAN.md) has the design decisions.
 
@@ -88,7 +88,7 @@ same things.
     below when tapped. The bottom line of the screen shows only what is in progress ("Unlocking...") or an error.
     The car only reports while awake, so after 30 minutes the whole screen dims; that is normal, not an error.
 - **Actions page** (below the main screen) is big round icons, with the lock in the middle. Around it, clockwise from
-  the top left: frunk, trunk, close all windows, lights, horn and climate. Tap an icon. The icons on this page act on
+  the top left: frunk, trunk, windows, lights, horn and climate. Tap an icon. The icons on this page act on
   their own, or open a second screen to choose from.
   - **Lock** shows a closed or open padlock for the last state it saw, and opens a choice of lock or unlock that does
     not depend on that state. Unlock then asks you to confirm. The main screen's quick lock opens the same choice.
@@ -96,7 +96,12 @@ same things.
     a T and an arrow over the lid while it is open. They open a choice of open or close, then ask you to confirm. A
     frunk with a gas strut can only be unlatched, so it goes straight to the confirm. Tested on a car with a powered
     frunk; the gas-strut case is untested.
-  - **Windows** closes all four windows after a confirm tap. It is the only window action offered.
+  - **Windows** opens a choice of close (arrow up), vent (a short arrow over a bar) and lower (arrow down), all four
+    windows at once: the car has no call for a single window. Each asks you to confirm. Close waits for the car to
+    report the windows shut; vent and lower only say "sent". Each vent opens the windows another 2 to 3 inches, so
+    tap it again to open them further. A rear side shade that is up lowers first, then the window vents. Lower (all
+    the way) is not shown if the car is an Air: Lucid refuses it there, and it doesn't seem to be supported at this
+    time. Other models get it, untested on a Gravity, and a refusal reads "Can't do that".
   - **Lights** (flash) act at once. **Horn** (one short honk) asks for a confirm tap. Lucid's API gives no way to
     confirm either, so the watch shows "Sending..." and then clears: it means Lucid took the request, not that the
     car acted on it. Watch or listen for the car, and try again if nothing happened. The car ignores these, like the
@@ -177,7 +182,10 @@ Air; a Gravity has its own drawings.
 | <img src="docs/images/icons/frunk-open.png" alt="Car front, arrow"> | Open the frunk |
 | <img src="docs/images/icons/trunk.png" alt="Car rear"> | Close the trunk |
 | <img src="docs/images/icons/trunk-open.png" alt="Car rear, arrow"> | Open the trunk |
-| <img src="docs/images/icons/windows.png" alt="Window, up arrow"> | Close all windows |
+| <img src="docs/images/icons/windows.png" alt="Door window"> | Windows: choose to close, vent or lower them all |
+| <img src="docs/images/icons/windows-up.png" alt="Door window, arrow up"> | Close all windows |
+| <img src="docs/images/icons/windows-down.png" alt="Door window, arrow down"> | Lower all windows (not on an Air) |
+| <img src="docs/images/icons/windows-vent.png" alt="Door window, short arrow over a bar"> | Vent all windows |
 | <img src="docs/images/icons/lights.png" alt="Headlight"> | Flash the lights |
 | <img src="docs/images/icons/horn.png" alt="Speaker"> | Honk the horn |
 | <img src="docs/images/icons/hvac.png" alt="Wavy lines"> | Climate on, with a set point |
@@ -212,6 +220,8 @@ read the differences as meaningful.
        windows and tire pressures" width="200">
   <img src="docs/images/watch-actions.png"
        alt="Actions: lock in the middle with frunk, trunk, climate, windows, horn and lights round it" width="200">
+  <img src="docs/images/watch-windows.png" width="200"
+       alt="Choose close all windows, vent them or (not on an Air) lower them">
   <img src="docs/images/watch-charging.png"
        alt="Charging: the bolt (start or stop) in the middle, with the charge port above, preconditioning below, the
        charge limit (80%) on the left and the AC current limit on the right: 80A set, capped by a 40A charger"
@@ -244,7 +254,7 @@ shown collapsed while charging.
   The app uses the first vehicle the account returns and has no way to pick another. Multi-vehicle accounts are
   untested and probably don't work properly; reports and patches are welcome. An account with no vehicle shows
   "No car found" on the watch.
-- **The car ignores some commands in gear or while moving.** Many actions, close all windows among them, are sent and
+- **The car ignores some commands in gear or while moving.** Many actions, the window commands among them, are sent and
   accepted by Lucid, but the car does nothing if it is in drive or reverse, or moving. The watch's "sent" toast only
   means the request went out, not that the car did it. Park the car first; a close that is not confirmed shows
   "Not confirmed" after about 105 seconds, in a toast and on the main screen.
@@ -263,7 +273,7 @@ shown collapsed while charging.
   with the watch.
 - **Not in any app store.** You build both apps yourself and sideload them. See Building.
 - **Limited commands.** Charging has start and stop, the limit, the port, battery preconditioning and the AC current
-  limit only: no schedule. Nor are other window actions (vent, open), seat or steering wheel heat, defrost or
+  limit only: no schedule. Nor are single windows (all four move together), seat or steering wheel heat, defrost or
   location. Some of that is in the issues; some, like seat heat, is left to the car and Lucid's own app on purpose.
   Start and stop, the limit, the charge port, preconditioning and the AC current limit have been tried on one car.
   The AC amps shown are what was set: a pick above the charger's maximum is kept as set, and the car draws the lower

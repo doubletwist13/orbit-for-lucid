@@ -14,6 +14,7 @@ const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlock
     "climate_on" => "Climate on", "climate_off" => "Climate off", "frunk_open" => "Opening frunk",
     "frunk_close" => "Closing frunk", "trunk_open" => "Opening trunk", "trunk_close" => "Closing trunk",
     "horn" => "Sending horn", "flash" => "Sending lights", "windows_close" => "Closing windows",
+    "windows_vent" => "Venting windows", "windows_down" => "Lowering windows",
     "pet_on" => "Pet mode on", "pet_off" => "Pet mode off", "charge_start" => "Starting charge",
     "charge_stop" => "Stopping charge", "limit" => "Setting limit", "port_open" => "Opening port",
     "port_close" => "Closing port", "precon_on" => "Starting precon", "precon_off" => "Stopping precon",
@@ -22,6 +23,7 @@ const LABELS = {"status" => "Updating", "lock" => "Locking", "unlock" => "Unlock
 const NAMES = {"lock" => "Lock", "unlock" => "Unlock", "climate_on" => "Climate on", "climate_off" => "Climate off",
     "frunk_open" => "Frunk open", "frunk_close" => "Frunk close", "trunk_open" => "Trunk open",
     "trunk_close" => "Trunk close", "horn" => "Horn", "flash" => "Lights", "windows_close" => "Windows close",
+    "windows_vent" => "Windows vent", "windows_down" => "Windows down",
     "pet_on" => "Pet mode on", "pet_off" => "Pet mode off", "charge_start" => "Charge start",
     "charge_stop" => "Charge stop", "limit" => "Charge limit", "port_open" => "Port open", "port_close" => "Port close",
     "precon_on" => "Precon on", "precon_off" => "Precon off", "ac_limit" => "AC limit"};

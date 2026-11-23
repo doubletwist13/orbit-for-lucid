@@ -19,12 +19,12 @@ message whose `v` it does not know.
 | `wv` | string | Optional: the watch app's version, e.g. `0.3.0`, shown on the phone app's status screen |
 
 - Commands: `status`, `lock`, `unlock`, `climate_on`, `climate_off`, `frunk_open`, `frunk_close`, `trunk_open`,
-  `trunk_close`, `horn`, `flash`, `windows_close`, `pet_on`, `pet_off`, `charge_start`, `charge_stop`, `limit`,
-  `port_open`, `port_close`, `precon_on`, `precon_off`, `ac_limit`.
+  `trunk_close`, `horn`, `flash`, `windows_close`, `windows_vent`, `windows_down`, `pet_on`, `pet_off`, `charge_start`,
+  `charge_stop`, `limit`, `port_open`, `port_close`, `precon_on`, `precon_off`, `ac_limit`.
 - `status` returns the phone's cached state when it is under 4 s old, otherwise it fetches once.
-- The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn`, `windows_close`, any
-  frunk or trunk command, or any charging command (`charge_start`, `charge_stop`, `limit`, `port_open`, `port_close`,
-  `precon_on`, `precon_off`, `ac_limit`).
+- The watch asks for a confirm tap before it sends `unlock`, `climate_on`, `climate_off`, `horn`, `windows_close`,
+  `windows_vent`, `windows_down`, any frunk or trunk command, or any charging command (`charge_start`, `charge_stop`,
+  `limit`, `port_open`, `port_close`, `precon_on`, `precon_off`, `ac_limit`).
   The phone does not repeat the confirmation. `lock`, `flash` and `status` are sent without one; the watch shows a
   toast for those and for the confirmed ones once sent.
 - The charging commands wait for the car to report the change, like `lock`. `charge_start` is done when the charge state
@@ -49,9 +49,12 @@ message whose `v` it does not know.
   once, which means only that Lucid accepted the request, not that the car honked or flashed. Progress text says
   "Sending", never "Honking". `windows_close` closes all four windows and waits for the car to report them closed (each
   one fully closed or at its upper stop, or the "all windows" value); a car that reports no window state answers after
-  the next status fetch. The API's other window choices (vent, open all) are not offered. The frunk and trunk commands
-  wait for the car to report the lid open or closed, like
-  `lock`; a car that reports no state for a lid answers after the next status fetch.
+  the next status fetch. `windows_vent` (all windows 2 to 3 inches down; a repeat goes further) and `windows_down`
+  (all the way) have no state to read back, so like `horn` they answer `ok` once Lucid accepts them. Seen on an Air:
+  Lucid refuses `windows_down` with gRPC status 3 (INVALID_ARGUMENT), which the phone answers as `unsupported`; the
+  watch hides it for an Air. The API moves all four windows at once, never one. The frunk and trunk commands wait for
+  the car to report the lid open or closed, like `lock`; a car that reports no state for a lid answers after the next
+  status fetch.
 - Lucid accepts a command without saying whether the car will act on it: many are ignored while the car is in gear (D
   or R) or moving. For the commands that wait for the car to report a change, that ends as the `timeout` error after
   about 105 s; for the ones that cannot be read back (`horn`, `flash`) nothing says it was ignored. The car's gear
@@ -79,7 +82,7 @@ for an `id` has `pending` absent or empty.
 | `frunk`, `trunk` | bool | Frunk or trunk open (ajar counts as open); omitted when the car reports no state for it |
 | `fpower` | bool | The frunk has a power strut, so the car can close it; `false` for a gas strut, which only opens |
 | `rate` | int | Charging power in whole kW, only while charging, from 0.5 kW to the model's peak (see below) |
-| `fin` | int | Epoch second the charge should finish, rounded to 5 minutes: the car's report time plus its own minutes-left estimate; only while charging and 1 minute to 250 hours (`MAX_CHARGE_MIN`, `Controller.kt`) |
+| `fin` | int | Epoch second the charge should finish, to 5 minutes; only while charging (see below) |
 | `lim` | int | The charge limit in percent; omitted when the car reports none or a value outside 50..100 |
 | `port` | bool | Charge port open (ajar counts as open); omitted when the car reports no state for it |
 | `win` | bool | Any window not shut (`true`) or all shut (`false`); omitted when the car reports no window state |
@@ -105,6 +108,10 @@ for an `id` has `pending` absent or empty.
 | `err` | string | Error code, see below |
 
 Status fields are omitted from an error reply that has no state to show.
+
+`fin` is the car's report time plus its own minutes-left estimate, rounded to 5 minutes so that it does not change with
+every report. It is sent only while charging and for 1 minute to 250 hours (`MAX_CHARGE_MIN` in `Controller.kt`); the
+car's placeholder values fall outside that.
 
 While the car gives power out, `charge` is `DISCHARGING` (or `PREPARING_DISCHARGE` just before) and there is no `rate`:
 which field carries that power is not known yet. The watch shows an outlined bolt with a red arrow and offers no

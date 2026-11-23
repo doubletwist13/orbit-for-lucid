@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowSwitchState
 import java.io.IOException
 
 data class UiState(
@@ -33,7 +34,7 @@ data class UiState(
 )
 
 /** A command failed in a way the watch protocol names (see docs/protocol.md error codes). */
-class CommandFailed(val code: String, message: String) : Exception(message)
+class CommandFailed(val code: String, message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /** App-scoped so commands outlive the activity: both the UI and the watch bridge drive the car through this. */
 class Controller(context: Context) {
@@ -156,7 +157,7 @@ class Controller(context: Context) {
             } catch (e: Exception) {
                 if (e is LucidException && e.unauthenticated) logout()
                 val code = errCode(e)
-                Log.d(CMD_TAG, commandLogLine(cmd, code, System.currentTimeMillis() - started))
+                Log.d(CMD_TAG, commandLogLine(cmd, logResult(code, e), System.currentTimeMillis() - started))
                 reply(watchError(id, code))
             }
         }
@@ -184,7 +185,19 @@ class Controller(context: Context) {
         "flash" -> command("Sending lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
         // confirmed by the car's window positions; a car that reports none answers after the next status read
         "windows_close" -> command("Closing windows", { it.windowsClosed != false }, progress) { s ->
-            client.closeWindows(token(), s.vehicleId)
+            client.controlWindows(token(), s.vehicleId, windowsState("windows_close"))
+        }
+        // shortcut: no read-back, so "sent" is all we know. A vent stops at no position the car names, and a repeat
+        // vents further; upgrade once a real car shows what the window positions read after each.
+        "windows_vent" -> command("Venting windows", null, progress) { s ->
+            client.controlWindows(token(), s.vehicleId, windowsState("windows_vent"))
+        }
+        "windows_down" -> command("Lowering windows", null, progress) { s ->
+            try {
+                client.controlWindows(token(), s.vehicleId, windowsState("windows_down"))
+            } catch (e: LucidException) {
+                throw windowsDownFailure(e)
+            }
         }
         // read back from the car's HVAC block like the lock is
         "pet_on", "pet_off" -> {
@@ -317,7 +330,8 @@ class Controller(context: Context) {
     private companion object {
         val WATCH_COMMANDS = setOf(
             "status", "lock", "unlock", "climate_on", "climate_off", "frunk_open", "frunk_close", "trunk_open",
-            "trunk_close", "horn", "flash", "windows_close", "pet_on", "pet_off", "charge_start", "charge_stop",
+            "trunk_close", "horn", "flash", "windows_close", "windows_vent", "windows_down",
+            "pet_on", "pet_off", "charge_start", "charge_stop",
             "limit", "port_open", "port_close", "precon_on", "precon_off", "ac_limit",
         )
     }
@@ -606,6 +620,29 @@ private const val TEMP_TOLERANCE_C = 0.5
 internal fun withHint(e: LucidException): String = when (e.grpcStatus) {
     8 -> "${e.message}. Lucid is limiting requests: wait a minute and try again."
     else -> "${e.message}. Try again later; if it keeps failing, Lucid may have changed its service."
+}
+
+/** What the car is asked to do with all four windows for a watch command: shut them, vent them, or lower them. */
+internal fun windowsState(cmd: String): WindowSwitchState = when (cmd) {
+    "windows_close" -> WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL
+    "windows_vent" -> WindowSwitchState.WINDOW_SWITCH_STATE_VENT_ALL
+    "windows_down" -> WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL
+    // never a default: a mistyped name must not open the windows
+    else -> throw IllegalArgumentException("Not a window command: $cmd")
+}
+
+/**
+ * What a failed "lower all the windows" becomes. Lucid answered INVALID_ARGUMENT (gRPC 3) on an Air, so that status
+ * reads as a car that cannot do it (the watch hides the icon there; a Gravity is untested). The original error stays as
+ * the cause, for the command log.
+ */
+internal fun windowsDownFailure(e: LucidException): Exception =
+    if (e.grpcStatus == 3) CommandFailed("unsupported", "Lucid refused lowering the windows", e) else e
+
+/** The result word in the command log: the code, plus Lucid's status number when the failure came from Lucid. */
+internal fun logResult(code: String, e: Exception): String {
+    val lucid = e as? LucidException ?: e.cause as? LucidException
+    return if (lucid != null) "$code(grpc ${lucid.grpcStatus})" else code
 }
 
 internal fun errCode(e: Exception): String = when {

@@ -360,6 +360,13 @@ class ControllerTest {
         assertEquals(WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL, windowsState("windows_close"))
         assertEquals(WindowSwitchState.WINDOW_SWITCH_STATE_VENT_ALL, windowsState("windows_vent"))
         assertEquals(WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL, windowsState("windows_down"))
+        // a name that is none of them must not fall back to opening the windows
+        try {
+            windowsState("windows_dwon")
+            org.junit.Assert.fail("expected IllegalArgumentException")
+        } catch (e: IllegalArgumentException) {
+            // expected
+        }
     }
 
     @Test fun lucidRefusingToLowerTheWindowsReadsAsUnsupportedAndKeepsItsStatusForTheLog() {

@@ -626,7 +626,9 @@ internal fun withHint(e: LucidException): String = when (e.grpcStatus) {
 internal fun windowsState(cmd: String): WindowSwitchState = when (cmd) {
     "windows_close" -> WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL
     "windows_vent" -> WindowSwitchState.WINDOW_SWITCH_STATE_VENT_ALL
-    else -> WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL
+    "windows_down" -> WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL
+    // never a default: a mistyped name must not open the windows
+    else -> throw IllegalArgumentException("Not a window command: $cmd")
 }
 
 /**

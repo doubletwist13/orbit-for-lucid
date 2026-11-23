@@ -49,17 +49,18 @@ readable, so check them for the Venu X1 and fenix):
    efficiency from the odometer and battery energy, since the API has no trip or efficiency data.
 
 7. **One Actions page of seven icons**, a "flower": the lock in the middle (the one used most) and six round it at about
-   0.17 x width each on the Venu 3: frunk and trunk on top, climate and close-all-windows at the sides, the lights and
-   horn below. Lock, frunk, trunk and climate open a choice screen (so the choice never depends on cached state);
-   the lights and windows act at once. Unlock, climate, horn, frunk, trunk and windows ask for a confirm tap; lock,
+   0.17 x width each on the Venu 3: frunk and trunk on top, climate and the windows at the sides, the lights and
+   horn below. Lock, frunk, trunk, windows and climate open a choice screen (so the choice never depends on cached
+   state); the lights act at once. The windows' choice is close, lower and vent, all four at once (the car has no
+   call for one). Unlock, climate, horn, frunk, trunk and every window command ask for a confirm tap; lock,
    lights and pet mode do not, and every send shows a toast so a tap is seen to count. Climate's choice screen is off,
    on (with a set point) and pet mode. Refresh moved to the About page (tap it).
 8. **Dropped, on purpose.** A separate Climate page (defrost, max A/C, seat and steering wheel heat), showing their
    state, and a Signals page: those are things you do from the driver's seat, where the car's own controls are, and
    the car's auto-climate may already switch them on when it preconditions (#89, closed). The phone app stays
    information only (no controls: Lucid's own app has them). Left out of the app altogether: panic alarm, sentry and
-   security, software update, keys, and the window actions other than close-all. Windows are close-all only; the car
-   ignores many commands in gear or while moving (see the README's Limitations).
+   security, software update, and keys. The car ignores many commands in gear or while moving (see the README's
+   Limitations).
 
 ## Charging page
 
@@ -111,7 +112,7 @@ ones already used.
 | Tire pressures | `chassis.*_tire_pressure_bar` (4), warning and sensor flags, last-updated time | Yes (info, icon) |
 | Doors, lids, port | `body.front_cargo`, `rear_cargo`, 4 doors, `charge_port` (open/closed/ajar) | Lids, doors, port |
 | Charge limit | `charging.charge_limit_percent` | Yes (Charging page) |
-| Windows | `body.window_position` (4), `all_windows_position` | Only to confirm close-all |
+| Windows | `body.window_position` (4), `all_windows_position` | Open or closed; confirms close |
 | Cell temperatures | `battery.min_cell_temp`, `max_cell_temp` | Yes (info page) |
 
 Other fields that could be shown or used:

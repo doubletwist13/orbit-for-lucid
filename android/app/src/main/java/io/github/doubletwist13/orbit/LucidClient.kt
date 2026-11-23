@@ -260,11 +260,10 @@ class LucidClient(
         LightsControlRequest.newBuilder().setVehicleId(vehicleId).setAction(LightAction.LIGHT_ACTION_FLASH).build(),
     )
 
-    /** Closes all four windows. Only closing is offered: the API's other choices (vent, open all) are left out. */
-    suspend fun closeWindows(refreshToken: String, vehicleId: String) = command(
+    /** Moves all four windows at once (the API has no call for one window): shut, vented a little, or fully down. */
+    suspend fun controlWindows(refreshToken: String, vehicleId: String, state: WindowSwitchState) = command(
         refreshToken, "AllWindowControl",
-        AllWindowControlRequest.newBuilder().setVehicleId(vehicleId)
-            .setState(WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL).build(),
+        AllWindowControlRequest.newBuilder().setVehicleId(vehicleId).setState(state).build(),
     )
 
     suspend fun setPetMode(refreshToken: String, vehicleId: String, on: Boolean) = command(

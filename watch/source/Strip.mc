@@ -32,7 +32,7 @@ function stripView(page as Number) as [WatchUi.View, WatchUi.BehaviorDelegate] {
         {:icon => s != null && s["locked"] == false ? :unlock : :lock, :id => "lock_menu"},
         {:icon => lidIcon("frunk", s != null && s["frunk"] == true), :id => "frunk_menu"},
         {:icon => lidIcon("trunk", s != null && s["trunk"] == true), :id => "trunk_menu"},
-        {:icon => :windows, :id => "windows_close"},
+        {:icon => :windows, :id => "windows_menu"},
         {:icon => :lights, :id => "flash"},
         {:icon => :horn, :id => "horn"},
         {:icon => s != null && s["hvac"] == false ? :hvacoff : :hvac, :id => "climate_menu"}]);

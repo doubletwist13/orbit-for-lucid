@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import mobilegateway.protos.VehicleStateServiceOuterClass.WindowSwitchState
 import java.io.IOException
 
 data class UiState(
@@ -184,7 +185,15 @@ class Controller(context: Context) {
         "flash" -> command("Sending lights", null, progress) { s -> client.flashLights(token(), s.vehicleId) }
         // confirmed by the car's window positions; a car that reports none answers after the next status read
         "windows_close" -> command("Closing windows", { it.windowsClosed != false }, progress) { s ->
-            client.closeWindows(token(), s.vehicleId)
+            client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_UP_ALL)
+        }
+        // shortcut: no read-back, so "sent" is all we know. A vent stops at no position the car names, and a repeat
+        // vents further; upgrade once a real car shows what the window positions read after each.
+        "windows_vent" -> command("Venting windows", null, progress) { s ->
+            client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_VENT_ALL)
+        }
+        "windows_down" -> command("Lowering windows", null, progress) { s ->
+            client.controlWindows(token(), s.vehicleId, WindowSwitchState.WINDOW_SWITCH_STATE_AUTO_DOWN_ALL)
         }
         // read back from the car's HVAC block like the lock is
         "pet_on", "pet_off" -> {
@@ -317,7 +326,8 @@ class Controller(context: Context) {
     private companion object {
         val WATCH_COMMANDS = setOf(
             "status", "lock", "unlock", "climate_on", "climate_off", "frunk_open", "frunk_close", "trunk_open",
-            "trunk_close", "horn", "flash", "windows_close", "pet_on", "pet_off", "charge_start", "charge_stop",
+            "trunk_close", "horn", "flash", "windows_close", "windows_vent", "windows_down",
+            "pet_on", "pet_off", "charge_start", "charge_stop",
             "limit", "port_open", "port_close", "precon_on", "precon_off", "ac_limit",
         )
     }

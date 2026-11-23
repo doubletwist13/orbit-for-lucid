@@ -184,7 +184,7 @@ Air; a Gravity has its own drawings.
 | <img src="docs/images/icons/trunk-open.png" alt="Car rear, arrow"> | Open the trunk |
 | <img src="docs/images/icons/windows.png" alt="Door window"> | Windows: choose to close, vent or lower them all |
 | <img src="docs/images/icons/windows-up.png" alt="Door window, arrow up"> | Close all windows |
-| <img src="docs/images/icons/windows-down.png" alt="Door window, arrow down"> | Lower all windows (not shown on an Air) |
+| <img src="docs/images/icons/windows-down.png" alt="Door window, arrow down"> | Lower all windows (not on an Air) |
 | <img src="docs/images/icons/windows-vent.png" alt="Door window, short arrow over a bar"> | Vent all windows |
 | <img src="docs/images/icons/lights.png" alt="Headlight"> | Flash the lights |
 | <img src="docs/images/icons/horn.png" alt="Speaker"> | Honk the horn |

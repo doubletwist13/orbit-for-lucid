@@ -99,8 +99,9 @@ same things.
   - **Windows** opens a choice of close (arrow up), vent (a short arrow over a bar) and lower (arrow down), all four
     windows at once: the car has no call for a single window. Each asks you to confirm. Close waits for the car to
     report the windows shut; vent and lower only say "sent". Each vent opens the windows another 2 to 3 inches, so
-    tap it again to open them further. Lower (all the way) is refused by Lucid on an Air, so the watch shows it for
-    other models only; it is untested on a Gravity, and a refusal reads "Can't do that".
+    tap it again to open them further. A rear side shade that is up lowers first, then the window vents. Lower (all
+    the way) is refused by Lucid on an Air, so the watch shows it for other models only; it is untested on a Gravity,
+    and a refusal reads "Can't do that".
   - **Lights** (flash) act at once. **Horn** (one short honk) asks for a confirm tap. Lucid's API gives no way to
     confirm either, so the watch shows "Sending..." and then clears: it means Lucid took the request, not that the
     car acted on it. Watch or listen for the car, and try again if nothing happened. The car ignores these, like the
